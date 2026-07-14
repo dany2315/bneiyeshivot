@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteNavActions } from "@/components/site-nav-actions";
+import { SiteNavLinks } from "@/components/site-nav-links";
 
 export function SiteHeader() {
   return (
@@ -22,27 +23,8 @@ export function SiteHeader() {
             <small>France - Israel</small>
           </span>
         </Link>
-        <nav
-          className="nav-links min-w-0 flex-1 justify-center"
-          aria-label="Navigation principale"
-        >
-          <Link href="/">Accueil</Link>
-          <Link href="/a-propos">A propos</Link>
-          <Link href="/services">Services</Link>
-          <Link href="/evenements">Evenements</Link>
-          <Link href="/programme">Programme</Link>
-          <Link href="/boutique">Boutique</Link>
-          <Link href="/dons">Faire un don</Link>
-          <Link href="/contact">Contact</Link>
-        </nav>
-        <div className="nav-actions">
-          <Button asChild variant="secondary">
-            <Link href="/client">Espace Bahour</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/services" className="text-white">Faire une demande</Link>
-          </Button>
-        </div>
+        <SiteNavLinks />
+        <SiteNavActions />
         <MobileNav />
       </div>
     </header>

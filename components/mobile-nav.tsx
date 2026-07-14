@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   CircleHelp,
@@ -26,6 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 const navLinks: Array<[string, string, LucideIcon]> = [
   ["Accueil", "/", House],
@@ -39,6 +41,8 @@ const navLinks: Array<[string, string, LucideIcon]> = [
 ];
 
 export function MobileNav() {
+  const pathname = usePathname();
+
   return (
     <Sheet>
       <SheetTrigger
@@ -79,12 +83,32 @@ export function MobileNav() {
 
         <ScrollArea className="mobile-nav-scroll">
           <nav className="mobile-nav-list" aria-label="Navigation mobile">
-            {navLinks.map(([label, href, Icon]) => (
-              <SheetClose render={<Link href={href as string} />} key={label}>
-                <Icon className="size-5" />
-                <span>{label}</span>
-              </SheetClose>
-            ))}
+            {navLinks.map(([label, href, Icon]) => {
+              const active =
+                href === "/"
+                  ? pathname === "/"
+                  : pathname === href || pathname.startsWith(`${href}/`);
+
+              return (
+                <SheetClose
+                  render={
+                    <Link
+                      href={href as string}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "rounded-2xl transition",
+                        active &&
+                          "!bg-[var(--primary-soft)] !text-[var(--primary)] shadow-sm"
+                      )}
+                    />
+                  }
+                  key={label}
+                >
+                  <Icon className="size-5" />
+                  <span>{label}</span>
+                </SheetClose>
+              );
+            })}
           </nav>
         </ScrollArea>
 
@@ -97,7 +121,16 @@ export function MobileNav() {
             render={
               <Link
                 href="/client"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--border)] bg-white px-6 text-sm font-bold text-[var(--primary)] shadow-sm transition hover:bg-[var(--primary-soft)]"
+                aria-current={
+                  pathname === "/client" || pathname.startsWith("/client/")
+                    ? "page"
+                    : undefined
+                }
+                className={cn(
+                  "inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--border)] bg-white px-6 text-sm font-bold text-[var(--primary)] shadow-sm transition hover:bg-[var(--primary-soft)]",
+                  (pathname === "/client" || pathname.startsWith("/client/")) &&
+                    "!bg-[var(--primary)] !text-white hover:!bg-[var(--primary)]"
+                )}
               />
             }
           >

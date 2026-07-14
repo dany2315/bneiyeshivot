@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   ChevronRight,
@@ -10,7 +11,6 @@ import {
   FileCheck,
   Gift,
   Home,
-  Inbox,
   LayoutDashboard,
   LogOut,
   MessageSquare,
@@ -55,7 +55,6 @@ const adminGroups: Array<{
     label: "Pilotage",
     items: [
       ["Dashboard", "/admin", LayoutDashboard],
-      ["Demandes", "/admin/visa", Inbox],
       ["Contacts", "/admin/contact", MessageSquare],
       ["Utilisateurs", "/admin/utilisateurs", Users],
     ],
@@ -85,6 +84,8 @@ const adminGroups: Array<{
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   return (
     <SidebarProvider>
       <div className="admin-shell">
@@ -123,6 +124,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                         <SidebarMenuButton
                           render={<Link href={href} />}
                           tooltip={label}
+                          isActive={
+                            href === "/admin"
+                              ? pathname === "/admin"
+                              : pathname === href ||
+                                pathname.startsWith(`${href}/`)
+                          }
                         >
                           <Icon />
                           <span>{label}</span>
