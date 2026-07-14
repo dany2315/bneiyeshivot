@@ -2,12 +2,12 @@ import Link from "next/link";
 import { EventRegistrationStatus } from "@prisma/client";
 import {
   addEventPastMedia,
-  createEvent,
   updateEventRegistrationStatus,
 } from "../actions";
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
 import { AdminFileInput } from "@/components/admin-file-input";
+import { EventCreateDialog } from "@/components/event-create-dialog";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
@@ -27,7 +27,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   NativeSelect,
   NativeSelectOption,
@@ -41,7 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CalendarPlus } from "lucide-react";
+import { Users } from "lucide-react";
 
 export const metadata = {
   title: "Admin evenements",
@@ -63,17 +62,16 @@ function registrationTone(status: EventRegistrationStatus) {
 export default async function AdminEventsPage() {
   await requireAdminUser();
   const now = new Date();
-  const [events, registrations] = await Promise.all([
-    prisma.event.findMany({
-      include: { _count: { select: { registrations: true } } },
-      orderBy: { startsAt: "desc" },
-    }),
-    prisma.eventRegistration.findMany({
-      include: { event: true, user: true },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    }),
-  ]);
+  const events = await prisma.event.findMany({
+    include: {
+      _count: { select: { registrations: true } },
+      registrations: {
+        include: { user: true },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+    orderBy: { startsAt: "desc" },
+  });
 
   return (
     <AdminShell>
@@ -82,86 +80,15 @@ export default async function AdminEventsPage() {
           <span className="eyebrow">Back-office</span>
           <h1>Evenements</h1>
         </div>
-        <Dialog>
-          <DialogTrigger
-            render={
-              <Button>
-                <CalendarPlus />
-                Creer un evenement
-              </Button>
-            }
-          />
-          <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Creer un evenement</DialogTitle>
-              <DialogDescription>
-                Ajoutez les informations publiques, les medias et le choix
-                d&apos;inscription.
-              </DialogDescription>
-            </DialogHeader>
-            <form action={createEvent} className="grid gap-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <Input name="title" placeholder="Titre" required />
-                <Input name="location" placeholder="Lieu" />
-                <Input name="startsAt" required type="datetime-local" />
-                <Input name="endsAt" type="datetime-local" />
-                <Input name="capacity" placeholder="Capacite" type="number" />
-                <label className="flex items-center gap-2 rounded-xl border border-[var(--border)] p-3 text-base font-semibold text-[var(--primary)]">
-                  <input name="requiresRegistration" type="checkbox" />
-                  Demande une inscription
-                </label>
-              </div>
-              <Textarea
-                name="description"
-                placeholder="Description courte"
-                required
-              />
-              <Textarea name="body" placeholder="Texte complet de l'evenement" />
-              <div className="grid gap-2">
-                <label className="text-base font-semibold text-[var(--primary)]">
-                  Image principale
-                </label>
-                <AdminFileInput
-                  accept="image/*"
-                  description="Image de couverture."
-                  name="imageFile"
-                  title="Choisir une image"
-                />
-                <Input name="imageUrl" placeholder="Ou URL image principale" />
-              </div>
-              <Textarea
-                name="videoUrls"
-                placeholder="Liens videos, un lien par ligne"
-              />
-              <div className="grid gap-2">
-                <label className="text-base font-semibold text-[var(--primary)]">
-                  Galerie initiale
-                </label>
-                <AdminFileInput
-                  accept="image/*"
-                  description="Une ou plusieurs images."
-                  multiple
-                  name="galleryFiles"
-                  title="Choisir les images"
-                />
-                <Textarea
-                  name="gallery"
-                  placeholder="Ou URLs photos, separees par ligne ou virgule"
-                />
-              </div>
-              <Button className="w-fit" type="submit">
-                Creer l&apos;evenement
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <EventCreateDialog />
       </div>
 
       <section className="section">
         <div className="section-header">
           <h2>Evenements en base</h2>
           <p>
-            Les evenements passes peuvent recevoir des photos supplementaires.
+            Consultez les inscriptions de chaque evenement. Les evenements
+            passes peuvent recevoir des photos supplementaires.
           </p>
         </div>
         <div className="grid grid-3">
@@ -186,10 +113,108 @@ export default async function AdminEventsPage() {
                   </p>
                   <p className="text-sm text-[var(--muted)]">
                     {event._count.registrations} inscription(s)
+                    {content.videoUrls.length > 0 &&
+                      ` - ${content.videoUrls.length} video(s)`}
                   </p>
+
+                  <Dialog>
+                    <DialogTrigger
+                      render={
+                        <Button variant="secondary">
+                          <Users className="size-4" />
+                          Voir les inscriptions ({event._count.registrations})
+                        </Button>
+                      }
+                    />
+                    <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Inscriptions - {event.title}</DialogTitle>
+                        <DialogDescription>
+                          {event._count.registrations} inscription(s) pour cet
+                          evenement.
+                        </DialogDescription>
+                      </DialogHeader>
+                      {event.registrations.length > 0 ? (
+                        <div className="table-wrap">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Bahour</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead>Action</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {event.registrations.map((registration) => (
+                                <TableRow key={registration.id}>
+                                  <TableCell>
+                                    {registration.user
+                                      ? [
+                                          registration.user.firstName,
+                                          registration.user.lastName,
+                                        ]
+                                          .filter(Boolean)
+                                          .join(" ") ||
+                                        registration.user.email
+                                      : "Sans compte"}
+                                  </TableCell>
+                                  <TableCell>
+                                    <StatusBadge
+                                      tone={registrationTone(
+                                        registration.status,
+                                      )}
+                                    >
+                                      {registrationLabels[registration.status]}
+                                    </StatusBadge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <form
+                                      action={updateEventRegistrationStatus}
+                                      className="flex gap-2"
+                                    >
+                                      <input
+                                        name="registrationId"
+                                        type="hidden"
+                                        value={registration.id}
+                                      />
+                                      <NativeSelect
+                                        className="w-40"
+                                        defaultValue={registration.status}
+                                        name="status"
+                                      >
+                                        {Object.values(
+                                          EventRegistrationStatus,
+                                        ).map((status) => (
+                                          <NativeSelectOption
+                                            key={status}
+                                            value={status}
+                                          >
+                                            {registrationLabels[status]}
+                                          </NativeSelectOption>
+                                        ))}
+                                      </NativeSelect>
+                                      <Button size="sm" type="submit">
+                                        OK
+                                      </Button>
+                                    </form>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <p className="py-6 text-center text-base text-[var(--muted)]">
+                          Aucune inscription pour le moment.
+                        </p>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+
                   <Button asChild variant="secondary">
                     <Link href={`/evenements/${event.slug}`}>Voir la page</Link>
                   </Button>
+
                   {isPast && (
                     <form action={addEventPastMedia} className="grid gap-2">
                       <input name="eventId" type="hidden" value={event.id} />
@@ -209,73 +234,10 @@ export default async function AdminEventsPage() {
                       </Button>
                     </form>
                   )}
-                  {content.videoUrls.length > 0 && (
-                    <span className="text-sm text-[var(--muted)]">
-                      {content.videoUrls.length} video(s) renseignee(s)
-                    </span>
-                  )}
                 </CardContent>
               </Card>
             );
           })}
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-header">
-          <h2>Inscriptions evenements</h2>
-          <p>Validation rapide des demandes de participation.</p>
-        </div>
-        <div className="table-wrap">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Bahour</TableHead>
-                <TableHead>Evenement</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registrations.map((registration) => (
-                <TableRow key={registration.id}>
-                  <TableCell>{registration.user?.email ?? "Sans email"}</TableCell>
-                  <TableCell>{registration.event.title}</TableCell>
-                  <TableCell>
-                    <StatusBadge tone={registrationTone(registration.status)}>
-                      {registrationLabels[registration.status]}
-                    </StatusBadge>
-                  </TableCell>
-                  <TableCell>
-                    <form
-                      action={updateEventRegistrationStatus}
-                      className="flex gap-2"
-                    >
-                      <input
-                        name="registrationId"
-                        type="hidden"
-                        value={registration.id}
-                      />
-                      <NativeSelect
-                        className="w-44"
-                        defaultValue={registration.status}
-                        name="status"
-                      >
-                        {Object.values(EventRegistrationStatus).map((status) => (
-                          <NativeSelectOption value={status} key={status}>
-                            {registrationLabels[status]}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
-                      <Button size="sm" type="submit">
-                        OK
-                      </Button>
-                    </form>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </div>
       </section>
     </AdminShell>

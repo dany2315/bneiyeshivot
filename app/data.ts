@@ -50,30 +50,6 @@ export const requestRows = [
   ["Raphael Benhamou", "Visa etudiant", "Valide", "10 juillet"],
 ];
 
-export const events = [
-  {
-    title: "Mivhan Talmoudo Beyado",
-    date: "Jeudi prochain",
-    location: "Jerusalem",
-    description:
-      "Inscription mensuelle, presence, saisie des notes et suivi dans l'Espace Bahour.",
-  },
-  {
-    title: "Beth Hamidrach",
-    date: "Chaque semaine",
-    location: "Israel",
-    description:
-      "Cours, seder limoud et moments de rencontre pour les jeunes francophones.",
-  },
-  {
-    title: "Grand Chabbat Bnei Yeshivot",
-    date: "Prochainement",
-    location: "Israel",
-    description:
-      "Page evenement avec image, contenu riche, capacite et demandes de participation.",
-  },
-];
-
 export const clientItems = [
   ["Demande visa", "Documents manquants", "Ajouter les pieces demandees"],
   ["Inscription mivhan", "Confirmee", "Session de juillet"],

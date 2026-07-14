@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PageShell } from "./components";
-import { events, impactStats } from "./data";
+import { impactStats } from "./data";
 import { programmes } from "./programme/programmes";
+import { prisma } from "@/lib/prisma";
+import { formatDateTime } from "@/lib/event-content";
 import { ImpactCounter } from "@/components/impact-counter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -134,7 +136,13 @@ const testimonials = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const upcomingEvents = await prisma.event.findMany({
+    where: { startsAt: { gte: new Date() } },
+    orderBy: { startsAt: "asc" },
+    take: 3,
+  });
+
   return (
     <PageShell>
       <main>
@@ -376,24 +384,36 @@ export default function Home() {
             <div className="section-header">
               <h2>Les prochains evenements</h2>
               <p>
-                Une section dynamique pour annoncer les prochaines rencontres
-                et permettre les inscriptions.
+                Les prochaines rencontres de la communaute, mises a jour par
+                l&apos;equipe.
               </p>
             </div>
-            <div className="grid grid-3">
-              {events.map((event) => (
-                <Card key={event.title}>
-                  <CardHeader>
-                    <Badge variant="info">{event.date}</Badge>
-                    <CardTitle>{event.title}</CardTitle>
-                    <CardDescription>{event.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="secondary">{event.title.includes("Ben") ? "Voir le programme" : event.title.includes("Chabbat") ? "Reserver" : "S'inscrire"}</Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {upcomingEvents.length > 0 ? (
+              <div className="grid grid-3">
+                {upcomingEvents.map((event) => (
+                  <Card key={event.id}>
+                    <CardHeader>
+                      <Badge variant="info">
+                        {formatDateTime(event.startsAt)}
+                      </Badge>
+                      <CardTitle>{event.title}</CardTitle>
+                      <CardDescription>{event.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button asChild variant="secondary">
+                        <Link href="/evenements">Voir les evenements</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-10 text-center text-base text-[var(--muted)]">
+                  Aucun evenement a venir pour le moment.
+                </CardContent>
+              </Card>
+            )}
           </div>
         </section>
 
