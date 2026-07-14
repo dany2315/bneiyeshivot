@@ -28,6 +28,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { CalendarCheck, CheckCircle2, FileText, Trophy } from "lucide-react";
+import { BahourAccountMenu } from "@/components/bahour-account-menu";
 
 export const metadata = {
   title: "Espace Bahour",
@@ -106,15 +107,22 @@ export default async function ClientPage() {
           <div className="container">
             <div className="portal-summary">
               <Card className="portal-card">
-                <CardHeader>
-                  <span className="eyebrow">Tableau personnel</span>
-                  <CardTitle className="text-3xl">
-                    Bonjour {user.firstName || "Bahour"}
-                  </CardTitle>
-                  <CardDescription>
-                    Toutes les donnees sont liees a votre email confirme :{" "}
-                    {user.email}
-                  </CardDescription>
+                <CardHeader className="gap-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <span className="eyebrow">Tableau personnel</span>
+                    <CardTitle className="text-3xl">
+                      Bonjour {user.firstName || "Bahour"}
+                    </CardTitle>
+                    <CardDescription>
+                      Toutes les donnees sont liees a votre email confirme :{" "}
+                      {user.email}
+                    </CardDescription>
+                  </div>
+                  <BahourAccountMenu
+                    email={user.email}
+                    firstName={user.firstName}
+                    lastName={user.lastName}
+                  />
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-3">
                   <Button asChild>
