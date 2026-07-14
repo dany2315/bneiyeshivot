@@ -98,7 +98,6 @@ export async function AdminServiceRequestsPage({
       <div className="admin-header">
         <div>
           <span className="eyebrow">Back-office</span>
-          <h1>{title}</h1>
         </div>
       </div>
 
@@ -176,11 +175,7 @@ export async function AdminServiceRequestsPage({
 
         <div className="mt-5 grid gap-4">
           {requests.map((request) => (
-            <Card
-              id={`request-${request.id}`}
-              key={`request-form-${request.id}`}
-              className="scroll-mt-24"
-            >
+            <Card key={`request-form-${request.id}`}>
               <form action={updateServiceRequest}>
                 <CardHeader>
                   <CardTitle className="text-xl">
