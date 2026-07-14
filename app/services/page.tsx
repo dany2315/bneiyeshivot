@@ -1,0 +1,168 @@
+import Link from "next/link";
+import Image from "next/image";
+import { PageShell } from "../components";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+export const metadata = {
+  title: "Services",
+};
+
+const pageServices = [
+  {
+    title: "Assurance maladie",
+    description:
+      "Nous accompagnons gratuitement les etudiants dans leurs demarches aupres des caisses d'assurance maladie israeliennes.",
+    action: "Faire une demande",
+    href: "/demandes/koupat-holim",
+    image:
+      "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Visa etudiant",
+    description:
+      "Nous vous accompagnons dans toutes les demarches pour obtenir ou renouveler votre visa etudiant.",
+    action: "Deposer un dossier",
+    href: "/demandes/visa",
+    image:
+      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "ETA-IL",
+    description:
+      "Nous vous aidons a effectuer votre demande d'autorisation d'entree en Israel.",
+    action: "Commencer ma demande",
+    href: "https://israel-entry.piba.gov.il/",
+    image:
+      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Installation en Israel",
+    description:
+      "Toutes les informations essentielles avant votre arrivee : checklist, telephone, banque, assurance, transport et administratif.",
+    action: "Je prepare mon arrivee",
+    href: "/services",
+    image:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Boutique Literie",
+    description:
+      "Commandez votre pack complet avant votre arrivee en Israel : oreiller, couette, draps, housse et protege-matelas selon les packs.",
+    action: "Voir la boutique",
+    href: "/boutique",
+    image:
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Guide PDF",
+    description:
+      "Tout ce qu'il faut savoir avant de venir etudier en Israel dans un guide complet telechargeable.",
+    action: "Telecharger gratuitement",
+    href: "/services",
+    image:
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
+  },
+  {
+    title: "Dvar Torah",
+    description:
+      "Telechargez gratuitement les feuillets de Torah pour les fetes et les Chabbatot.",
+    action: "Telecharger",
+    href: "/programme",
+    image:
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80",
+  },
+];
+
+export default function ServicesPage() {
+  return (
+    <PageShell>
+      <main>
+        <section className="page-hero">
+          <div className="container">
+            <span className="eyebrow">Accompagnement</span>
+            <h1>Services</h1>
+            <p>
+              Une page dediee pour presenter les services Bnei Yeshivot :
+              demandes visa, koupat holim, redirection ETA-IL et boutique pour
+              les nouveaux arrivants.
+            </p>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <div className="section-header">
+              <h2>Choisir un service</h2>
+              <p>
+                Les demandes visa et koupat holim creent un dossier suivi dans
+                l&apos;Espace Bahour. ETA-IL redirige uniquement vers le site
+                officiel.
+              </p>
+            </div>
+            <div className="service-showcase">
+              {pageServices.map(({ title, description, action, href, image }) => (
+                <Card className="service-card" key={title}>
+                  <div className="service-card-image">
+                    <Image
+                      src={image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 980px) 100vw, 50vw"
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button asChild variant="secondary">
+                      <Link href={href}>{action}</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section band">
+          <div className="container split">
+            <div>
+              <span className="eyebrow">Suivi simple</span>
+              <h2>Un dossier clair pour chaque demande</h2>
+              <p>
+                Chaque demande administrative pourra etre suivie par le Bahour :
+                statut, documents manquants, messages de l&apos;equipe et actions
+                a completer.
+              </p>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Parcours type</CardTitle>
+                <CardDescription>
+                  Depot de demande, upload des pieces, verification admin,
+                  relance si besoin, puis suivi depuis l&apos;Espace Bahour.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
+                <Button asChild>
+                  <Link href="/demandes/visa">Faire une demande visa</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/client">Espace Bahour</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      </main>
+    </PageShell>
+  );
+}

@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ServiceRequestType {
+  VISA_STUDENT
+  KOUPAT_HOLIM
+  GENERAL_CONTACT
+}
+
+enum ServiceRequestStatus {
+  SUBMITTED
+  IN_REVIEW
+  MISSING_DOCUMENTS
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum PaymentProvider {
+  STRIPE
+  NEDARIM_PLUS
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum DocumentStatus {
+  MISSING
+  REQUESTED
+  RECEIVED
+  REJECTED
+  VALIDATED
+}
+
+enum EventRegistrationStatus {
+  SUBMITTED
+  CONFIRMED
+  WAITLISTED
+  CANCELED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PREPARING
+  READY
+  DELIVERED
+  CANCELED
+}
+
+enum MivhanRegistrationStatus {
+  REGISTERED
+  PRESENT
+  ABSENT
+  GRADED
+  CANCELED
+}
+
+enum ReceiptStatus {
+  NOT_REQUESTED
+  REQUESTED
+  GENERATED
+  SENT
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  firstName           String?
+  lastName            String?
+  phone               String?
+  role                UserRole             @default(CLIENT)
+  requests            ServiceRequest[]
+  donations           Donation[]
+  eventRegistrations  EventRegistration[]
+  orders              Order[]
+  mivhanRegistrations MivhanRegistration[]
+  assignedRequests    ServiceRequest[]     @relation("AssignedRequests")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model ServiceRequest {
+  id           String               @id @default(cuid())
+  type         ServiceRequestType
+  status       ServiceRequestStatus @default(SUBMITTED)
+  userId       String?
+  user         User?                @relation(fields: [userId], references: [id])
+  assignedToId String?
+  assignedTo   User?                @relation("AssignedRequests", fields: [assignedToId], references: [id])
+  payload      Json
+  publicNote   String?
+  internalNote String?
+  documents    RequestDocument[]
+  messages     RequestMessage[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+model RequestDocument {
+  id              String         @id @default(cuid())
+  requestId       String
+  request         ServiceRequest @relation(fields: [requestId], references: [id])
+  label           String
+  fileKey         String
+  mimeType        String
+  status          DocumentStatus @default(RECEIVED)
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model RequestMessage {
+  id         String         @id @default(cuid())
+  requestId  String
+  request    ServiceRequest @relation(fields: [requestId], references: [id])
+  authorId   String?
+  body       String
+  isInternal Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+}
+
+model Event {
+  id            String              @id @default(cuid())
+  title         String
+  slug          String              @unique
+  description   String
+  content       Json?
+  imageKey      String?
+  startsAt      DateTime
+  endsAt        DateTime?
+  location      String?
+  capacity      Int?
+  registrations EventRegistration[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+model EventRegistration {
+  id        String                  @id @default(cuid())
+  eventId   String
+  event     Event                   @relation(fields: [eventId], references: [id])
+  userId    String?
+  user      User?                   @relation(fields: [userId], references: [id])
+  payload   Json
+  status    EventRegistrationStatus @default(SUBMITTED)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+}
+
+model Donation {
+  id            String          @id @default(cuid())
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id])
+  provider      PaymentProvider
+  status        PaymentStatus   @default(PENDING)
+  amountCents   Int
+  currency      String
+  donorEmail    String
+  donorName     String?
+  receiptNeeded Boolean         @default(false)
+  receiptStatus ReceiptStatus   @default(NOT_REQUESTED)
+  receipt       Receipt?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Receipt {
+  id         String   @id @default(cuid())
+  donationId String   @unique
+  donation   Donation @relation(fields: [donationId], references: [id])
+  number     String   @unique
+  fileKey    String?
+  issuedAt   DateTime @default(now())
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  description String
+  priceCents  Int
+  currency    String      @default("EUR")
+  active      Boolean     @default(true)
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  userId     String?
+  user       User?       @relation(fields: [userId], references: [id])
+  email      String
+  status     OrderStatus @default(PENDING_PAYMENT)
+  totalCents Int
+  currency   String      @default("EUR")
+  items      OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitCents Int
+}
+
+model MivhanSession {
+  id            String               @id @default(cuid())
+  title         String
+  date          DateTime
+  location      String?
+  registrations MivhanRegistration[]
+  createdAt     DateTime             @default(now())
+}
+
+model MivhanRegistration {
+  id        String                   @id @default(cuid())
+  sessionId String
+  session   MivhanSession            @relation(fields: [sessionId], references: [id])
+  userId    String?
+  user      User?                    @relation(fields: [userId], references: [id])
+  status    MivhanRegistrationStatus @default(REGISTERED)
+  grade     Float?
+  note      String?
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
