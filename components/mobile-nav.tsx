@@ -67,9 +67,9 @@ export function MobileNav() {
   async function signOut() {
     setSigningOut(true);
 
-    const response = await signOutRequest();
-
-    if (!response.ok) {
+    try {
+      await signOutRequest();
+    } catch {
       setSigningOut(false);
       toast.error("Impossible de se deconnecter pour le moment.");
       return;

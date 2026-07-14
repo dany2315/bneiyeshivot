@@ -1,11 +1,15 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
+
 export async function signOutRequest() {
-  return fetch("/api/logout", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({}),
-  });
+  const result = await authClient.signOut();
+
+  if (result.error) {
+    throw new Error(
+      result.error.message ?? "Impossible de se deconnecter pour le moment."
+    );
+  }
+
+  return result.data;
 }

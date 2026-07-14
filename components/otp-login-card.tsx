@@ -53,7 +53,7 @@ export function OtpLoginCard({
   });
 
   async function signOutRejectedSession() {
-    await signOutRequest();
+    await signOutRequest().catch(() => undefined);
   }
 
   async function validateAudience() {

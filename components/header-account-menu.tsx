@@ -36,9 +36,9 @@ export function HeaderAccountMenu({ user }: HeaderAccountMenuProps) {
   async function signOut() {
     setLoading(true);
 
-    const response = await signOutRequest();
-
-    if (!response.ok) {
+    try {
+      await signOutRequest();
+    } catch {
       setLoading(false);
       toast.error("Impossible de se deconnecter pour le moment.");
       return;
