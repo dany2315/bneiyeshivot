@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import {
   Calendar,
   Check,
@@ -63,7 +63,7 @@ const nationalityOptions = Object.keys(countries)
   }))
   .sort((first, second) => first.label.localeCompare(second.label, "fr"));
 
-function NationalityCombobox({ id }: { id: string }) {
+function NationalityCombobox({ id, name }: { id: string; name: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<(typeof nationalityOptions)[number]>();
@@ -81,17 +81,18 @@ function NationalityCombobox({ id }: { id: string }) {
   }, [query]);
 
   return (
-    <div className="nationality-combobox">
+    <div className="relative z-[100]">
+      <input name={name} type="hidden" value={selected?.label ?? ""} />
       <button
         id={id}
         type="button"
-        className="nationality-trigger"
+        className="flex min-h-11 w-full items-center gap-2.5 rounded-xl border border-[var(--border)] bg-white px-[13px] py-2.5 text-left text-base font-semibold text-[var(--primary)]"
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((value) => !value)}
       >
         <Flag className="size-4 text-[var(--accent)]" />
-        <span className="nationality-value">
+        <span className="inline-flex min-w-0 items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
           {selected ? (
             <>
               <span aria-hidden="true">{selected.flag}</span>
@@ -104,19 +105,19 @@ function NationalityCombobox({ id }: { id: string }) {
       </button>
 
       {open && (
-        <div className="nationality-panel">
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[9999] grid gap-2 rounded-2xl border border-[var(--border)] bg-white p-2.5 shadow-[0_22px_60px_rgba(6,40,70,0.16)]">
           <Input
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Rechercher une nationalite..."
           />
-          <div className="nationality-list" role="listbox">
+          <div className="grid max-h-[280px] gap-0.5 overflow-y-auto pr-1" role="listbox">
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
-                className="nationality-option"
+                className="flex w-full items-center gap-2.5 rounded-[10px] border-0 bg-transparent px-2.5 py-[9px] text-left text-base font-semibold text-[var(--primary)] hover:bg-[var(--primary-soft)] aria-selected:bg-[var(--primary-soft)] [&_svg]:ml-auto [&_svg]:text-[var(--accent)]"
                 role="option"
                 aria-selected={selected?.value === option.value}
                 onClick={() => {
@@ -139,13 +140,59 @@ function NationalityCombobox({ id }: { id: string }) {
 
 export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
   const [step, setStep] = useState(0);
+  const [personStatus, setPersonStatus] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [submitState, setSubmitState] = useState<{
+    status: "idle" | "loading" | "success" | "error";
+    message: string;
+  }>({ status: "idle", message: "" });
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
   const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitState({ status: "loading", message: "Envoi du dossier..." });
+
+    const formData = new FormData(event.currentTarget);
+    const payload = Object.fromEntries(formData.entries());
+    const response = await fetch("/api/requests", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...payload,
+        kind: type,
+      }),
+    });
+    const result = (await response.json()) as {
+      ok: boolean;
+      requestId?: string;
+      message?: string;
+      issues?: { message: string }[];
+    };
+
+    if (!response.ok || !result.ok) {
+      setSubmitState({
+        status: "error",
+        message:
+          result.issues?.[0]?.message ??
+          result.message ??
+          "Impossible d'envoyer la demande.",
+      });
+      return;
+    }
+
+    setSubmitState({
+      status: "success",
+      message: `Demande creee. Reference dossier : ${result.requestId}`,
+    });
+  }
+
   return (
-    <Card className="form-card">
+    <Card className="relative z-20 max-w-[760px] overflow-visible">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>
@@ -154,7 +201,8 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
             : "Formulaire de demande koupat holim avec les informations et pieces demandees."}
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-6">
+      <CardContent>
+        <form className="grid gap-6" onSubmit={handleSubmit}>
         <div className="grid gap-3">
           <div className="stepper-grid">
             {steps.map(({ label, detail }, index) => (
@@ -183,17 +231,19 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
           <FieldGroup className="form-grid">
             <Field>
               <FieldLabel htmlFor={`${type}-first-name`}>Prenom</FieldLabel>
-              <Input id={`${type}-first-name`} placeholder="David" />
+              <Input id={`${type}-first-name`} name="firstName" placeholder="David" required />
             </Field>
             <Field>
               <FieldLabel htmlFor={`${type}-last-name`}>Nom</FieldLabel>
-              <Input id={`${type}-last-name`} placeholder="Cohen" />
+              <Input id={`${type}-last-name`} name="lastName" placeholder="Cohen" required />
             </Field>
             <Field>
               <FieldLabel htmlFor={`${type}-email`}>Email</FieldLabel>
               <Input
                 id={`${type}-email`}
+                name="email"
                 placeholder="email@exemple.com"
+                required
                 type="email"
               />
             </Field>
@@ -201,7 +251,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
               <FieldLabel htmlFor={`${type}-phone`}>
                 Telephone / WhatsApp
               </FieldLabel>
-              <Input id={`${type}-phone`} placeholder="+972 ..." />
+              <Input id={`${type}-phone`} name="phone" placeholder="+972 ..." required />
             </Field>
             {(isVisa || isKoupat) && (
               <>
@@ -209,13 +259,16 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                   <FieldLabel htmlFor={`${type}-birth-date`}>
                     Date de naissance
                   </FieldLabel>
-                  <Input id={`${type}-birth-date`} type="date" />
+                  <Input id={`${type}-birth-date`} name="birthDate" required type="date" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`${type}-nationality`}>
                     Nationalite
                   </FieldLabel>
-                  <NationalityCombobox id={`${type}-nationality`} />
+                  <NationalityCombobox
+                    id={`${type}-nationality`}
+                    name="nationality"
+                  />
                 </Field>
               </>
             )}
@@ -232,7 +285,11 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                       <FieldLabel htmlFor="visa-person-status">
                         Statut de la personne
                       </FieldLabel>
-                      <Select>
+                      <input name="personStatus" type="hidden" value={personStatus} />
+                      <Select
+                        value={personStatus}
+                        onValueChange={(value) => setPersonStatus(value ?? "")}
+                      >
                         <SelectTrigger className="h-11 w-full bg-white">
                           <SelectValue placeholder="Selectionner le statut" />
                         </SelectTrigger>
@@ -251,7 +308,9 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                       </FieldLabel>
                       <Input
                         id="koupat-passport-number"
+                        name="passportNumber"
                         placeholder="Numero du passeport"
+                        required
                       />
                     </>
                   )}
@@ -263,7 +322,9 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                     </FieldLabel>
                     <Input
                       id="visa-passport-number"
+                      name="passportNumber"
                       placeholder="Numero du passeport"
+                      required
                     />
                   </Field>
                 )}
@@ -295,6 +356,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
               </FieldLabel>
               <Input
                 id={`${type}-school`}
+                name="school"
                 placeholder={
                   isVisa || isKoupat
                     ? "Nom de la yeshiva ou du programme"
@@ -322,6 +384,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
               </FieldLabel>
               <Textarea
                 id={`${type}-message`}
+                name="message"
                 placeholder={
                   type === "visa"
                     ? "Informations utiles pour le dossier visa..."
@@ -396,7 +459,16 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
             </p>
             {(isVisa || isKoupat) && (
               <Field orientation="horizontal" className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4">
-                <Checkbox id={`${type}-terms`} />
+                <input
+                  name="acceptTerms"
+                  type="hidden"
+                  value={acceptedTerms ? "true" : "false"}
+                />
+                <Checkbox
+                  checked={acceptedTerms}
+                  id={`${type}-terms`}
+                  onCheckedChange={(value) => setAcceptedTerms(value === true)}
+                />
                 <div className="grid gap-1">
                   <FieldLabel htmlFor={`${type}-terms`}>
                     J&apos;accepte les conditions generales des demandes{" "}
@@ -409,6 +481,20 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 </div>
               </Field>
             )}
+          </div>
+        )}
+
+        {submitState.status !== "idle" && (
+          <div
+            className={
+              submitState.status === "error"
+                ? "rounded-xl border border-red-200 bg-red-50 p-4 text-base text-red-900"
+                : submitState.status === "success"
+                  ? "rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-emerald-900"
+                  : "rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--primary)]"
+            }
+          >
+            {submitState.message}
           </div>
         )}
 
@@ -433,12 +519,13 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
               <ChevronRight />
             </Button>
           ) : (
-            <Button type="button">
+            <Button disabled={submitState.status === "loading"} type="submit">
               Envoyer la demande
               <Check />
             </Button>
           )}
         </div>
+        </form>
       </CardContent>
     </Card>
   );

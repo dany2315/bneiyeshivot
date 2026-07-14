@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   CalendarDays,
+  CircleHelp,
   Gift,
+  House,
   Mail,
   Menu,
   ShoppingBag,
@@ -26,6 +28,8 @@ import {
 } from "@/components/ui/sheet";
 
 const navLinks: Array<[string, string, LucideIcon]> = [
+  ["Accueil", "/", House],
+  ["A propos", "/a-propos", CircleHelp],
   ["Services", "/services", Sparkles],
   ["Evenements", "/evenements", CalendarDays],
   ["Programme", "/programme", Trophy],

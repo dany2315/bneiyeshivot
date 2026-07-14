@@ -29,7 +29,7 @@ export default function ContactPage() {
         </section>
         <section className="section">
           <div className="container split">
-            <form className="form-card rounded-2xl border border-[var(--border)] bg-white/90 p-6 shadow-[0_18px_48px_rgba(6,40,70,0.045)]">
+            <form className="max-w-[760px] rounded-2xl border border-[var(--border)] bg-white/90 p-6 shadow-[0_18px_48px_rgba(6,40,70,0.045)]">
               <h2 className="mb-4 text-2xl font-bold text-[var(--primary)]">
                 Envoyer un message
               </h2>

@@ -67,15 +67,18 @@ test("renders the Bnei Yeshivot public homepage", async () => {
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
-test("renders admin and Espace Bahour surfaces", async () => {
-  const [admin, client] = await Promise.all([
+test("renders protected auth surfaces", async () => {
+  const [admin, client, register] = await Promise.all([
     render("/admin"),
     render("/client"),
+    render("/inscription"),
   ]);
 
   assert.equal(admin.status, 200);
   assert.equal(client.status, 200);
+  assert.equal(register.status, 200);
 
-  assert.match(await admin.text(), /Dashboard admin/);
-  assert.match(await client.text(), /Espace Bahour/);
+  assert.match(await admin.text(), /Connexion admin/);
+  assert.match(await client.text(), /Connexion/);
+  assert.match(await register.text(), /Creer mon acces Bahour/);
 });

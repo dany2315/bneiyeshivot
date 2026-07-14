@@ -7,7 +7,7 @@ import { MobileNav } from "@/components/mobile-nav";
 export function SiteHeader() {
   return (
     <header className="topbar">
-      <div className="container nav">
+      <div className="container nav !w-[min(1440px,calc(100%-32px))] gap-3 xl:gap-5">
         <Link className="brand" href="/">
           <Image
             src="/logo-bnei-mark.png"
@@ -22,7 +22,12 @@ export function SiteHeader() {
             <small>France - Israel</small>
           </span>
         </Link>
-        <nav className="nav-links" aria-label="Navigation principale">
+        <nav
+          className="nav-links min-w-0 flex-1 justify-center"
+          aria-label="Navigation principale"
+        >
+          <Link href="/">Accueil</Link>
+          <Link href="/a-propos">A propos</Link>
           <Link href="/services">Services</Link>
           <Link href="/evenements">Evenements</Link>
           <Link href="/programme">Programme</Link>
@@ -57,6 +62,7 @@ export function SiteFooter() {
         </div>
         <div>
           <h4>Services</h4>
+          <Link href="/a-propos">A propos</Link>
           <Link href="/services">Tous les services</Link>
           <Link href="/demandes/visa">Visa etudiant</Link>
           <Link href="/demandes/koupat-holim">Koupat Holim</Link>

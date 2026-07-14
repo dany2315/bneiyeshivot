@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PageShell } from "./components";
 import { events, impactStats } from "./data";
+import { programmes } from "./programme/programmes";
 import { ImpactCounter } from "@/components/impact-counter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,17 +21,14 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import {
-  BookOpen,
   CheckCircle2,
-  ClipboardCheck,
   Film,
+  Gift,
   Heart,
-  HomeIcon,
   Play,
-  Sparkles,
-  Users,
+  School,
+  ShoppingBasket,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 const homeServices = [
   {
@@ -95,42 +93,6 @@ const homeServices = [
     href: "/programme",
     image:
       "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80",
-  },
-];
-
-const programmes: Array<{
-  title: string;
-  description: string;
-  Icon: LucideIcon;
-}> = [
-  { title: "Beth Hamidrach", description: "Etudier dans une ambiance chaleureuse.", Icon: BookOpen },
-  {
-    title: "Ben Hazmanim",
-    description:
-      "Des programmes de Torah partout en France et en Israel pendant les vacances.",
-    Icon: Sparkles,
-  },
-  {
-    title: "Talmoudo Beyado",
-    description: "Un programme de revision avec examens, suivi et bourses.",
-    Icon: ClipboardCheck,
-  },
-  {
-    title: "Shabbatot",
-    description:
-      "Des Chabbatot inoubliables, reunissant des centaines de jeunes.",
-    Icon: Users,
-  },
-  {
-    title: "Bayit Neeman",
-    description: "Accompagnement des jeunes dans la construction de leur foyer.",
-    Icon: HomeIcon,
-  },
-  {
-    title: "Chidoukhim",
-    description:
-      "Un accompagnement serieux et discret pour les jeunes en age de se marier.",
-    Icon: Heart,
   },
 ];
 
@@ -300,8 +262,9 @@ export default function Home() {
             <div className="section-header">
               <h2>Nos services</h2>
               <p>
-                Le coeur du site : chaque service est accessible rapidement,
-                avec un parcours clair et une action directe.
+                Retrouvez en un seul endroit les demarches essentielles pour
+                preparer votre arrivee, suivre vos dossiers et avancer avec un
+                accompagnement clair a chaque etape.
               </p>
             </div>
             <div className="service-showcase">
@@ -335,7 +298,7 @@ export default function Home() {
               </p>
             </div>
             <div className="grid grid-3">
-              {programmes.map(({ title, description, Icon }, index) => (
+              {programmes.map(({ title, description, href, ctaLabel, actions, Icon }, index) => (
                 <Card
                   className="group relative min-h-[220px] overflow-hidden border-[rgba(6,40,70,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.88))] p-0 shadow-[0_18px_48px_rgba(6,40,70,0.045)] transition hover:-translate-y-1 hover:border-[rgba(242,99,0,0.22)] hover:shadow-[0_26px_70px_rgba(6,40,70,0.09)]"
                   key={title}
@@ -356,8 +319,23 @@ export default function Home() {
                       <CardDescription className="text-base leading-7">
                         {description}
                       </CardDescription>
+                      {title === "Programme Avrekhim" ? (
+                        <ul className="program-card-list">
+                          {actions.map((action) => (
+                            <li key={action.title}>
+                              <CheckCircle2 className="size-4" />
+                              <span>{action.title}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
                     </div>
                   </CardHeader>
+                  <CardContent className="relative z-10 px-6 pb-6 pt-0">
+                    <Button asChild variant="secondary">
+                      <Link href={href}>{ctaLabel}</Link>
+                    </Button>
+                  </CardContent>
                   <div className="absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-0 transition group-hover:opacity-60" />
                 </Card>
               ))}
@@ -461,6 +439,50 @@ export default function Home() {
               <CarouselPrevious className="left-2 z-10 bg-white/90 shadow-md backdrop-blur" />
               <CarouselNext className="right-2 z-10 bg-white/90 shadow-md backdrop-blur" />
             </Carousel>
+          </div>
+        </section>
+
+        <section className="section band kesher-home">
+          <div className="container donation-home-inner">
+            <div>
+              <span className="eyebrow">Kesher Nitsri</span>
+              <h2>Une communaute engagee</h2>
+              <p>
+                Ensemble, faisons grandir la solidarite francophone en Israel.
+                Kesher Nitsri est la communaute des personnes qui souhaitent
+                soutenir durablement les actions de Bnei Yeshivot.
+              </p>
+              <ul className="donation-list kesher-home-list">
+                <li>
+                  <Gift className="size-4" />
+                  Distributions pour les fetes
+                </li>
+                <li>
+                  <ShoppingBasket className="size-4" />
+                  Bons d'achat pour les familles
+                </li>
+                <li>
+                  <School className="size-4" />
+                  Fournitures scolaires
+                </li>
+                <li>
+                  <Heart className="size-4" />
+                  Actions de solidarite
+                </li>
+              </ul>
+              <Button asChild variant="accent" size="lg">
+                <Link href="/kesher-nitsri">Rejoindre Kesher Nitsri</Link>
+              </Button>
+            </div>
+            <Card className="program-highlight-card">
+              <CardHeader>
+                <CardTitle>Soutenir les jeunes, les Avrekhim et les familles</CardTitle>
+                <CardDescription>
+                  Grace a l'engagement de ses membres, Bnei Yeshivot developpe
+                  des actions concretes tout au long de l'annee.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
         </section>
 

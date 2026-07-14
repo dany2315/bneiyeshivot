@@ -45,7 +45,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-type AdminItem = [string, LucideIcon, boolean?];
+type AdminItem = [string, string, LucideIcon];
 
 const adminGroups: Array<{
   label: string;
@@ -54,33 +54,33 @@ const adminGroups: Array<{
   {
     label: "Pilotage",
     items: [
-      ["Dashboard", LayoutDashboard, true],
-      ["Demandes", Inbox],
-      ["Contacts", MessageSquare],
-      ["Utilisateurs", Users],
+      ["Dashboard", "/admin", LayoutDashboard],
+      ["Demandes", "/admin/visa", Inbox],
+      ["Contacts", "/admin/contact", MessageSquare],
+      ["Utilisateurs", "/admin/utilisateurs", Users],
     ],
   },
   {
     label: "Services",
     items: [
-      ["Visa etudiant", FileCheck],
-      ["Koupat Holim", ClipboardList],
-      ["Evenements", CalendarDays],
-      ["Talmoudo Beyado", Trophy],
+      ["Visa etudiant", "/admin/visa", FileCheck],
+      ["Koupat Holim", "/admin/koupat-holim", ClipboardList],
+      ["Evenements", "/admin/evenements", CalendarDays],
+      ["Talmoudo Beyado", "/admin/talmoudo-beyado", Trophy],
     ],
   },
   {
     label: "Paiements",
     items: [
-      ["Boutique", ShoppingBag],
-      ["Commandes", CreditCard],
-      ["Dons", Gift],
-      ["Recus", FileCheck],
+      ["Boutique", "/admin/boutique", ShoppingBag],
+      ["Commandes", "/admin/commandes", CreditCard],
+      ["Dons", "/admin/dons", Gift],
+      ["Recus", "/admin/recus", FileCheck],
     ],
   },
   {
     label: "Systeme",
-    items: [["Parametres", Settings]],
+    items: [["Parametres", "/admin/parametres", Settings]],
   },
 ];
 
@@ -118,10 +118,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 </SidebarGroupAction>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {group.items.map(([label, Icon, active]) => (
+                    {group.items.map(([label, href, Icon]) => (
                       <SidebarMenuItem key={label}>
                         <SidebarMenuButton
-                          isActive={Boolean(active)}
+                          render={<Link href={href} />}
                           tooltip={label}
                         >
                           <Icon />

@@ -82,11 +82,16 @@ enum ReceiptStatus {
 
 model User {
   id                  String               @id @default(cuid())
+  name                String               @default("")
   email               String               @unique
+  emailVerified       Boolean              @default(false)
+  image               String?
   firstName           String?
   lastName            String?
   phone               String?
   role                UserRole             @default(CLIENT)
+  sessions            Session[]
+  accounts            Account[]
   requests            ServiceRequest[]
   donations           Donation[]
   eventRegistrations  EventRegistration[]
@@ -95,6 +100,44 @@ model User {
   assignedRequests    ServiceRequest[]     @relation("AssignedRequests")
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 }
 
 model ServiceRequest {
@@ -144,6 +187,7 @@ model Event {
   description   String
   content       Json?
   imageKey      String?
+  requiresRegistration Boolean      @default(false)
   startsAt      DateTime
   endsAt        DateTime?
   location      String?
@@ -163,6 +207,8 @@ model EventRegistration {
   status    EventRegistrationStatus @default(SUBMITTED)
   createdAt DateTime                @default(now())
   updatedAt DateTime                @updatedAt
+
+  @@unique([eventId, userId])
 }
 
 model Donation {
