@@ -1,34 +1,79 @@
-import { FileText, UploadCloud } from "lucide-react";
+"use client";
+
+import { useId, useState } from "react";
+import { FileText, UploadCloud, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@/components/ui/attachment";
 
 export function DocumentAttachmentCard({
   title,
   status,
+  name,
+  required,
 }: {
   title: string;
   status: "missing" | "received";
+  name: string;
+  required?: boolean;
 }) {
+  const id = useId();
+  const [fileName, setFileName] = useState("");
+
   return (
-    <Card className="shadow-none">
-      <CardContent className="flex items-center justify-between gap-4 p-4">
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]">
-            <FileText className="size-4" />
-          </span>
-          <div>
-            <p className="font-bold text-[var(--primary)]">{title}</p>
-            <Badge variant={status === "missing" ? "warning" : "success"}>
-              {status === "missing" ? "A ajouter" : "Recu"}
-            </Badge>
-          </div>
-        </div>
-        <Button variant="secondary" size="sm">
-          <UploadCloud />
-          Upload
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="grid gap-2">
+      <input
+        accept="application/pdf,image/*"
+        className="sr-only"
+        id={id}
+        name={name}
+        onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
+        required={required}
+        type="file"
+      />
+      <label className="cursor-pointer" htmlFor={id}>
+        <Attachment
+          className="w-full border-[var(--border)] bg-white"
+          state={fileName ? "done" : "idle"}
+        >
+          <AttachmentMedia>
+            {fileName ? <FileText /> : <UploadCloud />}
+          </AttachmentMedia>
+          <AttachmentContent>
+            <AttachmentTitle>{fileName || title}</AttachmentTitle>
+            <AttachmentDescription>
+              {fileName ? "Fichier selectionne." : "Cliquez pour ajouter la piece."}
+            </AttachmentDescription>
+          </AttachmentContent>
+          <Badge variant={fileName || status === "received" ? "success" : "warning"}>
+            {fileName || status === "received" ? "Pret" : "A ajouter"}
+          </Badge>
+          {fileName && (
+            <AttachmentActions>
+              <AttachmentAction
+                aria-label="Retirer le fichier"
+                onClick={(event) => {
+                  event.preventDefault();
+                  const input = document.getElementById(id) as HTMLInputElement | null;
+                  if (input) {
+                    input.value = "";
+                  }
+                  setFileName("");
+                }}
+              >
+                <X className="size-4" />
+              </AttachmentAction>
+            </AttachmentActions>
+          )}
+        </Attachment>
+      </label>
+    </div>
   );
 }

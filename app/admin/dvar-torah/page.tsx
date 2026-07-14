@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DvarTorahCategory } from "@prisma/client";
 import { BookOpenText, Download, Eye, FileText, Trash2, Upload } from "lucide-react";
 import { AdminShell } from "@/components/admin-sidebar";
+import { AdminFileInput } from "@/components/admin-file-input";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import {
@@ -108,13 +109,13 @@ export default async function AdminDvarTorahPage() {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="dvar-file">Fichier PDF</Label>
-                <Input
-                  id="dvar-file"
-                  name="file"
-                  type="file"
+                <Label>Fichier PDF</Label>
+                <AdminFileInput
                   accept="application/pdf"
+                  description="PDF uniquement."
+                  name="file"
                   required
+                  title="Choisir le PDF"
                 />
               </div>
 
@@ -136,8 +137,8 @@ export default async function AdminDvarTorahPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="grid self-start gap-4 xl:-mt-1">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold text-[var(--primary)]">
                 Feuillets publies et brouillons
@@ -164,75 +165,79 @@ export default async function AdminDvarTorahPage() {
               </CardHeader>
             </Card>
           ) : (
-            files.map((file) => (
-              <Card
-                key={file.id}
-                className="border-[var(--border)] bg-white shadow-sm"
-              >
-                <CardContent className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-center">
-                  <div className="flex min-w-0 gap-4">
-                    <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[var(--primary-soft)] text-[var(--primary)]">
-                      <FileText className="size-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="truncate text-xl font-bold text-[var(--primary)]">
-                          {file.title}
-                        </h3>
-                        <Badge
-                          variant={file.category === "CHABBAT" ? "info" : "warning"}
-                        >
-                          {categoryLabels[file.category]}
-                        </Badge>
-                        <Badge variant={file.published ? "success" : "secondary"}>
-                          {file.published ? "Publie" : "Brouillon"}
-                        </Badge>
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-base leading-7 text-[var(--muted)]">
-                        {file.description || "Aucune description."}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-[var(--muted)]">
-                        {formatSize(file.size)} - ajoute le{" "}
-                        {file.createdAt.toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
-                  </div>
+            files.map((file) => {
+              const fileHref = `/api/dvar-torah/${file.slug}/download`;
 
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button asChild variant="ghost">
-                      <Link href={file.fileUrl} target="_blank">
-                        <Eye className="size-4" />
-                        Ouvrir
-                      </Link>
-                    </Button>
-                    <Button asChild variant="secondary">
-                      <a href={file.fileUrl} download>
-                        <Download className="size-4" />
-                        PDF
-                      </a>
-                    </Button>
-                    <form action={updateDvarTorahPublication}>
-                      <input type="hidden" name="id" value={file.id} />
-                      <input
-                        type="hidden"
-                        name="published"
-                        value={file.published ? "" : "on"}
-                      />
-                      <Button type="submit" variant="secondary">
-                        {file.published ? "Mettre en brouillon" : "Publier"}
+              return (
+                <Card
+                  key={file.id}
+                  className="border-[var(--border)] bg-white shadow-sm"
+                >
+                  <CardContent className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-center">
+                    <div className="flex min-w-0 gap-4">
+                      <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[var(--primary-soft)] text-[var(--primary)]">
+                        <FileText className="size-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="truncate text-xl font-bold text-[var(--primary)]">
+                            {file.title}
+                          </h3>
+                          <Badge
+                            variant={file.category === "CHABBAT" ? "info" : "warning"}
+                          >
+                            {categoryLabels[file.category]}
+                          </Badge>
+                          <Badge variant={file.published ? "success" : "secondary"}>
+                            {file.published ? "Publie" : "Brouillon"}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-base leading-7 text-[var(--muted)]">
+                          {file.description || "Aucune description."}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-[var(--muted)]">
+                          {formatSize(file.size)} - ajoute le{" "}
+                          {file.createdAt.toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button asChild variant="ghost">
+                        <Link href={fileHref} target="_blank">
+                          <Eye className="size-4" />
+                          Ouvrir
+                        </Link>
                       </Button>
-                    </form>
-                    <form action={deleteDvarTorahFile}>
-                      <input type="hidden" name="id" value={file.id} />
-                      <Button type="submit" variant="destructive">
-                        <Trash2 className="size-4" />
-                        Supprimer
+                      <Button asChild variant="secondary">
+                        <a href={fileHref} download>
+                          <Download className="size-4" />
+                          PDF
+                        </a>
                       </Button>
-                    </form>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                      <form action={updateDvarTorahPublication}>
+                        <input type="hidden" name="id" value={file.id} />
+                        <input
+                          type="hidden"
+                          name="published"
+                          value={file.published ? "" : "on"}
+                        />
+                        <Button type="submit" variant="secondary">
+                          {file.published ? "Mettre en brouillon" : "Publier"}
+                        </Button>
+                      </form>
+                      <form action={deleteDvarTorahFile}>
+                        <input type="hidden" name="id" value={file.id} />
+                        <Button type="submit" variant="destructive">
+                          <Trash2 className="size-4" />
+                          Supprimer
+                        </Button>
+                      </form>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </div>

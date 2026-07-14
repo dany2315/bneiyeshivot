@@ -9,6 +9,12 @@ import {
   type ServiceRequestInput,
 } from "@/lib/request-validation";
 
+export type ServiceRequestDocumentInput = {
+  label: string;
+  fileKey: string;
+  mimeType: string;
+};
+
 const requiredDocumentsByKind = {
   visa: [
     "Photo du passeport non israelien",
@@ -49,6 +55,7 @@ function toPayload(input: ServiceRequestInput): Prisma.JsonObject {
 
 export async function createServiceRequest(
   rawInput: unknown,
+  documents: ServiceRequestDocumentInput[] = [],
 ): Promise<ServiceRequest> {
   const input = normalizeRequestInput(rawInput);
   const fullName = `${input.firstName} ${input.lastName}`.trim();
@@ -78,6 +85,16 @@ export async function createServiceRequest(
         payload: toPayload(input),
         publicNote:
           "Demande recue. L'equipe Bnei Yeshivot va verifier le dossier.",
+        documents:
+          documents.length > 0
+            ? {
+                create: documents.map((document) => ({
+                  label: document.label,
+                  fileKey: document.fileKey,
+                  mimeType: document.mimeType,
+                })),
+              }
+            : undefined,
         messages: {
           create: {
             body: "Dossier cree. Les documents seront verifies par l'equipe.",

@@ -109,7 +109,6 @@ export default async function ClientPage() {
               <Card className="portal-card">
                 <CardHeader className="gap-5 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <span className="eyebrow">Tableau personnel</span>
                     <CardTitle className="text-3xl">
                       Bonjour {user.firstName || "Bahour"}
                     </CardTitle>
@@ -135,7 +134,6 @@ export default async function ClientPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <span className="icon-box">LIVE</span>
                   <CardTitle>Statut actuel</CardTitle>
                   <CardDescription>
                     {requests.length} demande(s) et {registrations.length}{" "}

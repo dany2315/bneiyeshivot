@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const region = process.env.AWS_REGION;
 const bucket = process.env.AWS_S3_BUCKET;
@@ -71,4 +71,31 @@ export async function uploadFilesToS3(files: File[], prefix: string) {
   return uploaded.filter(Boolean) as NonNullable<
     Awaited<ReturnType<typeof uploadFileToS3>>
   >[];
+}
+
+export async function getFileFromS3(key: string) {
+  if (!s3Client || !bucket || !region) {
+    throw new Error("Configuration AWS S3 manquante.");
+  }
+
+  const response = await s3Client.send(
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    }),
+  );
+
+  if (!response.Body) {
+    throw new Error("Fichier S3 vide ou introuvable.");
+  }
+
+  const bytes = await response.Body.transformToByteArray();
+  const body = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(body).set(bytes);
+
+  return {
+    body,
+    contentLength: response.ContentLength,
+    contentType: response.ContentType,
+  };
 }

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { getFileFromS3 } from "@/lib/uploads";
 
 const files: Record<string, string> = {
   "chabbat-berechit": "Dvar Torah - Chabbat Berechit",
@@ -57,8 +60,26 @@ export async function GET(
     where: { slug },
   });
 
-  if (dbFile?.published) {
-    return NextResponse.redirect(dbFile.fileUrl);
+  if (dbFile) {
+    const user = await getCurrentUser();
+    const isAdmin =
+      user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
+
+    if (!dbFile.published && !isAdmin) {
+      return NextResponse.json({ message: "Fichier introuvable." }, { status: 404 });
+    }
+
+    const file = await getFileFromS3(dbFile.fileKey);
+
+    return new NextResponse(file.body, {
+      headers: {
+        "Content-Type": dbFile.mimeType || file.contentType || "application/pdf",
+        "Content-Disposition": `inline; filename="${slug}.pdf"`,
+        ...(file.contentLength
+          ? { "Content-Length": String(file.contentLength) }
+          : {}),
+      },
+    });
   }
 
   const title = files[slug];

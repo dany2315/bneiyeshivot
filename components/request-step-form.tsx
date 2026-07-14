@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 import {
   Calendar,
   Check,
@@ -8,7 +8,6 @@ import {
   ChevronRight,
   FileCheck,
   Flag,
-  UploadCloud,
 } from "lucide-react";
 import { DocumentAttachmentCard } from "@/components/document-attachment-card";
 import { Button } from "@/components/ui/button";
@@ -139,8 +138,11 @@ function NationalityCombobox({ id, name }: { id: string; name: string }) {
 }
 
 export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState(0);
   const [personStatus, setPersonStatus] = useState("");
+  const [koupatProgram, setKoupatProgram] = useState("");
+  const [stepError, setStepError] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitState, setSubmitState] = useState<{
     status: "idle" | "loading" | "success" | "error";
@@ -151,21 +153,87 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
   const isKoupat = type === "koupat";
   const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
 
+  function validateStep(stepIndex: number) {
+    const form = formRef.current;
+
+    if (!form) {
+      return true;
+    }
+
+    const formData = new FormData(form);
+    const missing = (message: string) => {
+      setStepError(message);
+      return false;
+    };
+    const hasText = (name: string) => String(formData.get(name) ?? "").trim().length > 0;
+    const hasFile = (name: string) => {
+      const file = formData.get(name);
+      return file instanceof File && file.size > 0;
+    };
+
+    if (stepIndex === 0) {
+      if (
+        !hasText("firstName") ||
+        !hasText("lastName") ||
+        !hasText("email") ||
+        !hasText("phone") ||
+        !hasText("birthDate") ||
+        !hasText("nationality")
+      ) {
+        return missing("Completez les informations d'identite avant de continuer.");
+      }
+    }
+
+    if (stepIndex === 1) {
+      if ((isVisa && !hasText("personStatus")) || !hasText("passportNumber") || !hasText("school")) {
+        return missing("Completez les informations du dossier avant de continuer.");
+      }
+    }
+
+    if (stepIndex === 2) {
+      if (
+        !hasFile("passportFile") ||
+        !hasFile("formFile") ||
+        (isVisa && !hasFile("birthCertificateFile")) ||
+        !hasFile("studentCertificateFile")
+      ) {
+        return missing("Ajoutez toutes les pieces demandees avant de continuer.");
+      }
+    }
+
+    if (stepIndex === 3 && !acceptedTerms) {
+      return missing("Vous devez accepter les conditions generales avant l'envoi.");
+    }
+
+    setStepError("");
+    return true;
+  }
+
+  function goToStep(nextStep: number) {
+    if (nextStep <= step) {
+      setStep(nextStep);
+      setStepError("");
+      return;
+    }
+
+    if (validateStep(step)) {
+      setStep((value) => Math.min(steps.length - 1, value + 1));
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!validateStep(3)) {
+      return;
+    }
+
     setSubmitState({ status: "loading", message: "Envoi du dossier..." });
 
     const formData = new FormData(event.currentTarget);
-    const payload = Object.fromEntries(formData.entries());
     const response = await fetch("/api/requests", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...payload,
-        kind: type,
-      }),
+      body: formData,
     });
     const result = (await response.json()) as {
       ok: boolean;
@@ -202,7 +270,8 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="grid gap-6" onSubmit={handleSubmit}>
+        <form className="grid gap-6" ref={formRef} onSubmit={handleSubmit} noValidate>
+        <input name="kind" type="hidden" value={type} />
         <div className="grid gap-3">
           <div className="stepper-grid">
             {steps.map(({ label, detail }, index) => (
@@ -212,7 +281,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 data-complete={index < step}
                 key={label}
                 type="button"
-                onClick={() => setStep(index)}
+                onClick={() => goToStep(index)}
               >
                 <span className="step-index">
                   {index < step ? <Check className="size-4" /> : index + 1}
@@ -227,7 +296,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
           <Progress value={progress} />
         </div>
 
-        {step === 0 && (
+        <div className={step === 0 ? "block" : "hidden"} data-step="0">
           <FieldGroup className="form-grid">
             <Field>
               <FieldLabel htmlFor={`${type}-first-name`}>Prenom</FieldLabel>
@@ -273,9 +342,9 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
               </>
             )}
           </FieldGroup>
-        )}
+        </div>
 
-        {step === 1 && (
+        <div className={step === 1 ? "block" : "hidden"} data-step="1">
           <FieldGroup className="form-grid">
             {isVisa || isKoupat ? (
               <>
@@ -348,21 +417,31 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
             )}
             <Field>
               <FieldLabel htmlFor={`${type}-school`}>
-                {isVisa
-                  ? "Yeshiva / programme Massa"
-                  : isKoupat
-                    ? "Yeshiva / programme Massa"
-                  : "Yeshiva / lieu d'etude"}
+                {isKoupat ? "Type de programme" : "Yeshiva / programme Massa"}
               </FieldLabel>
-              <Input
-                id={`${type}-school`}
-                name="school"
-                placeholder={
-                  isVisa || isKoupat
-                    ? "Nom de la yeshiva ou du programme"
-                    : "Nom de la yeshiva"
-                }
-              />
+              {isKoupat ? (
+                <>
+                <input name="school" type="hidden" value={koupatProgram} />
+                <Select
+                  value={koupatProgram}
+                  onValueChange={(value) => setKoupatProgram(value ?? "")}
+                >
+                  <SelectTrigger className="h-11 w-full bg-white">
+                    <SelectValue placeholder="Selectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yeshiva">Yeshiva</SelectItem>
+                    <SelectItem value="massa">Massa</SelectItem>
+                  </SelectContent>
+                </Select>
+                </>
+              ) : (
+                <Input
+                  id={`${type}-school`}
+                  name="school"
+                  placeholder="Nom de la yeshiva ou du programme"
+                />
+              )}
             </Field>
             {!isVisa && !isKoupat && (
               <Field>
@@ -378,6 +457,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 </FieldDescription>
               </Field>
             )}
+            {!isKoupat && (
             <Field className="full">
               <FieldLabel htmlFor={`${type}-message`}>
                 Details de la demande
@@ -392,18 +472,22 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 }
               />
             </Field>
+            )}
           </FieldGroup>
-        )}
+        </div>
 
-        {step === 2 && (
-          <div className="grid gap-3">
+        <div className={step === 2 ? "grid gap-3" : "hidden"} data-step="2">
             {isVisa || isKoupat ? (
               <>
                 <DocumentAttachmentCard
+                  name="passportFile"
+                  required
                   title="Photo du passeport non israelien"
                   status="missing"
                 />
                 <DocumentAttachmentCard
+                  name="formFile"
+                  required
                   title={
                     isVisa
                       ? "Formulaire de visa rempli"
@@ -413,52 +497,44 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 />
                 {isVisa && (
                   <DocumentAttachmentCard
+                    name="birthCertificateFile"
+                    required
                     title="Acte de naissance"
                     status="missing"
                   />
                 )}
                 <DocumentAttachmentCard
+                  name="studentCertificateFile"
+                  required
                   title="Certificat d'etudiant ou Massa"
                   status="missing"
                 />
               </>
             ) : (
               <>
-                <DocumentAttachmentCard title="Passeport" status="missing" />
+                <DocumentAttachmentCard name="passportFile" required title="Passeport" status="missing" />
                 <DocumentAttachmentCard
+                  name="identityFile"
+                  required
                   title="Document d'identite / visa"
                   status="missing"
                 />
               </>
             )}
-            <Button variant="secondary" type="button">
-              <UploadCloud />
-              Ajouter une autre piece
-            </Button>
-            <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--subtle)] p-4 text-sm text-[var(--muted)]">
-              Les uploads seront branches ensuite sur AWS S3 avec statut par
-              piece : manquante, recue, refusee ou validee.
-            </div>
-          </div>
-        )}
+        </div>
 
-        {step === 3 && (
+        <div className={step === 3 ? "block" : "hidden"} data-step="3">
           <div className="rounded-2xl border border-[var(--border)] bg-white p-5">
             <div className="mb-3 flex items-center gap-3">
               <span className="icon-box">
                 <FileCheck className="size-4" />
               </span>
               <h3 className="text-lg font-bold text-[var(--primary)]">
-                Verification avant envoi
+                Confirmation du dossier
               </h3>
             </div>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Le dossier sera cree dans l&apos;admin avec un statut initial, puis
-              le Bahour pourra suivre les messages, documents et relances depuis
-              son Espace Bahour.
-            </p>
             {(isVisa || isKoupat) && (
-              <Field orientation="horizontal" className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4">
+              <Field orientation="horizontal" className="mt-5 items-start rounded-2xl border-2 border-[var(--accent)] bg-[rgba(242,99,0,0.08)] p-4 shadow-sm">
                 <input
                   name="acceptTerms"
                   type="hidden"
@@ -466,6 +542,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 />
                 <Checkbox
                   checked={acceptedTerms}
+                  className="mt-1 size-6 border-2 border-[var(--accent)] bg-white"
                   id={`${type}-terms`}
                   onCheckedChange={(value) => setAcceptedTerms(value === true)}
                 />
@@ -481,6 +558,12 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                 </div>
               </Field>
             )}
+          </div>
+        </div>
+
+        {stepError && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-base font-semibold text-amber-950">
+            {stepError}
           </div>
         )}
 
@@ -510,9 +593,7 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
           </Button>
           {step < steps.length - 1 ? (
             <Button
-              onClick={() =>
-                setStep((value) => Math.min(steps.length - 1, value + 1))
-              }
+              onClick={() => goToStep(step + 1)}
               type="button"
             >
               Continuer

@@ -7,6 +7,7 @@ import {
 } from "../actions";
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
+import { AdminFileInput } from "@/components/admin-file-input";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
@@ -120,7 +121,12 @@ export default async function AdminEventsPage() {
                 <label className="text-base font-semibold text-[var(--primary)]">
                   Image principale
                 </label>
-                <Input accept="image/*" name="imageFile" type="file" />
+                <AdminFileInput
+                  accept="image/*"
+                  description="Image de couverture."
+                  name="imageFile"
+                  title="Choisir une image"
+                />
                 <Input name="imageUrl" placeholder="Ou URL image principale" />
               </div>
               <Textarea
@@ -131,7 +137,13 @@ export default async function AdminEventsPage() {
                 <label className="text-base font-semibold text-[var(--primary)]">
                   Galerie initiale
                 </label>
-                <Input accept="image/*" multiple name="galleryFiles" type="file" />
+                <AdminFileInput
+                  accept="image/*"
+                  description="Une ou plusieurs images."
+                  multiple
+                  name="galleryFiles"
+                  title="Choisir les images"
+                />
                 <Textarea
                   name="gallery"
                   placeholder="Ou URLs photos, separees par ligne ou virgule"
@@ -185,11 +197,12 @@ export default async function AdminEventsPage() {
                         name="pastPhotos"
                         placeholder="Ou ajouter des URLs photos apres evenement"
                       />
-                      <Input
+                      <AdminFileInput
                         accept="image/*"
+                        description="Photos ajoutees a la galerie publique."
                         multiple
                         name="pastPhotoFiles"
-                        type="file"
+                        title="Choisir des photos"
                       />
                       <Button type="submit" variant="secondary">
                         Ajouter photos
