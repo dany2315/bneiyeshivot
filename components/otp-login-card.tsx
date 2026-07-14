@@ -105,6 +105,7 @@ export function OtpLoginCard({
       body: JSON.stringify({
         audience,
         email,
+        mode,
       }),
     });
     const accessResult = (await accessResponse.json()) as {
@@ -141,9 +142,13 @@ export function OtpLoginCard({
     });
 
     if (!response.ok) {
+      const result = (await response.json().catch(() => null)) as {
+        message?: string;
+      } | null;
       setState({
         status: "error",
-        message: "Impossible d'envoyer le code pour le moment.",
+        message:
+          result?.message ?? "Impossible d'envoyer le code pour le moment.",
       });
       return;
     }
@@ -176,9 +181,12 @@ export function OtpLoginCard({
     });
 
     if (!response.ok) {
+      const result = (await response.json().catch(() => null)) as {
+        message?: string;
+      } | null;
       setState({
         status: "error",
-        message: "Code invalide ou expire.",
+        message: result?.message ?? "Code invalide ou expire.",
       });
       return;
     }

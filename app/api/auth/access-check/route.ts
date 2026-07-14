@@ -6,6 +6,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     audience?: "bahour" | "admin";
     email?: string;
+    mode?: "login" | "register";
   };
   const email = body.email?.trim().toLowerCase();
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   const isAdmin =
     user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
 
-  if (body.audience === "bahour" && !user) {
+  if (body.audience === "bahour" && !user && body.mode !== "register") {
     return NextResponse.json(
       {
         allowed: false,
