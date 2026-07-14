@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { createServiceRequest } from "@/lib/service-requests";
 import { uploadFileToS3 } from "@/lib/uploads";
+import { requestConfirmationEmail, sendEmail } from "@/lib/email";
 
 const documentFields = [
   ["passportFile", "Photo du passeport non israelien"],
@@ -52,6 +53,23 @@ export async function POST(request: Request) {
         ).filter((document): document is NonNullable<typeof document> => Boolean(document))
       : [];
     const serviceRequest = await createServiceRequest(body, uploadedDocuments);
+
+    const email = typeof body.email === "string" ? body.email : "";
+    if (email) {
+      const typeLabel =
+        kind === "visa"
+          ? "visa etudiant"
+          : kind === "koupat"
+            ? "koupat holim"
+            : "demande";
+      const template = requestConfirmationEmail({
+        firstName:
+          typeof body.firstName === "string" ? body.firstName : undefined,
+        typeLabel,
+      });
+      // On n'echoue pas la demande si l'email ne part pas.
+      await sendEmail({ to: email, ...template });
+    }
 
     return NextResponse.json(
       {

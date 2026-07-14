@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Field,
   FieldDescription,
@@ -161,6 +162,7 @@ export function RequestStepForm({
     status: "idle" | "loading" | "success" | "error";
     message: string;
   }>({ status: "idle", message: "" });
+  const [sendProgress, setSendProgress] = useState(0);
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
@@ -241,35 +243,54 @@ export function RequestStepForm({
       return;
     }
 
-    setSubmitState({ status: "loading", message: "Envoi du dossier..." });
-
-    const formData = new FormData(event.currentTarget);
-    const response = await fetch("/api/requests", {
-      method: "POST",
-      body: formData,
+    setSubmitState({
+      status: "loading",
+      message: "Envoi de votre dossier en cours...",
     });
-    const result = (await response.json()) as {
-      ok: boolean;
-      requestId?: string;
-      message?: string;
-      issues?: { message: string }[];
-    };
+    setSendProgress(12);
+    const timer = setInterval(() => {
+      setSendProgress((value) => (value < 90 ? value + (90 - value) * 0.12 : value));
+    }, 250);
 
-    if (!response.ok || !result.ok) {
+    try {
+      const formData = new FormData(event.currentTarget);
+      const response = await fetch("/api/requests", {
+        method: "POST",
+        body: formData,
+      });
+      const result = (await response.json()) as {
+        ok: boolean;
+        requestId?: string;
+        message?: string;
+        issues?: { message: string }[];
+      };
+
+      if (!response.ok || !result.ok) {
+        setSubmitState({
+          status: "error",
+          message:
+            result.issues?.[0]?.message ??
+            result.message ??
+            "Impossible d'envoyer la demande.",
+        });
+        setSendProgress(0);
+        return;
+      }
+
+      setSendProgress(100);
+      setSubmitState({
+        status: "success",
+        message: `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
+      });
+    } catch {
       setSubmitState({
         status: "error",
-        message:
-          result.issues?.[0]?.message ??
-          result.message ??
-          "Impossible d'envoyer la demande.",
+        message: "Impossible d'envoyer la demande. Reessayez.",
       });
-      return;
+      setSendProgress(0);
+    } finally {
+      clearInterval(timer);
     }
-
-    setSubmitState({
-      status: "success",
-      message: `Demande creee. Reference dossier : ${result.requestId}`,
-    });
   }
 
   return (
@@ -614,6 +635,15 @@ export function RequestStepForm({
           </div>
         )}
 
+        {submitState.status === "loading" && (
+          <div className="grid gap-1.5">
+            <Progress value={sendProgress} />
+            <span className="text-sm text-[var(--muted)]">
+              Envoi... {Math.round(sendProgress)}%
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-wrap justify-between gap-3">
           <Button
             disabled={step === 0}
@@ -634,8 +664,17 @@ export function RequestStepForm({
             </Button>
           ) : (
             <Button disabled={submitState.status === "loading"} type="submit">
-              Envoyer la demande
-              <Check />
+              {submitState.status === "loading" ? (
+                <>
+                  <Spinner />
+                  Envoi...
+                </>
+              ) : (
+                <>
+                  Envoyer la demande
+                  <Check />
+                </>
+              )}
             </Button>
           )}
         </div>

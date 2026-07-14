@@ -12,6 +12,7 @@ import { EventFormDialog } from "@/components/event-form-dialog";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
+import { fileUrl } from "@/lib/files";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -96,19 +97,19 @@ export default async function AdminEventsPage() {
       </div>
 
       <section className="section">
-        <div className="grid grid-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {events.map((event) => {
             const isPast = event.startsAt < now;
             const content = parseEventContent(event.content);
             return (
               <Card className="overflow-hidden" key={event.id}>
                 <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--accent)]">
-                  {event.imageKey ? (
+                  {fileUrl(event.imageKey) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       alt=""
                       className="h-full w-full object-cover"
-                      src={event.imageKey}
+                      src={fileUrl(event.imageKey) ?? undefined}
                     />
                   ) : (
                     <CalendarDays className="size-10 text-white/80" />
@@ -150,6 +151,7 @@ export default async function AdminEventsPage() {
                     </p>
                   )}
 
+                  {event.requiresRegistration && (
                   <Dialog>
                     <DialogTrigger
                       render={
@@ -243,6 +245,7 @@ export default async function AdminEventsPage() {
                       )}
                     </DialogContent>
                   </Dialog>
+                  )}
 
                   <EventFormDialog
                     action={updateEvent}

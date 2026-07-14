@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageShell, StatusBadge } from "../../components";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
+import { fileUrl } from "@/lib/files";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,12 +38,12 @@ export default async function EventDetailPage({
     <PageShell>
       <main>
         <section className="relative min-h-[620px] overflow-hidden text-white md:min-h-[72vh]">
-          {event.imageKey ? (
+          {fileUrl(event.imageKey) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
-              src={event.imageKey}
+              src={fileUrl(event.imageKey) ?? undefined}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--accent)]" />
@@ -157,7 +158,7 @@ export default async function EventDetailPage({
                         : "aspect-[4/3] rounded-2xl object-cover"
                     }
                     key={`${src}-${index}`}
-                    src={src}
+                    src={fileUrl(src) ?? undefined}
                   />
                 ))}
               </div>

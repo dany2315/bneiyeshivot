@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
+import { fileUrl } from "@/lib/files";
 import { registerForEvent } from "./actions";
 import { PageShell, StatusBadge } from "../components";
 import { Badge } from "@/components/ui/badge";
@@ -120,8 +121,12 @@ function EventImage({
 }) {
   return (
     <div className="relative aspect-[16/10] overflow-hidden bg-[var(--primary-soft)]">
-      {imageKey ? (
-        <img alt="" className="h-full w-full object-cover" src={imageKey} />
+      {fileUrl(imageKey) ? (
+        <img
+          alt=""
+          className="h-full w-full object-cover"
+          src={fileUrl(imageKey) ?? undefined}
+        />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-white">
           <CalendarDays className="size-10 opacity-80" />

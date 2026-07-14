@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { uploadFilesToS3, uploadFileToS3 } from "@/lib/uploads";
+import { uploadFilesToS3 } from "@/lib/uploads";
 
 function slugify(value: string) {
   return value
@@ -38,15 +38,11 @@ function readVideoUrls(formData: FormData) {
     .filter(Boolean);
 }
 
-function readKeptFiles(formData: FormData) {
+// Les fichiers sont uploades cote client via /api/uploads : l'action ne recoit
+// que des cles S3 (payload leger, pas de limite de taille des server actions).
+function readGalleryKeys(formData: FormData) {
   return formData
-    .getAll("galleryFiles")
-    .filter((file): file is File => file instanceof File && file.size > 0);
-}
-
-function readKeptGallery(formData: FormData) {
-  return formData
-    .getAll("galleryKeep")
+    .getAll("galleryKeys")
     .map((value) => String(value).trim())
     .filter(Boolean);
 }
@@ -99,14 +95,13 @@ export async function createEvent(formData: FormData) {
   const title = readString(formData, "title");
   const description = readString(formData, "description");
   const body = readString(formData, "body");
-  const imageFile = formData.get("imageFile");
+  const imageKey = readString(formData, "imageKey");
   const videoUrls = readVideoUrls(formData);
   const location = readString(formData, "location");
   const startsAt = readString(formData, "startsAt");
   const capacity = readString(formData, "capacity");
   const requiresRegistration = formData.get("requiresRegistration") === "on";
-  const galleryKeep = readKeptGallery(formData);
-  const galleryFiles = readKeptFiles(formData);
+  const gallery = readGalleryKeys(formData);
 
   if (!title || !description || !startsAt) {
     throw new Error("Titre, description et date obligatoires.");
@@ -114,21 +109,13 @@ export async function createEvent(formData: FormData) {
 
   const baseSlug = slugify(title);
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
-  const uploadedImage =
-    imageFile instanceof File && imageFile.size > 0
-      ? await uploadFileToS3(imageFile, `events/${slug}/cover`)
-      : null;
-  const uploadedGallery = await uploadFilesToS3(
-    galleryFiles,
-    `events/${slug}/gallery`,
-  );
 
   const event = await prisma.event.create({
     data: {
       title,
       slug,
       description,
-      imageKey: uploadedImage?.url || null,
+      imageKey: imageKey || null,
       startsAt: new Date(startsAt),
       location: location || null,
       capacity: capacity ? Number(capacity) : null,
@@ -136,7 +123,7 @@ export async function createEvent(formData: FormData) {
       content: {
         body,
         videoUrls,
-        gallery: [...galleryKeep, ...uploadedGallery.map((file) => file.url)],
+        gallery,
         createdBy: admin.id,
       },
     },
@@ -178,9 +165,8 @@ export async function updateEvent(formData: FormData) {
   const capacity = readString(formData, "capacity");
   const requiresRegistration = formData.get("requiresRegistration") === "on";
   const videoUrls = readVideoUrls(formData);
-  const galleryKeep = readKeptGallery(formData);
-  const galleryFiles = readKeptFiles(formData);
-  const imageFile = formData.get("imageFile");
+  const gallery = readGalleryKeys(formData);
+  const imageKey = readString(formData, "imageKey");
 
   if (!title || !description || !startsAt) {
     throw new Error("Titre, description et date obligatoires.");
@@ -190,15 +176,6 @@ export async function updateEvent(formData: FormData) {
   // l'a modifie (texte, photos, videos) via ce formulaire.
   const startDate = new Date(startsAt);
   const pastPublished = startDate < new Date();
-
-  const uploadedImage =
-    imageFile instanceof File && imageFile.size > 0
-      ? await uploadFileToS3(imageFile, `events/${existing.slug}/cover`)
-      : null;
-  const uploadedGallery = await uploadFilesToS3(
-    galleryFiles,
-    `events/${existing.slug}/gallery`,
-  );
 
   const currentContent =
     existing.content &&
@@ -217,12 +194,12 @@ export async function updateEvent(formData: FormData) {
       location: location || null,
       capacity: capacity ? Number(capacity) : null,
       requiresRegistration,
-      imageKey: uploadedImage?.url ?? existing.imageKey,
+      imageKey: imageKey || existing.imageKey,
       content: {
         ...currentContent,
         body,
         videoUrls,
-        gallery: [...galleryKeep, ...uploadedGallery.map((file) => file.url)],
+        gallery,
         pastPublished,
         updatedBy: admin.id,
       },

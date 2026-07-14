@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
+import { fileUrl } from "@/lib/files";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
@@ -50,6 +51,8 @@ export type EventFormData = {
   gallery: string[];
 };
 
+type UploadStatus = "idle" | "uploading" | "done" | "error";
+
 function toDatetimeLocal(iso: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
@@ -79,6 +82,24 @@ function normalizeVideoUrl(url: string) {
   return trimmed;
 }
 
+async function uploadOne(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("files", file);
+  const response = await fetch("/api/uploads", {
+    method: "POST",
+    body: formData,
+  });
+  const data = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    keys?: string[];
+    message?: string;
+  } | null;
+  if (!response.ok || !data?.ok || !data.keys?.[0]) {
+    throw new Error(data?.message ?? "Upload echoue.");
+  }
+  return data.keys[0];
+}
+
 export function EventFormDialog({
   mode,
   action,
@@ -99,10 +120,12 @@ export function EventFormDialog({
     event?.requiresRegistration ?? false,
   );
   const [coverPreview, setCoverPreview] = useState<string | null>(
-    event?.imageKey ?? null,
+    event?.imageKey ? fileUrl(event.imageKey) : null,
   );
   const [galleryUrls, setGalleryUrls] = useState<string[]>(
-    event?.gallery ?? [],
+    (event?.gallery ?? [])
+      .map((key) => fileUrl(key))
+      .filter((url): url is string => Boolean(url)),
   );
   const [videoUrls, setVideoUrls] = useState<string[]>(event?.videoUrls ?? []);
 
@@ -110,10 +133,16 @@ export function EventFormDialog({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [uploading, setUploading] = useState(0);
   const [isPending, startTransition] = useTransition();
 
-  const now = new Date();
-  const isUpcoming = !startsAt || new Date(startsAt) >= now;
+  const startUpload = useCallback(() => setUploading((n) => n + 1), []);
+  const endUpload = useCallback(
+    () => setUploading((n) => Math.max(0, n - 1)),
+    [],
+  );
+
+  const eventIsPast = Boolean(startsAt) && new Date(startsAt) < new Date();
 
   function resetForm() {
     setTitle(event?.title ?? "");
@@ -122,23 +151,30 @@ export function EventFormDialog({
     setLocation(event?.location ?? "");
     setStartsAt(event ? toDatetimeLocal(event.startsAt) : "");
     setRequiresRegistration(event?.requiresRegistration ?? false);
-    setCoverPreview(event?.imageKey ?? null);
-    setGalleryUrls(event?.gallery ?? []);
+    setCoverPreview(event?.imageKey ? fileUrl(event.imageKey) : null);
+    setGalleryUrls(
+      (event?.gallery ?? [])
+        .map((key) => fileUrl(key))
+        .filter((url): url is string => Boolean(url)),
+    );
     setVideoUrls(event?.videoUrls ?? []);
     setFormKey((key) => key + 1);
   }
 
   function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
-    // On capture les donnees AVANT de desactiver les champs (les champs
-    // desactives ne sont pas inclus dans un FormData).
+    if (uploading > 0) {
+      setError("Des images sont encore en cours d'upload. Patientez un instant.");
+      return;
+    }
+    // On capture les donnees AVANT de desactiver les champs.
     const formData = new FormData(formEvent.currentTarget);
     setError(null);
-    setProgress(10);
+    setProgress(15);
 
     const timer = setInterval(() => {
-      setProgress((value) => (value < 90 ? value + (90 - value) * 0.12 : value));
-    }, 250);
+      setProgress((value) => (value < 90 ? value + (90 - value) * 0.15 : value));
+    }, 220);
 
     startTransition(async () => {
       try {
@@ -204,143 +240,165 @@ export function EventFormDialog({
               disabled={isPending}
               key={formKey}
             >
-            {mode === "edit" && event && (
-              <input name="eventId" type="hidden" value={event.id} />
-            )}
-
-            <Field label="Titre de l'evenement" required>
-              <Input
-                name="title"
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Grand Chabbat Bnei Yeshivot"
-                required
-                value={title}
-              />
-            </Field>
-
-            <Field label="Description courte" required>
-              <Textarea
-                name="description"
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Une phrase de presentation affichee sur la card."
-                required
-                value={description}
-              />
-            </Field>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field
-                hint="Date et heure de l'evenement."
-                label="Date de l'evenement"
-                required
-              >
-                <Input
-                  name="startsAt"
-                  onChange={(e) => setStartsAt(e.target.value)}
-                  required
-                  type="datetime-local"
-                  value={startsAt}
-                />
-              </Field>
-              <Field label="Lieu">
-                <Input
-                  name="location"
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Jerusalem"
-                  value={location}
-                />
-              </Field>
-              <Field
-                hint="Affichee comme nombre de participants sur le site."
-                label="Capacite"
-              >
-                <Input
-                  defaultValue={event?.capacity ?? ""}
-                  name="capacity"
-                  placeholder="180"
-                  type="number"
-                />
-              </Field>
-            </div>
-
-            <label className="flex items-center gap-2 rounded-xl border border-[var(--border)] p-3 text-base font-semibold text-[var(--primary)]">
-              <input
-                checked={requiresRegistration}
-                name="requiresRegistration"
-                onChange={(e) => setRequiresRegistration(e.target.checked)}
-                type="checkbox"
-              />
-              Autoriser les inscriptions
-            </label>
-
-            <Field
-              hint="Texte complet affiche sur la card (a venir) et sur la page souvenirs (passe)."
-              label="Texte de l'evenement"
-            >
-              <Textarea
-                name="body"
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Deroule, horaires, details..."
-                rows={4}
-                value={body}
-              />
-            </Field>
-
-            <Field label="Image principale">
-              <ImageDropField
-                initialUrl={event?.imageKey ?? null}
-                name="imageFile"
-                onSelect={setCoverPreview}
-              />
-            </Field>
-
-            <Field
-              hint="Ajoutez une image, puis « Ajouter une image » pour en mettre d'autres."
-              label="Galerie photos"
-            >
-              <GalleryManager
-                initial={event?.gallery ?? []}
-                onChange={setGalleryUrls}
-              />
-            </Field>
-
-            <Field
-              hint="Collez un lien (YouTube...). Une preview s'affiche au-dessus."
-              label="Videos"
-            >
-              <VideoManager
-                initial={event?.videoUrls ?? []}
-                onChange={setVideoUrls}
-              />
-            </Field>
-
-            {error && (
-              <p className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </p>
-            )}
-
-            {(isPending || progress > 0) && (
-              <div className="grid gap-1.5">
-                <Progress value={progress} />
-                <span className="text-sm text-[var(--muted)]">
-                  Publication de l&apos;evenement... {Math.round(progress)}%
-                </span>
-              </div>
-            )}
-
-            <Button className="w-fit" disabled={isPending} type="submit">
-              {isPending ? (
-                <>
-                  <Spinner />
-                  Publication...
-                </>
-              ) : mode === "edit" ? (
-                "Enregistrer les modifications"
-              ) : (
-                "Creer l'evenement"
+              {mode === "edit" && event && (
+                <input name="eventId" type="hidden" value={event.id} />
               )}
-            </Button>
+
+              <Field label="Titre de l'evenement" required>
+                <Input
+                  name="title"
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Grand Chabbat Bnei Yeshivot"
+                  required
+                  value={title}
+                />
+              </Field>
+
+              <Field label="Description courte" required>
+                <Textarea
+                  name="description"
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Une phrase de presentation affichee sur la card."
+                  required
+                  value={description}
+                />
+              </Field>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field
+                  hint="Date et heure de l'evenement."
+                  label="Date de l'evenement"
+                  required
+                >
+                  <Input
+                    name="startsAt"
+                    onChange={(e) => setStartsAt(e.target.value)}
+                    required
+                    type="datetime-local"
+                    value={startsAt}
+                  />
+                </Field>
+                <Field label="Lieu">
+                  <Input
+                    name="location"
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Jerusalem"
+                    value={location}
+                  />
+                </Field>
+                <Field
+                  hint="Affichee comme nombre de participants sur le site."
+                  label="Capacite"
+                >
+                  <Input
+                    defaultValue={event?.capacity ?? ""}
+                    name="capacity"
+                    placeholder="180"
+                    type="number"
+                  />
+                </Field>
+              </div>
+
+              <label className="flex items-center gap-2 rounded-xl border border-[var(--border)] p-3 text-base font-semibold text-[var(--primary)]">
+                <input
+                  checked={requiresRegistration}
+                  name="requiresRegistration"
+                  onChange={(e) => setRequiresRegistration(e.target.checked)}
+                  type="checkbox"
+                />
+                Autoriser les inscriptions
+              </label>
+
+              <Field
+                hint="Texte affiche sur la card (a venir) et sur la page souvenirs (passe)."
+                label="Texte de l'evenement"
+              >
+                <Textarea
+                  name="body"
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Deroule, horaires, details..."
+                  rows={4}
+                  value={body}
+                />
+              </Field>
+
+              <Field label="Image principale">
+                <CoverImageField
+                  initialKey={event?.imageKey ?? null}
+                  onPreview={setCoverPreview}
+                  onUploadEnd={endUpload}
+                  onUploadStart={startUpload}
+                />
+              </Field>
+
+              {eventIsPast ? (
+                <>
+                  <Field
+                    hint="Selectionnez plusieurs images d'un coup. Chaque photo peut etre supprimee."
+                    label="Galerie photos"
+                  >
+                    <GalleryManager
+                      initial={event?.gallery ?? []}
+                      onChange={setGalleryUrls}
+                      onUploadEnd={endUpload}
+                      onUploadStart={startUpload}
+                    />
+                  </Field>
+
+                  <Field
+                    hint="Collez un lien (YouTube...). Une preview s'affiche au-dessus."
+                    label="Videos"
+                  >
+                    <VideoManager
+                      initial={event?.videoUrls ?? []}
+                      onChange={setVideoUrls}
+                    />
+                  </Field>
+                </>
+              ) : (
+                <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                  Pour un evenement a venir, seule l&apos;image principale est
+                  utilisee (affichee sur la card). La galerie photos et les
+                  videos pourront etre ajoutees une fois l&apos;evenement passe.
+                </p>
+              )}
+
+              {error && (
+                <p className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+
+              {(isPending || progress > 0) && (
+                <div className="grid gap-1.5">
+                  <Progress value={progress} />
+                  <span className="text-sm text-[var(--muted)]">
+                    Publication de l&apos;evenement... {Math.round(progress)}%
+                  </span>
+                </div>
+              )}
+
+              <Button
+                className="w-fit"
+                disabled={isPending || uploading > 0}
+                type="submit"
+              >
+                {isPending ? (
+                  <>
+                    <Spinner />
+                    Publication...
+                  </>
+                ) : uploading > 0 ? (
+                  <>
+                    <Spinner />
+                    Upload des images...
+                  </>
+                ) : mode === "edit" ? (
+                  "Enregistrer les modifications"
+                ) : (
+                  "Creer l'evenement"
+                )}
+              </Button>
             </fieldset>
           </form>
 
@@ -366,10 +424,10 @@ export function EventFormDialog({
                     <CalendarDays className="size-10 text-white/80" />
                   )}
                   <div className="absolute left-4 right-4 top-4 flex flex-wrap gap-2">
-                    <Badge variant={isUpcoming ? "info" : "warning"}>
-                      {isUpcoming ? "A venir" : "Passe"}
+                    <Badge variant={eventIsPast ? "warning" : "info"}>
+                      {eventIsPast ? "Passe" : "A venir"}
                     </Badge>
-                    {requiresRegistration && isUpcoming && (
+                    {requiresRegistration && !eventIsPast && (
                       <Badge variant="success">Inscription</Badge>
                     )}
                   </div>
@@ -391,7 +449,7 @@ export function EventFormDialog({
                       {location || "Lieu a confirmer"}
                     </span>
                   </div>
-                  {isUpcoming && requiresRegistration && (
+                  {!eventIsPast && requiresRegistration && (
                     <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[var(--primary)] px-3 py-1 text-sm font-semibold text-white">
                       <Users className="size-4" />
                       S&apos;inscrire
@@ -418,7 +476,7 @@ export function EventFormDialog({
                   <div className="absolute inset-0 bg-gradient-to-t from-[#061e35] via-[#061e35]/55 to-transparent" />
                   <div className="relative z-10 text-white">
                     <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em]">
-                      {isUpcoming ? "A venir" : "Passe"}
+                      {eventIsPast ? "Passe" : "A venir"}
                     </span>
                     <p className="mt-2 text-xl font-bold">
                       {title || "Titre de l'evenement"}
@@ -491,29 +549,48 @@ function Field({
   );
 }
 
-function ImageDropField({
-  name,
-  initialUrl,
-  onSelect,
-  onRemove,
+function CoverImageField({
+  initialKey,
+  onPreview,
+  onUploadStart,
+  onUploadEnd,
 }: {
-  name: string;
-  initialUrl?: string | null;
-  onSelect?: (url: string | null) => void;
-  onRemove?: () => void;
+  initialKey: string | null;
+  onPreview: (url: string | null) => void;
+  onUploadStart: () => void;
+  onUploadEnd: () => void;
 }) {
   const id = useId();
-  const [preview, setPreview] = useState<string | null>(initialUrl ?? null);
-  const [hasFile, setHasFile] = useState(false);
+  const [key, setKey] = useState(initialKey ?? "");
+  const [preview, setPreview] = useState<string | null>(
+    initialKey ? fileUrl(initialKey) : null,
+  );
+  const [status, setStatus] = useState<UploadStatus>(
+    initialKey ? "done" : "idle",
+  );
+
+  async function handleFile(file: File) {
+    const localUrl = URL.createObjectURL(file);
+    setPreview(localUrl);
+    onPreview(localUrl);
+    setStatus("uploading");
+    onUploadStart();
+    try {
+      const uploadedKey = await uploadOne(file);
+      setKey(uploadedKey);
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    } finally {
+      onUploadEnd();
+    }
+  }
 
   return (
     <div className="grid gap-2">
+      <input name="imageKey" type="hidden" value={key} />
       <label className="cursor-pointer" htmlFor={id}>
-        <Attachment
-          className="w-full"
-          orientation="vertical"
-          state={preview ? "done" : "idle"}
-        >
+        <Attachment className="w-full" orientation="vertical" state={status}>
           <AttachmentMedia className="w-full" variant="image">
             {preview ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -524,15 +601,15 @@ function ImageDropField({
           </AttachmentMedia>
           <AttachmentContent>
             <AttachmentTitle>
-              {hasFile
-                ? "Image prete"
-                : preview
-                  ? "Image actuelle"
-                  : "Ajouter une image"}
+              {status === "uploading"
+                ? "Upload en cours..."
+                : status === "error"
+                  ? "Echec, cliquez pour reessayer"
+                  : preview
+                    ? "Image prete"
+                    : "Ajouter l'image principale"}
             </AttachmentTitle>
-            <AttachmentDescription>
-              Cliquez pour choisir
-            </AttachmentDescription>
+            <AttachmentDescription>Cliquez pour choisir</AttachmentDescription>
           </AttachmentContent>
         </Attachment>
       </label>
@@ -540,137 +617,170 @@ function ImageDropField({
         accept="image/*"
         className="sr-only"
         id={id}
-        name={name}
         onChange={(e) => {
           const file = e.target.files?.[0];
-          const url = file ? URL.createObjectURL(file) : null;
-          setHasFile(Boolean(file));
-          const next = url ?? initialUrl ?? null;
-          setPreview(next);
-          onSelect?.(next);
+          if (file) handleFile(file);
         }}
         type="file"
       />
-      {onRemove && (
-        <Button
-          className="w-fit"
-          onClick={onRemove}
-          size="sm"
-          type="button"
-          variant="ghost"
-        >
-          <X className="size-4" />
-          Supprimer
-        </Button>
-      )}
     </div>
   );
 }
 
-type GallerySlot =
-  | { id: string; kind: "existing"; url: string }
-  | { id: string; kind: "new"; preview: string | null };
-
-function galleryUrlsOf(slots: GallerySlot[]) {
-  return slots
-    .map((slot) => (slot.kind === "existing" ? slot.url : slot.preview))
-    .filter((value): value is string => Boolean(value));
-}
+type GallerySlot = {
+  id: string;
+  key: string;
+  preview: string | null;
+  status: UploadStatus;
+};
 
 function GalleryManager({
   initial,
   onChange,
+  onUploadStart,
+  onUploadEnd,
 }: {
   initial: string[];
   onChange: (urls: string[]) => void;
+  onUploadStart: () => void;
+  onUploadEnd: () => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const counter = useRef(0);
   const [slots, setSlots] = useState<GallerySlot[]>(() =>
-    initial.map((url, index) => ({
+    initial.map((key, index) => ({
       id: `existing-${index}`,
-      kind: "existing" as const,
-      url,
+      key,
+      preview: fileUrl(key),
+      status: "done" as const,
     })),
   );
-  const counter = useRef(0);
 
-  function commit(next: GallerySlot[]) {
-    setSlots(next);
-    onChange(galleryUrlsOf(next));
-  }
+  useEffect(() => {
+    onChange(
+      slots
+        .map((slot) => slot.preview)
+        .filter((url): url is string => Boolean(url)),
+    );
+  }, [slots, onChange]);
 
-  function addSlot() {
-    counter.current += 1;
-    commit([
-      ...slots,
-      { id: `new-${counter.current}`, kind: "new", preview: null },
+  function addFiles(files: File[]) {
+    const created = files.map((file) => {
+      counter.current += 1;
+      return {
+        id: `new-${counter.current}-${Date.now()}`,
+        file,
+        localUrl: URL.createObjectURL(file),
+      };
+    });
+
+    setSlots((prev) => [
+      ...prev,
+      ...created.map((item) => ({
+        id: item.id,
+        key: "",
+        preview: item.localUrl,
+        status: "uploading" as const,
+      })),
     ]);
+
+    // Uploads en parallele pour aller vite.
+    for (const item of created) {
+      onUploadStart();
+      uploadOne(item.file)
+        .then((uploadedKey) => {
+          setSlots((prev) =>
+            prev.map((slot) =>
+              slot.id === item.id
+                ? { ...slot, key: uploadedKey, status: "done" as const }
+                : slot,
+            ),
+          );
+        })
+        .catch(() => {
+          setSlots((prev) =>
+            prev.map((slot) =>
+              slot.id === item.id
+                ? { ...slot, status: "error" as const }
+                : slot,
+            ),
+          );
+        })
+        .finally(() => onUploadEnd());
+    }
   }
 
   function removeSlot(id: string) {
-    commit(slots.filter((slot) => slot.id !== id));
-  }
-
-  function setPreview(id: string, preview: string | null) {
-    commit(
-      slots.map((slot) =>
-        slot.id === id && slot.kind === "new" ? { ...slot, preview } : slot,
-      ),
-    );
+    setSlots((prev) => prev.filter((slot) => slot.id !== id));
   }
 
   return (
     <div className="grid gap-3">
       {slots.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {slots.map((slot) =>
-            slot.kind === "existing" ? (
-              <div className="grid gap-2" key={slot.id}>
-                <Attachment
-                  className="w-full"
-                  orientation="vertical"
-                  state="done"
-                >
-                  <AttachmentMedia className="w-full" variant="image">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt="" src={slot.url} />
-                  </AttachmentMedia>
-                  <AttachmentContent>
-                    <AttachmentTitle>Photo</AttachmentTitle>
-                    <AttachmentDescription>Deja en ligne</AttachmentDescription>
-                  </AttachmentContent>
-                </Attachment>
-                <input name="galleryKeep" type="hidden" value={slot.url} />
-                <Button
-                  className="w-fit"
-                  onClick={() => removeSlot(slot.id)}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <X className="size-4" />
-                  Supprimer
-                </Button>
-              </div>
-            ) : (
-              <ImageDropField
-                key={slot.id}
-                name="galleryFiles"
-                onRemove={() => removeSlot(slot.id)}
-                onSelect={(url) => setPreview(slot.id, url)}
-              />
-            ),
-          )}
+          {slots.map((slot) => (
+            <div className="grid gap-2" key={slot.id}>
+              <Attachment
+                className="w-full"
+                orientation="vertical"
+                state={slot.status}
+              >
+                <AttachmentMedia className="w-full" variant="image">
+                  {slot.preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img alt="" src={slot.preview} />
+                  ) : (
+                    <ImageIcon />
+                  )}
+                </AttachmentMedia>
+                <AttachmentContent>
+                  <AttachmentTitle>
+                    {slot.status === "uploading"
+                      ? "Upload..."
+                      : slot.status === "error"
+                        ? "Echec"
+                        : "Photo"}
+                  </AttachmentTitle>
+                </AttachmentContent>
+              </Attachment>
+              {slot.status === "done" && slot.key && (
+                <input name="galleryKeys" type="hidden" value={slot.key} />
+              )}
+              <Button
+                className="w-fit"
+                onClick={() => removeSlot(slot.id)}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <X className="size-4" />
+                Supprimer
+              </Button>
+            </div>
+          ))}
         </div>
       )}
       <Button
         className="w-fit"
-        onClick={addSlot}
+        onClick={() => inputRef.current?.click()}
         type="button"
         variant="secondary"
       >
         <ImagePlus className="size-4" />
-        Ajouter une image
+        Ajouter des images
       </Button>
+      <input
+        accept="image/*"
+        className="sr-only"
+        multiple
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length > 0) addFiles(files);
+          e.target.value = "";
+        }}
+        ref={inputRef}
+        type="file"
+      />
     </div>
   );
 }
