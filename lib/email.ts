@@ -35,6 +35,33 @@ export async function sendEmail({ to, subject, html }: SendEmailInput) {
   }
 }
 
+export function newRequestAdminEmail(params: {
+  typeLabel: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  link: string;
+}) {
+  return {
+    subject: `Nouvelle demande - ${params.typeLabel} - ${params.fullName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6;">
+        <h2 style="color:#061e39;">Nouvelle demande recue</h2>
+        <p><strong>Type :</strong> ${params.typeLabel}</p>
+        <p><strong>Nom :</strong> ${params.fullName}</p>
+        <p><strong>Email :</strong> ${params.email}</p>
+        ${params.phone ? `<p><strong>Telephone :</strong> ${params.phone}</p>` : ""}
+        <p style="margin-top:20px;">
+          <a href="${params.link}"
+             style="display:inline-block;background:#061e39;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">
+            Voir la demande
+          </a>
+        </p>
+      </div>
+    `,
+  };
+}
+
 export function requestConfirmationEmail(params: {
   firstName?: string;
   typeLabel: string;

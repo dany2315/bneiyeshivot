@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Field,
@@ -47,6 +46,122 @@ const steps = [
 
 const regionNames = new Intl.DisplayNames(["fr"], { type: "region" });
 
+const feminineNationalities: Record<string, string> = {
+  AF: "Afghane",
+  AL: "Albanaise",
+  DZ: "Algerienne",
+  DE: "Allemande",
+  AD: "Andorrane",
+  AO: "Angolaise",
+  AR: "Argentine",
+  AM: "Armenienne",
+  AU: "Australienne",
+  AT: "Autrichienne",
+  AZ: "Azerbaidjanaise",
+  BE: "Belge",
+  BJ: "Beninoise",
+  BA: "Bosnienne",
+  BR: "Bresilienne",
+  BG: "Bulgare",
+  BF: "Burkinabe",
+  BI: "Burundaise",
+  KH: "Cambodgienne",
+  CM: "Camerounaise",
+  CA: "Canadienne",
+  CL: "Chilienne",
+  CN: "Chinoise",
+  CO: "Colombienne",
+  KM: "Comorienne",
+  CG: "Congolaise",
+  CD: "Congolaise",
+  KR: "Sud-coreenne",
+  KP: "Nord-coreenne",
+  CI: "Ivoirienne",
+  HR: "Croate",
+  CU: "Cubaine",
+  DK: "Danoise",
+  EG: "Egyptienne",
+  AE: "Emirienne",
+  EC: "Equatorienne",
+  ES: "Espagnole",
+  EE: "Estonienne",
+  US: "Americaine",
+  ET: "Ethiopienne",
+  FI: "Finlandaise",
+  FR: "Francaise",
+  GA: "Gabonaise",
+  GM: "Gambienne",
+  GE: "Georgienne",
+  GH: "Ghaneenne",
+  GR: "Grecque",
+  GN: "Guineenne",
+  HT: "Haitienne",
+  HU: "Hongroise",
+  IN: "Indienne",
+  ID: "Indonesienne",
+  IR: "Iranienne",
+  IQ: "Irakienne",
+  IE: "Irlandaise",
+  IL: "Israelienne",
+  IT: "Italienne",
+  JP: "Japonaise",
+  JO: "Jordanienne",
+  KZ: "Kazakhstanaise",
+  KE: "Kenyane",
+  LB: "Libanaise",
+  LY: "Libyenne",
+  LT: "Lituanienne",
+  LU: "Luxembourgeoise",
+  MG: "Malgache",
+  MY: "Malaisienne",
+  ML: "Malienne",
+  MA: "Marocaine",
+  MR: "Mauritanienne",
+  MX: "Mexicaine",
+  MD: "Moldave",
+  MC: "Monegasque",
+  MN: "Mongole",
+  ME: "Montenegrine",
+  MZ: "Mozambicaine",
+  NL: "Neerlandaise",
+  NE: "Nigerienne",
+  NG: "Nigeriane",
+  NO: "Norvegienne",
+  NZ: "Neo-zelandaise",
+  PK: "Pakistanaise",
+  PS: "Palestinienne",
+  PE: "Peruvienne",
+  PH: "Philippine",
+  PL: "Polonaise",
+  PT: "Portugaise",
+  QA: "Qatarienne",
+  RO: "Roumaine",
+  GB: "Britannique",
+  RU: "Russe",
+  RW: "Rwandaise",
+  SA: "Saoudienne",
+  SN: "Senegalaise",
+  RS: "Serbe",
+  SG: "Singapourienne",
+  SK: "Slovaque",
+  SI: "Slovene",
+  SO: "Somalienne",
+  SD: "Soudanaise",
+  SE: "Suedoise",
+  CH: "Suisse",
+  SY: "Syrienne",
+  TD: "Tchadienne",
+  CZ: "Tcheque",
+  TH: "Thailandaise",
+  TN: "Tunisienne",
+  TR: "Turque",
+  UA: "Ukrainienne",
+  UY: "Uruguayenne",
+  VE: "Venezuelienne",
+  VN: "Vietnamienne",
+  YE: "Yemenite",
+};
+
 function countryCodeToFlag(code: string) {
   return code
     .toUpperCase()
@@ -58,7 +173,10 @@ function countryCodeToFlag(code: string) {
 const nationalityOptions = Object.keys(countries)
   .map((code) => ({
     value: code,
-    label: regionNames.of(code) ?? countries[code as keyof typeof countries].name,
+    label:
+      feminineNationalities[code] ??
+      regionNames.of(code) ??
+      countries[code as keyof typeof countries].name,
     flag: countryCodeToFlag(code),
   }))
   .sort((first, second) => first.label.localeCompare(second.label, "fr"));
@@ -510,23 +628,6 @@ export function RequestStepForm({
                 </FieldDescription>
               </Field>
             )}
-            {!isKoupat && (
-              <Field className="full">
-                <FieldLabel htmlFor={`${type}-message`}>
-                  Details de la demande
-                </FieldLabel>
-                <Textarea
-                  id={`${type}-message`}
-                  name="message"
-                  placeholder={
-                    type === "visa"
-                      ? "Informations utiles pour le dossier visa..."
-                      : "Informations utiles pour la demande koupat holim..."
-                  }
-                />
-                <FieldDescription>Optionnel.</FieldDescription>
-              </Field>
-            )}
           </FieldGroup>
         </div>
 
@@ -683,4 +784,3 @@ export function RequestStepForm({
     </Card>
   );
 }
-

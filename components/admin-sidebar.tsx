@@ -59,13 +59,13 @@ const adminGroups: Array<{
     label: "Pilotage",
     items: [
       ["Dashboard", "/admin", LayoutDashboard],
-      ["Contacts", "/admin/contact", MessageSquare],
       ["Utilisateurs", "/admin/utilisateurs", Users],
     ],
   },
   {
     label: "Services",
     items: [
+      ["Contact", "/admin/contact", MessageSquare],
       ["Visa etudiant", "/admin/visa", FileCheck],
       ["Koupat Holim", "/admin/koupat-holim", ClipboardList],
       ["Evenements", "/admin/evenements", CalendarDays],
