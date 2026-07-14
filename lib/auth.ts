@@ -6,6 +6,22 @@ import { render } from "@react-email/render";
 import { OtpEmail } from "@/emails/otp-email";
 import { prisma } from "@/lib/prisma";
 
+const defaultTrustedOrigins = [
+  "http://localhost:3000",
+  "https://bneiyeshivot.com",
+  "https://www.bneiyeshivot.com",
+  "https://bneiyeshivot.vercel.app",
+  "https://*.vercel.app",
+];
+
+function getTrustedOrigins() {
+  const envOrigins = process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? [];
+
+  return [...defaultTrustedOrigins, ...envOrigins]
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 async function sendOtpEmail(email: string, otp: string) {
   const resendApiKey = process.env.RESEND_API_KEY;
   const from =
@@ -45,6 +61,7 @@ export const auth = betterAuth({
   }),
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins: getTrustedOrigins(),
   session: {
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,

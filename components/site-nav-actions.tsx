@@ -13,10 +13,7 @@ export function SiteNavActions() {
   const bahourUser = user && !isAdminUser(user) ? user : null;
   const isBahourActive =
     pathname === "/client" || pathname.startsWith("/client/");
-  const isRequestActive =
-    pathname === "/services" ||
-    pathname.startsWith("/services/") ||
-    pathname.startsWith("/demandes/");
+  const isRequestActive = pathname.startsWith("/demandes/");
 
   return (
     <div className="nav-actions">

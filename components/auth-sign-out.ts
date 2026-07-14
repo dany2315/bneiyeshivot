@@ -1,7 +1,7 @@
 "use client";
 
 export async function signOutRequest() {
-  return fetch("/api/auth/sign-out", {
+  return fetch("/api/logout", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
