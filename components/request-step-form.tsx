@@ -181,6 +181,58 @@ const nationalityOptions = Object.keys(countries)
   }))
   .sort((first, second) => first.label.localeCompare(second.label, "fr"));
 
+type RequestSubmitResult = {
+  ok: boolean;
+  requestId?: string;
+  message?: string;
+  issues?: { message: string }[];
+};
+
+function submitRequestFormData(
+  formData: FormData,
+  onProgress: (progress: number) => void,
+) {
+  return new Promise<RequestSubmitResult>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+
+    request.open("POST", "/api/requests");
+    request.responseType = "text";
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) {
+        onProgress(Math.max(1, Math.round((event.loaded / event.total) * 100)));
+      }
+    };
+    request.onload = () => {
+      let result: RequestSubmitResult;
+
+      try {
+        result = JSON.parse(request.responseText || "{}") as RequestSubmitResult;
+      } catch {
+        result = {
+          ok: false,
+          message:
+            request.responseText ||
+            "Le serveur n'a pas retourne une reponse lisible.",
+        };
+      }
+
+      if (request.status >= 200 && request.status < 300 && result.ok) {
+        resolve(result);
+        return;
+      }
+
+      reject(result);
+    };
+    request.onerror = () => {
+      reject({
+        ok: false,
+        message: "Connexion interrompue pendant l'envoi.",
+      });
+    };
+    request.send(formData);
+  });
+}
+
 function NationalityCombobox({ id, name }: { id: string; name: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -285,6 +337,7 @@ export function RequestStepForm({
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
   const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
+  const isSubmitting = submitState.status === "loading";
 
   function validateStep(stepIndex: number) {
     const form = formRef.current;
@@ -365,49 +418,27 @@ export function RequestStepForm({
       status: "loading",
       message: "Envoi de votre dossier en cours...",
     });
-    setSendProgress(12);
-    const timer = setInterval(() => {
-      setSendProgress((value) => (value < 90 ? value + (90 - value) * 0.12 : value));
-    }, 250);
+    setSendProgress(1);
 
     try {
       const formData = new FormData(event.currentTarget);
-      const response = await fetch("/api/requests", {
-        method: "POST",
-        body: formData,
-      });
-      const result = (await response.json()) as {
-        ok: boolean;
-        requestId?: string;
-        message?: string;
-        issues?: { message: string }[];
-      };
-
-      if (!response.ok || !result.ok) {
-        setSubmitState({
-          status: "error",
-          message:
-            result.issues?.[0]?.message ??
-            result.message ??
-            "Impossible d'envoyer la demande.",
-        });
-        setSendProgress(0);
-        return;
-      }
+      const result = await submitRequestFormData(formData, setSendProgress);
 
       setSendProgress(100);
       setSubmitState({
         status: "success",
         message: `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
       });
-    } catch {
+    } catch (error) {
+      const result = error as RequestSubmitResult;
       setSubmitState({
         status: "error",
-        message: "Impossible d'envoyer la demande. Reessayez.",
+        message:
+          result.issues?.[0]?.message ??
+          result.message ??
+          "Impossible d'envoyer la demande. Reessayez.",
       });
       setSendProgress(0);
-    } finally {
-      clearInterval(timer);
     }
   }
 
@@ -424,6 +455,7 @@ export function RequestStepForm({
       <CardContent>
         <form className="grid gap-6" ref={formRef} onSubmit={handleSubmit} noValidate>
         <input name="kind" type="hidden" value={type} />
+        <fieldset className="contents" disabled={isSubmitting}>
         <div className="grid gap-3">
           <div className="stepper-grid">
             {steps.map(({ label, detail }, index) => (
@@ -434,6 +466,7 @@ export function RequestStepForm({
                 key={label}
                 type="button"
                 onClick={() => goToStep(index)}
+                disabled={isSubmitting}
               >
                 <span className="step-index">
                   {index < step ? <Check className="size-4" /> : index + 1}
@@ -639,6 +672,7 @@ export function RequestStepForm({
                   required
                   title="Photo du passeport non israelien"
                   status="missing"
+                  disabled={isSubmitting}
                 />
                 <DocumentAttachmentCard
                   name="formFile"
@@ -649,6 +683,7 @@ export function RequestStepForm({
                       : "Formulaire koupat holim rempli"
                   }
                   status="missing"
+                  disabled={isSubmitting}
                 />
                 {isVisa && (
                   <DocumentAttachmentCard
@@ -656,6 +691,7 @@ export function RequestStepForm({
                     required
                     title="Acte de naissance"
                     status="missing"
+                    disabled={isSubmitting}
                   />
                 )}
                 <DocumentAttachmentCard
@@ -663,16 +699,18 @@ export function RequestStepForm({
                   required
                   title="Certificat d'etudiant ou Massa"
                   status="missing"
+                  disabled={isSubmitting}
                 />
               </>
             ) : (
               <>
-                <DocumentAttachmentCard name="passportFile" required title="Passeport" status="missing" />
+                <DocumentAttachmentCard disabled={isSubmitting} name="passportFile" required title="Passeport" status="missing" />
                 <DocumentAttachmentCard
                   name="identityFile"
                   required
                   title="Document d'identite / visa"
                   status="missing"
+                  disabled={isSubmitting}
                 />
               </>
             )}
@@ -747,7 +785,7 @@ export function RequestStepForm({
 
         <div className="flex flex-wrap justify-between gap-3">
           <Button
-            disabled={step === 0}
+            disabled={step === 0 || isSubmitting}
             onClick={() => setStep((value) => Math.max(0, value - 1))}
             type="button"
             variant="secondary"
@@ -758,6 +796,7 @@ export function RequestStepForm({
           {step < steps.length - 1 ? (
             <Button
               onClick={() => goToStep(step + 1)}
+              disabled={isSubmitting}
               type="button"
             >
               Continuer
@@ -779,6 +818,7 @@ export function RequestStepForm({
             </Button>
           )}
         </div>
+        </fieldset>
         </form>
       </CardContent>
     </Card>

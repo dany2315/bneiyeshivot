@@ -100,22 +100,22 @@ export default async function ClientPage() {
       <main>
         <section className="section">
           <div className="container">
-            <Card className="portal-card">
-              <CardHeader>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div>
                 <span className="eyebrow">Espace Bahour</span>
-                <CardTitle className="text-3xl">
+                <h1 className="text-3xl font-bold text-[var(--primary)]">
                   Bonjour {user.firstName || "Bahour"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
+                </h1>
+              </div>
+              <div className="flex flex-wrap gap-3">
                 <Button asChild>
                   <Link href="/services">Nouvelle demande</Link>
                 </Button>
                 <Button asChild variant="secondary">
                   <Link href="/evenements">Voir les evenements</Link>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {(requests.length > 0 || registrations.length > 0) && (
               <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
@@ -152,7 +152,6 @@ export default async function ClientPage() {
               >
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
                 <TabsTrigger value="events">Evenements</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
               </TabsList>
 
@@ -236,17 +235,6 @@ export default async function ClientPage() {
                     ))}
                   </div>
                 )}
-              </TabsContent>
-
-              <TabsContent value="documents" className="grid gap-5">
-                <Alert>
-                  <FileText />
-                  <AlertTitle>Documents</AlertTitle>
-                  <AlertDescription>
-                    Le stockage et la validation piece par piece seront branches
-                    avec S3 dans l&apos;etape upload.
-                  </AlertDescription>
-                </Alert>
               </TabsContent>
 
               <TabsContent value="mivhanim" className="grid gap-5">

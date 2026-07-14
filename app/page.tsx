@@ -5,6 +5,7 @@ import { impactStats } from "./data";
 import { programmes } from "./programme/programmes";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/event-content";
+import { fileUrl } from "@/lib/files";
 import { ImpactCounter } from "@/components/impact-counter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -24,10 +33,12 @@ import {
 } from "@/components/ui/carousel";
 import {
   CheckCircle2,
+  ArrowRight,
+  CalendarDays,
   Film,
   Gift,
   Heart,
-  Info,
+  MapPin,
   School,
   ShoppingBasket,
 } from "lucide-react";
@@ -95,14 +106,79 @@ const homeServices = [
   },
 ];
 
-const galleryItems = [
-  "Photos",
-  "Videos",
-  "Drone",
-  "Evenements",
-  "Voyages",
-  "Cours",
-  "Shabbatot",
+const galleryAlbums = [
+  {
+    title: "Photos",
+    description: "Moments de vie, rencontres et ambiance Bnei Yeshivot.",
+    photos: [
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1506869640319-fe1a24fd76dc?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Videos",
+    description: "Captures de cours, prises de parole et moments forts.",
+    photos: [
+      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Evenements",
+    description: "Soirees, rassemblements et rendez-vous communautaires.",
+    photos: [
+      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Voyages",
+    description: "Sorties, decouvertes et temps forts en Israel.",
+    photos: [
+      "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1549989476-69a92fa57c36?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1519817914152-22d216bb9170?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1539635278303-d4002c07eae3?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Cours",
+    description: "Etude, ateliers et accompagnement personnel.",
+    photos: [
+      "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Shabbatot",
+    description: "Ambiance, repas et moments de partage.",
+    photos: [
+      "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
 ];
 
 const testimonials = [
@@ -223,7 +299,7 @@ export default async function Home() {
                 <span className="eyebrow">Video de presentation</span>
                 <h2>Decouvrir Bnei Yeshivot en quelques minutes</h2>
                 <p>
-                  Une presentation claire de l'accompagnement Bnei Yeshivot,
+                  Une presentation claire de l&apos;accompagnement Bnei Yeshivot,
                   des services et de la vision portee pour les jeunes
                   francophones en Israel.
                 </p>
@@ -249,7 +325,7 @@ export default async function Home() {
               <p>
                 Chaque chiffre represente une action concrete menee aupres des
                 jeunes francophones : accueil, demarches, installation et
-                programmes pendant l'annee.
+                programmes pendant l&apos;annee.
               </p>
             </div>
             <div className="grid grid-4">
@@ -265,7 +341,7 @@ export default async function Home() {
             <div className="section-header">
               <h2>Nos services</h2>
               <p>
-                Avant l'arrivee comme pendant l'annee, notre equipe vous
+                Avant l&apos;arrivee comme pendant l&apos;annee, notre equipe vous
                 accompagne dans les demarches qui comptent pour vous installer
                 sereinement et garder un lien clair avec Bnei Yeshivot.
               </p>
@@ -282,11 +358,9 @@ export default async function Home() {
                   </CardHeader>
                   <CardContent className="flex flex-wrap justify-end gap-2">
                     {learnMoreHref ? (
-                      <Button asChild variant="ghost">
+                      <Button asChild variant="outline">
                         <Link href={learnMoreHref}>
-                          <Info className="size-4 sm:hidden" />
-                          <span className="hidden sm:inline">En savoir plus</span>
-                          <span className="sr-only sm:hidden">En savoir plus</span>
+                          En savoir plus
                         </Link>
                       </Button>
                     ) : null}
@@ -360,20 +434,73 @@ export default async function Home() {
             <div className="section-header">
               <h2>Galerie</h2>
               <p>
-                Une galerie moderne pour mettre en avant photos, videos, drone,
+                Une galerie moderne pour mettre en avant photos, videos,
                 evenements, voyages, cours et Shabbatot.
               </p>
             </div>
             <div className="gallery-grid">
-              {galleryItems.map((item, index) => (
-                <Card className="gallery-card" key={item}>
-                  <CardHeader>
-                    <Badge variant={index % 2 === 0 ? "info" : "warning"}>
-                      Galerie
-                    </Badge>
-                    <CardTitle>{item}</CardTitle>
-                  </CardHeader>
-                </Card>
+              {galleryAlbums.map((album, index) => (
+                <Dialog key={album.title}>
+                  <DialogTrigger
+                    render={
+                      <button className="gallery-card-trigger" type="button" />
+                    }
+                  >
+                    <Card className="gallery-card">
+                      <div className="gallery-card-mosaic">
+                        {album.photos.slice(0, 5).map((photo, photoIndex) => (
+                          <div
+                            key={photo}
+                            className={
+                              photoIndex === 0
+                                ? "gallery-mosaic-cell gallery-mosaic-main"
+                                : "gallery-mosaic-cell"
+                            }
+                          >
+                            <Image
+                              alt=""
+                              fill
+                              sizes="(max-width: 980px) 50vw, 20vw"
+                              src={photo}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <CardHeader>
+                        <Badge variant={index % 2 === 0 ? "info" : "warning"}>
+                          {album.photos.length} photos
+                        </Badge>
+                        <CardTitle>{album.title}</CardTitle>
+                        <CardDescription>{album.description}</CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                    <DialogHeader>
+                      <DialogTitle>{album.title}</DialogTitle>
+                      <DialogDescription>{album.description}</DialogDescription>
+                    </DialogHeader>
+                    <div className="gallery-dialog-grid">
+                      {album.photos.map((photo, photoIndex) => (
+                        <div
+                          className={
+                            photoIndex === 0
+                              ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                              : "gallery-dialog-photo"
+                          }
+                          key={photo}
+                        >
+                          <Image
+                            alt=""
+                            fill
+                            sizes="(max-width: 980px) 100vw, 33vw"
+                            src={photo}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               ))}
             </div>
           </div>
@@ -382,26 +509,55 @@ export default async function Home() {
         <section className="section band">
           <div className="container">
             <div className="section-header">
-              <h2>Les prochains evenements</h2>
-              <p>
-                Les prochaines rencontres de la communaute, mises a jour par
-                l&apos;equipe.
-              </p>
+              <div>
+                <h2>Les prochains evenements</h2>
+              </div>
+              <Button asChild variant="secondary">
+                <Link href="/evenements">Voir tout</Link>
+              </Button>
             </div>
             {upcomingEvents.length > 0 ? (
               <div className="grid grid-3">
                 {upcomingEvents.map((event) => (
-                  <Card key={event.id}>
-                    <CardHeader>
-                      <Badge variant="info">
-                        {formatDateTime(event.startsAt)}
-                      </Badge>
-                      <CardTitle>{event.title}</CardTitle>
+                  <Card
+                    key={event.id}
+                    className="group overflow-hidden border-[var(--border)] bg-white pt-0 shadow-[0_22px_70px_rgba(6,40,70,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_90px_rgba(6,40,70,0.12)]"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[var(--primary-soft)]">
+                      {fileUrl(event.imageKey) ? (
+                        <Image
+                          alt=""
+                          className="object-cover transition duration-500 group-hover:scale-105"
+                          fill
+                          sizes="(max-width: 980px) 100vw, 33vw"
+                          src={fileUrl(event.imageKey) ?? ""}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-white">
+                          <CalendarDays className="size-10 opacity-85" />
+                        </div>
+                      )}
+                      <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                        <Badge variant="info">{formatDateTime(event.startsAt)}</Badge>
+                        {event.requiresRegistration && (
+                          <Badge variant="success">Inscription</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <CardHeader className="gap-3">
+                      <CardTitle className="text-2xl">{event.title}</CardTitle>
                       <CardDescription>{event.description}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <Button asChild variant="secondary">
-                        <Link href="/evenements">Voir les evenements</Link>
+                    <CardContent className="grid gap-4">
+                      <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
+                        <MapPin className="size-4" />
+                        {event.location || "Lieu a confirmer"}
+                      </span>
+                      <Button asChild variant={event.requiresRegistration ? "accent" : "secondary"}>
+                        <Link href={event.requiresRegistration ? "/evenements" : "/contact"}>
+                          {event.requiresRegistration ? "S'inscrire" : "Contactez-nous"}
+                          <ArrowRight className="size-4" />
+                        </Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -483,7 +639,7 @@ export default async function Home() {
                 </li>
                 <li>
                   <ShoppingBasket className="size-4" />
-                  Bons d'achat pour les familles
+                  Bons d&apos;achat pour les familles
                 </li>
                 <li>
                   <School className="size-4" />
@@ -502,8 +658,8 @@ export default async function Home() {
               <CardHeader>
                 <CardTitle>Soutenir les jeunes, les Avrekhim et les familles</CardTitle>
                 <CardDescription>
-                  Grace a l'engagement de ses membres, Bnei Yeshivot developpe
-                  des actions concretes tout au long de l'annee.
+                  Grace a l&apos;engagement de ses membres, Bnei Yeshivot developpe
+                  des actions concretes tout au long de l&apos;annee.
                 </CardDescription>
               </CardHeader>
             </Card>

@@ -5,8 +5,8 @@ import {
 } from "@prisma/client";
 import { updateServiceRequest } from "@/app/admin/actions";
 import { StatusBadge } from "@/app/components";
+import { AdminCreateRequestDialog } from "@/components/admin-create-request-dialog";
 import { AdminShell } from "@/components/admin-sidebar";
-import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +50,12 @@ function userName(user: User | null) {
   return [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Bahour";
 }
 
+function requestDialogType(type: ServiceRequestType) {
+  if (type === ServiceRequestType.VISA_STUDENT) return "visa";
+  if (type === ServiceRequestType.KOUPAT_HOLIM) return "koupat";
+  return null;
+}
+
 export async function AdminServiceRequestsPage({
   title,
   description,
@@ -61,7 +67,6 @@ export async function AdminServiceRequestsPage({
   type: ServiceRequestType;
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
-  await requireAdminUser();
   const params = await searchParams;
   const selectedStatus = Object.values(ServiceRequestStatus).includes(
     params.status as ServiceRequestStatus,
@@ -69,6 +74,7 @@ export async function AdminServiceRequestsPage({
     ? (params.status as ServiceRequestStatus)
     : undefined;
   const q = params.q?.trim();
+  const dialogType = requestDialogType(type);
 
   const requests = await prisma.serviceRequest.findMany({
     where: {
@@ -98,12 +104,13 @@ export async function AdminServiceRequestsPage({
       <div className="admin-header">
         <div>
           <span className="eyebrow">Back-office</span>
+          <h1>{title}</h1>
         </div>
+        {dialogType && <AdminCreateRequestDialog type={dialogType} />}
       </div>
 
       <section className="section admin-section-tight">
         <div className="section-header">
-          <h2>{title}</h2>
           <p>{description}</p>
         </div>
 
@@ -175,7 +182,11 @@ export async function AdminServiceRequestsPage({
 
         <div className="mt-5 grid gap-4">
           {requests.map((request) => (
-            <Card key={`request-form-${request.id}`}>
+            <Card
+              id={`request-${request.id}`}
+              key={`request-form-${request.id}`}
+              className="scroll-mt-24"
+            >
               <form action={updateServiceRequest}>
                 <CardHeader>
                   <CardTitle className="text-xl">

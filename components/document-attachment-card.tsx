@@ -18,11 +18,13 @@ export function DocumentAttachmentCard({
   status,
   name,
   required,
+  disabled,
 }: {
   title: string;
   status: "missing" | "received";
   name: string;
   required?: boolean;
+  disabled?: boolean;
 }) {
   const id = useId();
   const [fileName, setFileName] = useState("");
@@ -33,12 +35,16 @@ export function DocumentAttachmentCard({
         accept="application/pdf,image/*"
         className="sr-only"
         id={id}
+        disabled={disabled}
         name={name}
         onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
         required={required}
         type="file"
       />
-      <label className="cursor-pointer" htmlFor={id}>
+      <label
+        className={disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"}
+        htmlFor={id}
+      >
         <Attachment
           className="w-full border-[var(--border)] bg-white"
           state={fileName ? "done" : "idle"}
@@ -59,8 +65,10 @@ export function DocumentAttachmentCard({
             <AttachmentActions>
               <AttachmentAction
                 aria-label="Retirer le fichier"
+                disabled={disabled}
                 onClick={(event) => {
                   event.preventDefault();
+                  if (disabled) return;
                   const input = document.getElementById(id) as HTMLInputElement | null;
                   if (input) {
                     input.value = "";

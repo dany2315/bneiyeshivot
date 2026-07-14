@@ -119,13 +119,16 @@ function EventImage({
   imageKey: string | null;
   badge: React.ReactNode;
 }) {
+  const src = fileUrl(imageKey);
+
   return (
     <div className="relative aspect-[16/10] overflow-hidden bg-[var(--primary-soft)]">
-      {fileUrl(imageKey) ? (
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           alt=""
           className="h-full w-full object-cover"
-          src={fileUrl(imageKey) ?? undefined}
+          src={src}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-white">
@@ -169,10 +172,8 @@ function UpcomingCard({
   isRegistered: boolean;
   loggedIn: boolean;
 }) {
-  const content = parseEventContent(event.content as never);
-
   return (
-    <Card className="overflow-hidden border-[var(--border)] bg-white shadow-[0_20px_70px_rgba(6,40,70,0.08)]">
+    <Card className="group overflow-hidden border-[var(--border)] bg-white pt-0 shadow-[0_20px_70px_rgba(6,40,70,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_90px_rgba(6,40,70,0.12)]">
       <EventImage
         badge={
           <>
@@ -189,11 +190,6 @@ function UpcomingCard({
         <CardDescription>{event.description}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        {content.body && (
-          <p className="line-clamp-4 whitespace-pre-line text-base leading-7 text-[var(--primary)]">
-            {content.body}
-          </p>
-        )}
         <EventMeta event={event} />
         {event.requiresRegistration ? (
           isRegistered ? (
@@ -207,7 +203,7 @@ function UpcomingCard({
                 <ArrowRight />
               </Button>
               {!loggedIn && (
-                <span className="mt-2 block text-sm text-[var(--muted)]">
+                <span className="mt-2 block text-sm text-[var(--muted)] ">
                   Connexion a l&apos;Espace Bahour demandee avant
                   l&apos;inscription.
                 </span>
@@ -215,7 +211,12 @@ function UpcomingCard({
             </form>
           )
         ) : (
-          <StatusBadge tone="blue">Sans inscription</StatusBadge>
+          <Button asChild variant="secondary">
+            <Link href="/contact">
+              Contactez-nous
+              <ArrowRight />
+            </Link>
+          </Button>
         )}
       </CardContent>
     </Card>
@@ -224,7 +225,7 @@ function UpcomingCard({
 
 function PastCard({ event }: { event: EventWithMeta }) {
   return (
-    <Card className="overflow-hidden border-[var(--border)] bg-white shadow-[0_20px_70px_rgba(6,40,70,0.08)]">
+    <Card className="overflow-hidden border-[var(--border)] bg-white shadow-[0_20px_70px_rgba(6,40,70,0.08)] pt-0">
       <EventImage
         badge={<StatusBadge tone="gold">Passe</StatusBadge>}
         imageKey={event.imageKey}
