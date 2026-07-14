@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { uploadFilesToS3 } from "@/lib/uploads";
+import { deleteFilesFromS3, uploadFilesToS3 } from "@/lib/uploads";
 
 function slugify(value: string) {
   return value
@@ -184,6 +184,21 @@ export async function updateEvent(formData: FormData) {
       ? (existing.content as Record<string, unknown>)
       : {};
 
+  const newImageKey = imageKey || existing.imageKey;
+  const oldGallery = Array.isArray(currentContent.gallery)
+    ? currentContent.gallery.filter(
+        (item): item is string => typeof item === "string",
+      )
+    : [];
+
+  // Images retirees (cover remplacee, photos supprimees) -> a nettoyer sur S3.
+  const keysToDelete = [
+    ...(existing.imageKey && existing.imageKey !== newImageKey
+      ? [existing.imageKey]
+      : []),
+    ...oldGallery.filter((key) => !gallery.includes(key)),
+  ];
+
   await prisma.event.update({
     where: { id },
     data: {
@@ -194,7 +209,7 @@ export async function updateEvent(formData: FormData) {
       location: location || null,
       capacity: capacity ? Number(capacity) : null,
       requiresRegistration,
-      imageKey: imageKey || existing.imageKey,
+      imageKey: newImageKey,
       content: {
         ...currentContent,
         body,
@@ -205,6 +220,8 @@ export async function updateEvent(formData: FormData) {
       },
     },
   });
+
+  await deleteFilesFromS3(keysToDelete);
 
   await prisma.auditLog.create({
     data: {
@@ -231,18 +248,36 @@ export async function deleteEvent(formData: FormData) {
 
   const existing = await prisma.event.findUnique({
     where: { id },
-    select: { slug: true },
+    select: { slug: true, imageKey: true, content: true },
   });
 
   if (!existing) {
     throw new Error("Evenement introuvable.");
   }
 
+  const content =
+    existing.content &&
+    typeof existing.content === "object" &&
+    !Array.isArray(existing.content)
+      ? (existing.content as Record<string, unknown>)
+      : {};
+  const toStringArray = (value: unknown) =>
+    Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === "string")
+      : [];
+  const filesToDelete = [
+    ...(existing.imageKey ? [existing.imageKey] : []),
+    ...toStringArray(content.gallery),
+    ...toStringArray(content.pastPhotos),
+  ];
+
   // Les inscriptions liees doivent partir avant l'evenement (contrainte FK).
   await prisma.$transaction([
     prisma.eventRegistration.deleteMany({ where: { eventId: id } }),
     prisma.event.delete({ where: { id } }),
   ]);
+
+  await deleteFilesFromS3(filesToDelete);
 
   await prisma.auditLog.create({
     data: {

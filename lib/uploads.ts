@@ -1,4 +1,9 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 
 const region = process.env.AWS_REGION;
 const bucket = process.env.AWS_S3_BUCKET;
@@ -71,6 +76,25 @@ export async function uploadFilesToS3(files: File[], prefix: string) {
   return uploaded.filter(Boolean) as NonNullable<
     Awaited<ReturnType<typeof uploadFileToS3>>
   >[];
+}
+
+export async function deleteFileFromS3(key: string) {
+  // On ne supprime que de vraies cles S3 (on ignore les anciennes URLs completes
+  // et les valeurs vides).
+  if (!s3Client || !bucket) return;
+  if (!key || /^https?:\/\//.test(key) || key.startsWith("data:")) return;
+
+  try {
+    await s3Client.send(
+      new DeleteObjectCommand({ Bucket: bucket, Key: key }),
+    );
+  } catch (error) {
+    console.error("[s3] suppression echouee", key, error);
+  }
+}
+
+export async function deleteFilesFromS3(keys: string[]) {
+  await Promise.all(keys.filter(Boolean).map((key) => deleteFileFromS3(key)));
 }
 
 export async function getFileFromS3(key: string) {
