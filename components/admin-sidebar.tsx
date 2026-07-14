@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { signOutRequest } from "@/components/auth-sign-out";
 import {
   CalendarDays,
   ChevronRight,
@@ -87,6 +90,24 @@ const adminGroups: Array<{
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+
+    try {
+      await signOutRequest();
+    } catch {
+      setSigningOut(false);
+      toast.error("Impossible de se deconnecter pour le moment.");
+      return;
+    }
+
+    toast.success("Vous etes deconnecte.");
+    router.push("/admin/connexion");
+    router.refresh();
+  }
 
   return (
     <SidebarProvider>
@@ -157,7 +178,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <strong>Admin Bnei</strong>
                 <span>connecte</span>
               </div>
-              <Button variant="ghost" size="icon-sm" aria-label="Deconnexion">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Deconnexion"
+                disabled={signingOut}
+                onClick={handleSignOut}
+              >
                 <LogOut />
               </Button>
             </div>
