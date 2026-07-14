@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   CalendarDays,
-  CheckCircle2,
   CircleHelp,
   Gift,
   House,
@@ -154,22 +153,18 @@ export function MobileNav() {
         <div className="mobile-nav-actions">
           {bahourUser ? (
             <div className="grid gap-3">
-              <div className="rounded-3xl border border-[var(--border)] bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-12 border border-[var(--border)] bg-[var(--primary-soft)]">
+              <div className="rounded-2xl border border-[var(--border)] bg-white p-3 shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <Avatar className="size-10 border border-[var(--border)] bg-[var(--primary-soft)]">
                     <AvatarFallback className="bg-[var(--primary-soft)] text-sm font-bold text-[var(--primary)]">
                       {getUserInitials(bahourUser)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-sm font-bold text-[var(--primary)]">
-                      <CheckCircle2 className="size-4 text-[var(--success)]" />
-                      Connecte
-                    </div>
-                    <p className="truncate text-base font-bold text-[var(--primary)]">
+                    <p className="truncate text-sm font-bold text-[var(--primary)]">
                       {displayName || "Compte Bahour"}
                     </p>
-                    <p className="truncate text-sm font-semibold text-[var(--muted)]">
+                    <p className="truncate text-xs font-semibold text-[var(--muted)]">
                       {bahourUser.email}
                     </p>
                   </div>
