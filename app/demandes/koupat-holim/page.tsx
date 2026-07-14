@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageShell } from "../../components";
 import { RequestStepForm } from "@/components/request-step-form";
+import { getCurrentUser } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +14,9 @@ export const metadata = {
   title: "Demande Koupat Holim",
 };
 
-export default function KoupatHolimRequestPage() {
+export default async function KoupatHolimRequestPage() {
+  const user = await getCurrentUser();
+
   return (
     <PageShell>
       <main>
@@ -31,11 +34,10 @@ export default function KoupatHolimRequestPage() {
 
         <section className="section">
           <div className="container request-layout">
-            <RequestStepForm type="koupat" />
+            <RequestStepForm initialUser={user} type="koupat" />
             <div>
               <Card>
                 <CardHeader>
-                  <span className="icon-box">KHP</span>
                   <CardTitle>Suivi koupat holim</CardTitle>
                   <CardDescription>
                     Apres depot, le Bahour pourra suivre le statut de la demande
@@ -45,7 +47,6 @@ export default function KoupatHolimRequestPage() {
               </Card>
               <Card className="mt-4">
                 <CardHeader>
-                  <span className="icon-box">AUTRE</span>
                   <CardTitle>Besoin d&apos;un visa ?</CardTitle>
                   <CardDescription>
                     La demande visa etudiant a sa propre page separee.

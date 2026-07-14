@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Field,
   FieldDescription,
@@ -137,7 +136,20 @@ function NationalityCombobox({ id, name }: { id: string; name: string }) {
   );
 }
 
-export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
+export type RequestFormInitialUser = {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+};
+
+export function RequestStepForm({
+  type,
+  initialUser,
+}: {
+  type: "visa" | "koupat";
+  initialUser?: RequestFormInitialUser | null;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState(0);
   const [personStatus, setPersonStatus] = useState("");
@@ -300,15 +312,28 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
           <FieldGroup className="form-grid">
             <Field>
               <FieldLabel htmlFor={`${type}-first-name`}>Prenom</FieldLabel>
-              <Input id={`${type}-first-name`} name="firstName" placeholder="David" required />
+              <Input
+                defaultValue={initialUser?.firstName ?? ""}
+                id={`${type}-first-name`}
+                name="firstName"
+                placeholder="David"
+                required
+              />
             </Field>
             <Field>
               <FieldLabel htmlFor={`${type}-last-name`}>Nom</FieldLabel>
-              <Input id={`${type}-last-name`} name="lastName" placeholder="Cohen" required />
+              <Input
+                defaultValue={initialUser?.lastName ?? ""}
+                id={`${type}-last-name`}
+                name="lastName"
+                placeholder="Cohen"
+                required
+              />
             </Field>
             <Field>
               <FieldLabel htmlFor={`${type}-email`}>Email</FieldLabel>
               <Input
+                defaultValue={initialUser?.email ?? ""}
                 id={`${type}-email`}
                 name="email"
                 placeholder="email@exemple.com"
@@ -320,7 +345,13 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
               <FieldLabel htmlFor={`${type}-phone`}>
                 Telephone / WhatsApp
               </FieldLabel>
-              <Input id={`${type}-phone`} name="phone" placeholder="+972 ..." required />
+              <Input
+                defaultValue={initialUser?.phone ?? ""}
+                id={`${type}-phone`}
+                name="phone"
+                placeholder="+972 ..."
+                required
+              />
             </Field>
             {(isVisa || isKoupat) && (
               <>
@@ -456,22 +487,6 @@ export function RequestStepForm({ type }: { type: "visa" | "koupat" }) {
                   Champ provisoire, a confirmer avec tes donnees exactes.
                 </FieldDescription>
               </Field>
-            )}
-            {!isKoupat && (
-            <Field className="full">
-              <FieldLabel htmlFor={`${type}-message`}>
-                Details de la demande
-              </FieldLabel>
-              <Textarea
-                id={`${type}-message`}
-                name="message"
-                placeholder={
-                  type === "visa"
-                    ? "Informations utiles pour le dossier visa..."
-                    : "Informations utiles pour la demande koupat holim..."
-                }
-              />
-            </Field>
             )}
           </FieldGroup>
         </div>
