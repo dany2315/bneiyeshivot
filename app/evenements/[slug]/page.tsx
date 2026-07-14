@@ -1,9 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { PageShell, StatusBadge } from "../../components";
-import { registerForEvent } from "../actions";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,44 +19,26 @@ export default async function EventDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const user = await getCurrentUser();
-  const event = await prisma.event.findUnique({
-    where: { slug },
-    include: {
-      _count: { select: { registrations: true } },
-      registrations: user
-        ? {
-            where: { userId: user.id },
-            take: 1,
-          }
-        : false,
-    },
-  });
+  const event = await prisma.event.findUnique({ where: { slug } });
 
   if (!event) {
     notFound();
   }
 
-  const now = new Date();
-  const isPast = event.startsAt < now;
-
   // Les evenements a venir n'ont pas de page dediee : tout est sur la card.
-  if (!isPast) {
+  if (event.startsAt >= new Date()) {
     redirect("/evenements");
   }
 
   const content = parseEventContent(event.content);
-  const isRegistered = (event.registrations?.length ?? 0) > 0;
-  const gallery = isPast
-    ? [...content.gallery, ...content.pastPhotos]
-    : content.gallery;
-  const registrationsCount = event._count.registrations;
+  const gallery = [...content.gallery, ...content.pastPhotos];
 
   return (
     <PageShell>
       <main>
         <section className="relative min-h-[620px] overflow-hidden text-white md:min-h-[72vh]">
           {event.imageKey ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
@@ -71,7 +51,7 @@ export default async function EventDetailPage({
           <div className="container relative z-10 flex min-h-[620px] items-end pb-10 pt-24 md:min-h-[72vh] md:pb-12">
             <div className="max-w-3xl">
               <span className="inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-bold uppercase tracking-[0.12em] text-white">
-                {isPast ? "Evenement passe" : "Evenement a venir"}
+                Evenement passe
               </span>
               <h1 className="mt-5 text-white">{event.title}</h1>
               <p className="mt-4 text-lg leading-8 text-white/82 md:text-xl">
@@ -81,34 +61,19 @@ export default async function EventDetailPage({
                 <HeroStat label="Lieu" value={event.location || "A confirmer"} />
                 <HeroStat
                   label="Participants"
-                  value={`${registrationsCount}`}
+                  value={event.capacity != null ? `${event.capacity}` : "—"}
                 />
                 <HeroStat
                   label="Medias"
                   value={`${content.videoUrls.length} video(s)`}
                 />
               </div>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-6">
                 <Button asChild>
                   <Link className="text-white" href="/evenements">
                     Retour aux evenements
                   </Link>
                 </Button>
-                {!isPast &&
-                  event.requiresRegistration &&
-                  (isRegistered ? (
-                    <span className="inline-flex items-center rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">
-                      Deja inscrit
-                    </span>
-                  ) : (
-                    <form action={registerForEvent}>
-                      <input name="eventId" type="hidden" value={event.id} />
-                      <input name="slug" type="hidden" value={event.slug} />
-                      <Button type="submit" variant="secondary">
-                        S&apos;inscrire
-                      </Button>
-                    </form>
-                  ))}
               </div>
             </div>
           </div>
@@ -144,40 +109,6 @@ export default async function EventDetailPage({
             <aside className="grid h-fit gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Participation</CardTitle>
-                  <CardDescription>
-                    {registrationsCount} inscription(s) enregistree(s).
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-3">
-                  {isPast ? (
-                    <StatusBadge tone="gold">Inscriptions fermees</StatusBadge>
-                  ) : event.requiresRegistration ? (
-                    isRegistered ? (
-                      <StatusBadge tone="green">Deja inscrit</StatusBadge>
-                    ) : (
-                      <form action={registerForEvent}>
-                        <input name="eventId" type="hidden" value={event.id} />
-                        <input name="slug" type="hidden" value={event.slug} />
-                        <Button className="w-full text-white" type="submit">
-                          S&apos;inscrire
-                        </Button>
-                      </form>
-                    )
-                  ) : (
-                    <StatusBadge tone="blue">Sans inscription</StatusBadge>
-                  )}
-                  {!user && event.requiresRegistration && !isPast && (
-                    <p className="text-sm leading-6 text-[var(--muted)]">
-                      La connexion a l&apos;Espace Bahour sera demandee avant
-                      l&apos;inscription.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
                   <CardTitle>Informations</CardTitle>
                   <CardDescription>
                     {event.location || "Lieu a confirmer"}
@@ -185,8 +116,9 @@ export default async function EventDetailPage({
                 </CardHeader>
                 <CardContent className="grid gap-2 text-base text-[var(--muted)]">
                   <p>Date : {formatDateTime(event.startsAt)}</p>
-                  {event.endsAt && <p>Fin : {formatDateTime(event.endsAt)}</p>}
-                  {event.capacity && <p>Capacite : {event.capacity}</p>}
+                  {event.capacity != null && (
+                    <p>Participants : {event.capacity}</p>
+                  )}
                   <div className="flex flex-wrap gap-2 pt-1">
                     <span className="inline-flex items-center gap-2 rounded-full bg-[var(--subtle)] px-3 py-1">
                       <Film className="size-4" />
@@ -197,6 +129,7 @@ export default async function EventDetailPage({
                       {gallery.length} photo(s)
                     </span>
                   </div>
+                  <StatusBadge tone="gold">Inscriptions fermees</StatusBadge>
                 </CardContent>
               </Card>
             </aside>
@@ -207,7 +140,7 @@ export default async function EventDetailPage({
           <section className="section band">
             <div className="container">
               <div className="section-header">
-                <h2>{isPast ? "Galerie apres evenement" : "Apercu"}</h2>
+                <h2>Galerie apres evenement</h2>
                 <p>
                   Photos ajoutees par l&apos;equipe pour raconter
                   l&apos;evenement.
@@ -215,6 +148,7 @@ export default async function EventDetailPage({
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {gallery.map((src, index) => (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     alt=""
                     className={

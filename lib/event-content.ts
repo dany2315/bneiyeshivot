@@ -6,6 +6,7 @@ export type EventContent = {
   videoUrls: string[];
   gallery: string[];
   pastPhotos: string[];
+  pastPublished: boolean;
 };
 
 function stringArray(value: unknown) {
@@ -22,6 +23,7 @@ export function parseEventContent(content: Prisma.JsonValue): EventContent {
       videoUrls: [],
       gallery: [],
       pastPhotos: [],
+      pastPublished: false,
     };
   }
 
@@ -36,6 +38,7 @@ export function parseEventContent(content: Prisma.JsonValue): EventContent {
     videoUrls: videoUrls.length > 0 ? videoUrls : legacyVideoUrl ? [legacyVideoUrl] : [],
     gallery: stringArray(record.gallery),
     pastPhotos: stringArray(record.pastPhotos),
+    pastPublished: record.pastPublished === true,
   };
 }
 

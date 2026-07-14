@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Field,
   FieldDescription,
@@ -486,6 +487,23 @@ export function RequestStepForm({
                 <FieldDescription>
                   Champ provisoire, a confirmer avec tes donnees exactes.
                 </FieldDescription>
+              </Field>
+            )}
+            {!isKoupat && (
+              <Field className="full">
+                <FieldLabel htmlFor={`${type}-message`}>
+                  Details de la demande
+                </FieldLabel>
+                <Textarea
+                  id={`${type}-message`}
+                  name="message"
+                  placeholder={
+                    type === "visa"
+                      ? "Informations utiles pour le dossier visa..."
+                      : "Informations utiles pour la demande koupat holim..."
+                  }
+                />
+                <FieldDescription>Optionnel.</FieldDescription>
               </Field>
             )}
           </FieldGroup>

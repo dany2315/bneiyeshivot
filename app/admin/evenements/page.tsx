@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { EventRegistrationStatus } from "@prisma/client";
 import {
-  addEventPastMedia,
+  createEvent,
+  updateEvent,
   updateEventRegistrationStatus,
 } from "../actions";
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
-import { AdminFileInput } from "@/components/admin-file-input";
-import { EventCreateDialog } from "@/components/event-create-dialog";
+import { EventFormDialog } from "@/components/event-form-dialog";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,7 +32,6 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -40,7 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Users } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
 
 export const metadata = {
   title: "Admin evenements",
@@ -80,7 +80,7 @@ export default async function AdminEventsPage() {
           <span className="eyebrow">Back-office</span>
           <h1>Evenements</h1>
         </div>
-        <EventCreateDialog />
+        <EventFormDialog action={createEvent} mode="create" />
       </div>
 
       <section className="section">
@@ -96,11 +96,31 @@ export default async function AdminEventsPage() {
             const isPast = event.startsAt < now;
             const content = parseEventContent(event.content);
             return (
-              <Card key={event.id}>
+              <Card className="overflow-hidden" key={event.id}>
+                <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--accent)]">
+                  {event.imageKey ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt=""
+                      className="h-full w-full object-cover"
+                      src={event.imageKey}
+                    />
+                  ) : (
+                    <CalendarDays className="size-10 text-white/80" />
+                  )}
+                  <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-2">
+                    <StatusBadge tone={isPast ? "gold" : "blue"}>
+                      {isPast ? "Passe" : "A venir"}
+                    </StatusBadge>
+                    {isPast &&
+                      (content.pastPublished ? (
+                        <Badge variant="success">En ligne</Badge>
+                      ) : (
+                        <Badge variant="warning">Brouillon</Badge>
+                      ))}
+                  </div>
+                </div>
                 <CardHeader>
-                  <StatusBadge tone={isPast ? "gold" : "blue"}>
-                    {isPast ? "Passe" : "A venir"}
-                  </StatusBadge>
                   <CardTitle>{event.title}</CardTitle>
                   <CardDescription>
                     {formatDateTime(event.startsAt)} -{" "}
@@ -115,7 +135,15 @@ export default async function AdminEventsPage() {
                     {event._count.registrations} inscription(s)
                     {content.videoUrls.length > 0 &&
                       ` - ${content.videoUrls.length} video(s)`}
+                    {content.gallery.length > 0 &&
+                      ` - ${content.gallery.length} photo(s)`}
                   </p>
+                  {isPast && !content.pastPublished && (
+                    <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                      Cet evenement passe n&apos;est pas encore visible sur le
+                      site. Modifiez-le (texte, photos, videos) pour le publier.
+                    </p>
+                  )}
 
                   <Dialog>
                     <DialogTrigger
@@ -211,28 +239,31 @@ export default async function AdminEventsPage() {
                     </DialogContent>
                   </Dialog>
 
-                  <Button asChild variant="secondary">
-                    <Link href={`/evenements/${event.slug}`}>Voir la page</Link>
-                  </Button>
+                  <EventFormDialog
+                    action={updateEvent}
+                    event={{
+                      id: event.id,
+                      title: event.title,
+                      description: event.description,
+                      body: content.body,
+                      location: event.location ?? "",
+                      startsAt: event.startsAt.toISOString(),
+                      capacity:
+                        event.capacity != null ? String(event.capacity) : "",
+                      requiresRegistration: event.requiresRegistration,
+                      imageKey: event.imageKey,
+                      videoUrls: content.videoUrls,
+                      gallery: content.gallery,
+                    }}
+                    mode="edit"
+                  />
 
                   {isPast && (
-                    <form action={addEventPastMedia} className="grid gap-2">
-                      <input name="eventId" type="hidden" value={event.id} />
-                      <Textarea
-                        name="pastPhotos"
-                        placeholder="Ou ajouter des URLs photos apres evenement"
-                      />
-                      <AdminFileInput
-                        accept="image/*"
-                        description="Photos ajoutees a la galerie publique."
-                        multiple
-                        name="pastPhotoFiles"
-                        title="Choisir des photos"
-                      />
-                      <Button type="submit" variant="secondary">
-                        Ajouter photos
-                      </Button>
-                    </form>
+                    <Button asChild variant="secondary">
+                      <Link href={`/evenements/${event.slug}`}>
+                        Voir la page
+                      </Link>
+                    </Button>
                   )}
                 </CardContent>
               </Card>

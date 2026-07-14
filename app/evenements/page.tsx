@@ -24,7 +24,6 @@ export default async function EventsPage() {
   const user = await getCurrentUser();
   const events = await prisma.event.findMany({
     include: {
-      _count: { select: { registrations: true } },
       registrations: user
         ? { where: { userId: user.id }, take: 1 }
         : false,
@@ -33,8 +32,13 @@ export default async function EventsPage() {
   });
 
   const upcoming = events.filter((event) => event.startsAt >= now);
+  // Un evenement passe n'apparait qu'une fois publie par l'admin (texte + medias).
   const past = events
-    .filter((event) => event.startsAt < now)
+    .filter(
+      (event) =>
+        event.startsAt < now &&
+        parseEventContent(event.content).pastPublished,
+    )
     .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime());
 
   return (
@@ -105,7 +109,6 @@ type EventWithMeta = {
   capacity: number | null;
   requiresRegistration: boolean;
   content: unknown;
-  _count: { registrations: number };
 };
 
 function EventImage({
@@ -142,10 +145,12 @@ function EventMeta({ event }: { event: EventWithMeta }) {
         <MapPin className="size-4" />
         {event.location || "Lieu a confirmer"}
       </span>
-      <span className="inline-flex items-center gap-1">
-        <Users className="size-4" />
-        {event._count.registrations} inscrit(s)
-      </span>
+      {event.capacity != null && (
+        <span className="inline-flex items-center gap-1">
+          <Users className="size-4" />
+          {event.capacity} participants
+        </span>
+      )}
     </div>
   );
 }
@@ -180,7 +185,7 @@ function UpcomingCard({
       </CardHeader>
       <CardContent className="grid gap-4">
         {content.body && (
-          <p className="whitespace-pre-line text-base leading-7 text-[var(--primary)]">
+          <p className="line-clamp-4 whitespace-pre-line text-base leading-7 text-[var(--primary)]">
             {content.body}
           </p>
         )}

@@ -28,7 +28,6 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { CalendarCheck, CheckCircle2, FileText, Trophy } from "lucide-react";
-import { BahourAccountMenu } from "@/components/bahour-account-menu";
 
 export const metadata = {
   title: "Espace Bahour",
@@ -89,67 +88,62 @@ export default async function ClientPage() {
     }),
   ]);
 
+  const inReviewCount = requests.filter(
+    (item) => item.status === "IN_REVIEW",
+  ).length;
+  const missingDocsCount = requests.filter(
+    (item) => item.status === "MISSING_DOCUMENTS",
+  ).length;
+
   return (
     <PageShell>
       <main>
-        <section className="page-hero">
-          <div className="container">
-            <span className="eyebrow">Suivi personnel</span>
-            <h1>Espace Bahour</h1>
-            <p>
-              Suivez vos demandes visa, koupat holim, inscriptions aux
-              evenements et messages de l&apos;equipe.
-            </p>
-          </div>
-        </section>
-
         <section className="section">
           <div className="container">
-            <div className="portal-summary">
-              <Card className="portal-card">
-                <CardHeader className="gap-5 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <CardTitle className="text-3xl">
-                      Bonjour {user.firstName || "Bahour"}
-                    </CardTitle>
-                    <CardDescription>
-                      Toutes les donnees sont liees a votre email confirme :{" "}
-                      {user.email}
-                    </CardDescription>
-                  </div>
-                  <BahourAccountMenu
-                    email={user.email}
-                    firstName={user.firstName}
-                    lastName={user.lastName}
-                  />
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-3">
-                  <Button asChild>
-                    <Link href="/services">Nouvelle demande</Link>
-                  </Button>
-                  <Button asChild variant="secondary">
-                    <Link href="/evenements">Voir les evenements</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Statut actuel</CardTitle>
-                  <CardDescription>
-                    {requests.length} demande(s) et {registrations.length}{" "}
-                    inscription(s) evenement.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-2">
+            <Card className="portal-card">
+              <CardHeader>
+                <span className="eyebrow">Espace Bahour</span>
+                <CardTitle className="text-3xl">
+                  Bonjour {user.firstName || "Bahour"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
+                <Button asChild>
+                  <Link href="/services">Nouvelle demande</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/evenements">Voir les evenements</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {(requests.length > 0 || registrations.length > 0) && (
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
+                <span>Statut :</span>
+                {inReviewCount > 0 && (
                   <StatusBadge tone="blue">
-                    {requests.filter((item) => item.status === "IN_REVIEW").length} en traitement
+                    {inReviewCount} en traitement
                   </StatusBadge>
+                )}
+                {missingDocsCount > 0 && (
                   <StatusBadge tone="gold">
-                    {requests.filter((item) => item.status === "MISSING_DOCUMENTS").length} avec documents manquants
+                    {missingDocsCount} document(s) manquant(s)
                   </StatusBadge>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+                {registrations.length > 0 && (
+                  <StatusBadge tone="green">
+                    {registrations.length} inscription(s)
+                  </StatusBadge>
+                )}
+                {inReviewCount === 0 &&
+                  missingDocsCount === 0 &&
+                  registrations.length === 0 && (
+                    <StatusBadge tone="blue">
+                      {requests.length} demande(s)
+                    </StatusBadge>
+                  )}
+              </div>
+            )}
 
             <Tabs defaultValue="requests" className="bahour-tabs mt-8">
               <TabsList

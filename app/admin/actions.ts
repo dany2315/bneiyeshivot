@@ -31,6 +31,26 @@ function splitLines(value: string) {
     .filter(Boolean);
 }
 
+function readVideoUrls(formData: FormData) {
+  return formData
+    .getAll("videoUrls")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+}
+
+function readKeptFiles(formData: FormData) {
+  return formData
+    .getAll("galleryFiles")
+    .filter((file): file is File => file instanceof File && file.size > 0);
+}
+
+function readKeptGallery(formData: FormData) {
+  return formData
+    .getAll("galleryKeep")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+}
+
 export async function updateServiceRequest(formData: FormData) {
   const admin = await requireAdminUser();
   const id = readString(formData, "requestId");
@@ -79,18 +99,14 @@ export async function createEvent(formData: FormData) {
   const title = readString(formData, "title");
   const description = readString(formData, "description");
   const body = readString(formData, "body");
-  const imageUrl = readString(formData, "imageUrl");
   const imageFile = formData.get("imageFile");
-  const videoUrls = splitLines(readString(formData, "videoUrls"));
+  const videoUrls = readVideoUrls(formData);
   const location = readString(formData, "location");
   const startsAt = readString(formData, "startsAt");
-  const endsAt = readString(formData, "endsAt");
   const capacity = readString(formData, "capacity");
   const requiresRegistration = formData.get("requiresRegistration") === "on";
-  const gallery = splitLines(readString(formData, "gallery"));
-  const galleryFiles = formData
-    .getAll("galleryFiles")
-    .filter((file): file is File => file instanceof File);
+  const galleryKeep = readKeptGallery(formData);
+  const galleryFiles = readKeptFiles(formData);
 
   if (!title || !description || !startsAt) {
     throw new Error("Titre, description et date obligatoires.");
@@ -112,16 +128,15 @@ export async function createEvent(formData: FormData) {
       title,
       slug,
       description,
-      imageKey: uploadedImage?.url || imageUrl || null,
+      imageKey: uploadedImage?.url || null,
       startsAt: new Date(startsAt),
-      endsAt: endsAt ? new Date(endsAt) : null,
       location: location || null,
       capacity: capacity ? Number(capacity) : null,
       requiresRegistration,
       content: {
         body,
         videoUrls,
-        gallery: [...gallery, ...uploadedGallery.map((file) => file.url)],
+        gallery: [...galleryKeep, ...uploadedGallery.map((file) => file.url)],
         createdBy: admin.id,
       },
     },
@@ -139,6 +154,94 @@ export async function createEvent(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/evenements");
+}
+
+export async function updateEvent(formData: FormData) {
+  const admin = await requireAdminUser();
+  const id = readString(formData, "eventId");
+
+  if (!id) {
+    throw new Error("Evenement introuvable.");
+  }
+
+  const existing = await prisma.event.findUnique({ where: { id } });
+
+  if (!existing) {
+    throw new Error("Evenement introuvable.");
+  }
+
+  const title = readString(formData, "title");
+  const description = readString(formData, "description");
+  const body = readString(formData, "body");
+  const location = readString(formData, "location");
+  const startsAt = readString(formData, "startsAt");
+  const capacity = readString(formData, "capacity");
+  const requiresRegistration = formData.get("requiresRegistration") === "on";
+  const videoUrls = readVideoUrls(formData);
+  const galleryKeep = readKeptGallery(formData);
+  const galleryFiles = readKeptFiles(formData);
+  const imageFile = formData.get("imageFile");
+
+  if (!title || !description || !startsAt) {
+    throw new Error("Titre, description et date obligatoires.");
+  }
+
+  // Un evenement passe devient visible publiquement une fois que l'admin
+  // l'a modifie (texte, photos, videos) via ce formulaire.
+  const startDate = new Date(startsAt);
+  const pastPublished = startDate < new Date();
+
+  const uploadedImage =
+    imageFile instanceof File && imageFile.size > 0
+      ? await uploadFileToS3(imageFile, `events/${existing.slug}/cover`)
+      : null;
+  const uploadedGallery = await uploadFilesToS3(
+    galleryFiles,
+    `events/${existing.slug}/gallery`,
+  );
+
+  const currentContent =
+    existing.content &&
+    typeof existing.content === "object" &&
+    !Array.isArray(existing.content)
+      ? (existing.content as Record<string, unknown>)
+      : {};
+
+  await prisma.event.update({
+    where: { id },
+    data: {
+      title,
+      description,
+      startsAt: startDate,
+      endsAt: null,
+      location: location || null,
+      capacity: capacity ? Number(capacity) : null,
+      requiresRegistration,
+      imageKey: uploadedImage?.url ?? existing.imageKey,
+      content: {
+        ...currentContent,
+        body,
+        videoUrls,
+        gallery: [...galleryKeep, ...uploadedGallery.map((file) => file.url)],
+        pastPublished,
+        updatedBy: admin.id,
+      },
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "event.updated",
+      entity: "Event",
+      entityId: id,
+      metadata: { slug: existing.slug },
+    },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/evenements");
+  revalidatePath(`/evenements/${existing.slug}`);
 }
 
 export async function addEventPastMedia(formData: FormData) {
@@ -179,6 +282,7 @@ export async function addEventPastMedia(formData: FormData) {
           ...photoUrls,
           ...uploadedPhotos.map((file) => file.url),
         ],
+        pastPublished: true,
         pastMediaUpdatedBy: admin.id,
       },
     },
