@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region = process.env.AWS_REGION;
 const bucket = process.env.AWS_S3_BUCKET;
@@ -36,22 +37,32 @@ function safeFileName(name: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function uploadFileToS3(file: File, prefix: string) {
+function requireS3Config() {
   if (!s3Client || !bucket || !region) {
     throw new Error("Configuration AWS S3 manquante.");
   }
+
+  return { bucket, region, s3Client };
+}
+
+export function createS3Key(prefix: string, fileName: string) {
+  const extensionName = safeFileName(fileName || "upload");
+  return `${prefix}/${Date.now()}-${crypto.randomUUID()}-${extensionName}`;
+}
+
+export async function uploadFileToS3(file: File, prefix: string) {
+  const config = requireS3Config();
 
   if (file.size === 0) {
     return null;
   }
 
-  const extensionName = safeFileName(file.name || "upload");
-  const key = `${prefix}/${Date.now()}-${crypto.randomUUID()}-${extensionName}`;
+  const key = createS3Key(prefix, file.name || "upload");
   const body = Buffer.from(await file.arrayBuffer());
 
-  await s3Client.send(
+  await config.s3Client.send(
     new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: config.bucket,
       Key: key,
       Body: body,
       ContentType: file.type || "application/octet-stream",
@@ -98,13 +109,11 @@ export async function deleteFilesFromS3(keys: string[]) {
 }
 
 export async function getFileFromS3(key: string) {
-  if (!s3Client || !bucket || !region) {
-    throw new Error("Configuration AWS S3 manquante.");
-  }
+  const config = requireS3Config();
 
-  const response = await s3Client.send(
+  const response = await config.s3Client.send(
     new GetObjectCommand({
-      Bucket: bucket,
+      Bucket: config.bucket,
       Key: key,
     }),
   );
@@ -122,4 +131,24 @@ export async function getFileFromS3(key: string) {
     contentLength: response.ContentLength,
     contentType: response.ContentType,
   };
+}
+
+export async function createPresignedUploadUrl({
+  key,
+  contentType,
+}: {
+  key: string;
+  contentType: string;
+}) {
+  const config = requireS3Config();
+
+  return getSignedUrl(
+    config.s3Client,
+    new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      ContentType: contentType || "application/octet-stream",
+    }),
+    { expiresIn: 60 * 10 },
+  );
 }

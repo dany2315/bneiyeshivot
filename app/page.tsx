@@ -358,7 +358,7 @@ export default async function Home() {
                   </CardHeader>
                   <CardContent className="flex flex-wrap justify-end gap-2">
                     {learnMoreHref ? (
-                      <Button asChild variant="outline">
+                      <Button asChild variant="default">
                         <Link href={learnMoreHref}>
                           En savoir plus
                         </Link>
@@ -475,8 +475,8 @@ export default async function Home() {
                       </CardHeader>
                     </Card>
                   </DialogTrigger>
-                  <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
-                    <DialogHeader>
+                  <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                    <DialogHeader className="gallery-dialog-header">
                       <DialogTitle>{album.title}</DialogTitle>
                       <DialogDescription>{album.description}</DialogDescription>
                     </DialogHeader>

@@ -29,7 +29,7 @@ export function AdminCreateRequestDialog({
           </Button>
         }
       />
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+      <DialogContent className="max-h-[92vh] w-fit max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-fit">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>

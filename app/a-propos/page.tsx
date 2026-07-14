@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PageShell } from "../components";
+import { AboutPartners } from "@/components/about-partners";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,7 +18,6 @@ import {
   HandHeart,
   HeartHandshake,
   ShieldCheck,
-  Sparkles,
   Star,
   Users,
 } from "lucide-react";
@@ -110,29 +110,27 @@ const team = [
   {
     name: "Meir Guetta",
     role: "President - Fondateur",
+    image:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=900&q=80",
     description:
       "Responsable de la vision, du developpement et de l'accompagnement des jeunes francophones.",
   },
   {
     name: "Responsable administratif",
     role: "Demarches et suivi",
+    image:
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=900&q=80",
     description:
       "Coordonne les demandes visa, assurance maladie et informations pratiques pour les etudiants.",
   },
   {
     name: "Responsable programmes",
     role: "Torah et evenements",
+    image:
+      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80",
     description:
       "Organise les programmes, Chabbatot, cours et temps forts de l'annee.",
   },
-];
-
-const partners = [
-  "Yechivot partenaires",
-  "Associations",
-  "Institutions",
-  "Organismes administratifs",
-  "Entreprises partenaires",
 ];
 
 const faqs = [
@@ -167,10 +165,10 @@ export default function AboutPage() {
             <span className="eyebrow">A propos de Bnei Yeshivot</span>
             <h1>Qui sommes-nous ?</h1>
             <p>
-              Bnei Yeshivot est une association dediee a l'accompagnement des
+              Bnei Yeshivot est une association dediee a l&apos;accompagnement des
               jeunes francophones qui viennent etudier en Israel. Notre mission
               est de leur offrir un cadre spirituel, humain et administratif
-              afin qu'ils puissent se consacrer pleinement a leur developpement
+              afin qu&apos;ils puissent se consacrer pleinement a leur developpement
               dans la Torah.
             </p>
           </div>
@@ -183,7 +181,7 @@ export default function AboutPage() {
               <h2>Une reponse a un vrai besoin</h2>
               <p>
                 Chaque annee, des centaines de jeunes francophones quittent la
-                France, la Belgique, la Suisse ou d'autres pays pour venir
+                France, la Belgique, la Suisse ou d&apos;autres pays pour venir
                 etudier dans les Yechivot en Israel.
               </p>
               <p>
@@ -227,46 +225,48 @@ export default function AboutPage() {
 
         <section className="section band">
           <div className="container">
-            <div className="section-header">
-              <div>
+            <div className="about-mission-panel">
+              <div className="about-mission-copy">
                 <span className="eyebrow">Notre mission</span>
-                <h2>Se concentrer sur l'essentiel : grandir dans la Torah</h2>
+                <h2>Creer autour du Bahour un cadre solide, clair et vivant.</h2>
+                <p>
+                  L&apos;objectif est simple : retirer le poids des demarches et
+                  renforcer le lien humain, pour que chaque jeune puisse avancer
+                  dans son etude, son installation et son parcours personnel.
+                </p>
               </div>
-              <p>
-                Nous accompagnons chaque jeune avant son arrivee, pendant son
-                sejour et tout au long de son parcours.
-              </p>
-            </div>
-            <div className="grid grid-4">
-              {missionPillars.map(({ title, description, Icon }) => (
-                <Card className="about-icon-card" key={title}>
-                  <CardHeader>
-                    <span className="icon-box">
-                      <Icon className="size-5" />
+              <div className="about-mission-stack">
+                {missionPillars.map(({ title, description, Icon }, index) => (
+                  <div className="about-mission-row" key={title}>
+                    <span className="about-mission-index">
+                      {String(index + 1).padStart(2, "0")}
                     </span>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>{description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
+                    <Icon className="size-5" />
+                    <div>
+                      <strong>{title}</strong>
+                      <p>{description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
         <section className="section">
           <div className="container">
-            <div className="section-header">
-              <h2>Nos valeurs</h2>
-              <p>
-                Des reperes clairs qui guident chaque service, chaque programme
-                et chaque relation avec les jeunes.
-              </p>
+            <div className="about-values-heading">
+              <span className="eyebrow">Nos valeurs</span>
+              <h2>Une maniere d&apos;agir, pas seulement des mots.</h2>
             </div>
             <div className="about-values-grid">
-              {values.map(({ title, description, Icon }) => (
+              {values.map(({ title, description, Icon }, index) => (
                 <Card className="about-value-card" key={title}>
                   <CardHeader>
-                    <span className="icon-box">
+                    <span className="about-value-number">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="about-value-icon">
                       <Icon className="size-5" />
                     </span>
                     <CardTitle>{title}</CardTitle>
@@ -280,17 +280,24 @@ export default function AboutPage() {
 
         <section className="section band">
           <div className="container">
-            <div className="section-header">
-              <h2>Notre impact</h2>
-              <p>
-                Une progression construite annee apres annee autour des besoins
-                concrets des jeunes francophones.
-              </p>
+            <div className="about-impact-layout">
+              <div>
+                <span className="eyebrow">Notre impact</span>
+                <h2>Des projets qui deviennent des reperes concrets.</h2>
+                <p>
+                  Chaque etape ajoute un service, une reponse ou un cadre plus
+                  stable pour les jeunes francophones en Israel.
+                </p>
+              </div>
+              <div className="about-impact-meter">
+                <strong>10</strong>
+                <span>axes developpes</span>
+              </div>
             </div>
-            <div className="about-timeline">
+            <div className="about-impact-grid">
               {timeline.map((item, index) => (
-                <div className="about-timeline-item" key={item}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                <div className="about-impact-item" key={item}>
+                  <span>{index + 1}</span>
                   <strong>{item}</strong>
                 </div>
               ))}
@@ -311,7 +318,12 @@ export default function AboutPage() {
               {team.map((member) => (
                 <Card className="team-card" key={member.name}>
                   <div className="team-photo">
-                    <Users className="size-10" />
+                    <Image
+                      alt=""
+                      fill
+                      sizes="(max-width: 980px) 100vw, 33vw"
+                      src={member.image}
+                    />
                   </div>
                   <CardHeader>
                     <CardTitle>{member.name}</CardTitle>
@@ -331,18 +343,11 @@ export default function AboutPage() {
             <div className="section-header">
               <h2>Nos partenaires</h2>
               <p>
-                Les logos pourront etre affiches ici avec les organismes,
-                institutions et entreprises qui travaillent avec Bnei Yeshivot.
+                Selectionnez une categorie pour afficher la liste des reseaux et
+                structures qui travaillent avec Bnei Yeshivot.
               </p>
             </div>
-            <div className="partner-grid">
-              {partners.map((partner) => (
-                <div className="partner-logo" key={partner}>
-                  <Sparkles className="size-4" />
-                  <span>{partner}</span>
-                </div>
-              ))}
-            </div>
+            <AboutPartners />
           </div>
         </section>
 
@@ -351,7 +356,7 @@ export default function AboutPage() {
             <div className="section-header">
               <h2>Questions frequentes</h2>
               <p>
-                Les reponses essentielles pour comprendre l'accompagnement Bnei
+                Les reponses essentielles pour comprendre l&apos;accompagnement Bnei
                 Yeshivot.
               </p>
             </div>

@@ -2,20 +2,32 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { createServiceRequest } from "@/lib/service-requests";
 import { normalizeRequestInput } from "@/lib/request-validation";
-import { uploadFileToS3 } from "@/lib/uploads";
 import {
   newRequestAdminEmail,
   requestConfirmationEmail,
   sendEmail,
 } from "@/lib/email";
 
-const documentFields = [
-  ["passportFile", "Photo du passeport non israelien"],
-  ["formFile", "Formulaire rempli"],
-  ["birthCertificateFile", "Acte de naissance"],
-  ["studentCertificateFile", "Certificat d'etudiant ou Massa"],
-  ["identityFile", "Document d'identite / visa"],
-] as const;
+type UploadedDocumentPayload = {
+  label: string;
+  fileKey: string;
+  mimeType: string;
+};
+
+function isUploadedDocumentPayload(
+  document: unknown,
+): document is UploadedDocumentPayload {
+  return (
+    typeof document === "object" &&
+    document !== null &&
+    "label" in document &&
+    "fileKey" in document &&
+    "mimeType" in document &&
+    typeof document.label === "string" &&
+    typeof document.fileKey === "string" &&
+    typeof document.mimeType === "string"
+  );
+}
 
 export async function POST(request: Request) {
   try {
@@ -23,60 +35,23 @@ export async function POST(request: Request) {
     const formData = contentType.includes("multipart/form-data")
       ? await request.formData()
       : null;
-    const body = formData
-      ? Object.fromEntries(
+    const body: Record<string, unknown> = formData
+      ? (Object.fromEntries(
           Array.from(formData.entries()).filter(([, value]) => !(value instanceof File)),
-        )
+        ) as Record<string, unknown>)
       : await request.json();
     normalizeRequestInput(body);
 
     const kind = String(body.kind ?? "");
-    let uploadedDocuments: Array<{
-      label: string;
-      fileKey: string;
-      mimeType: string;
-    }> = [];
-
-    try {
-      uploadedDocuments = formData
-        ? (
-            await Promise.all(
-              documentFields.map(async ([fieldName, label]) => {
-                const file = formData.get(fieldName);
-
-                if (!(file instanceof File) || file.size === 0) {
-                  return null;
-                }
-
-                const uploaded = await uploadFileToS3(
-                  file,
-                  `requests/${kind || "general"}/${fieldName}`,
-                );
-
-                if (!uploaded) {
-                  return null;
-                }
-
-                return {
-                  label,
-                  fileKey: uploaded.key,
-                  mimeType: uploaded.mimeType,
-                };
-              }),
-            )
-          ).filter((document): document is NonNullable<typeof document> => Boolean(document))
-        : [];
-    } catch (error) {
-      console.error("[requests] upload failed", error);
-      return NextResponse.json(
-        {
-          ok: false,
-          message:
-            "Upload des documents impossible. Verifiez la configuration AWS S3 puis reessayez.",
-        },
-        { status: 503 },
-      );
-    }
+    const uploadedDocuments = Array.isArray(body.documents)
+      ? body.documents
+          .filter(isUploadedDocumentPayload)
+          .map((document) => ({
+            label: document.label,
+            fileKey: document.fileKey,
+            mimeType: document.mimeType,
+          }))
+      : [];
     const serviceRequest = await createServiceRequest(body, uploadedDocuments);
 
     const email = typeof body.email === "string" ? body.email : "";

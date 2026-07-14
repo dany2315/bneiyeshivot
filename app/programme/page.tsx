@@ -42,8 +42,8 @@ export default function ProgrammePage() {
               <span className="eyebrow">Nos programmes</span>
               <h1>Faire grandir la jeunesse francophone dans la Torah</h1>
               <p>
-                Tout au long de l'annee, Bnei Yeshivot propose des cadres
-                d'etude, des rencontres, des Chabbatot et un accompagnement
+                Tout au long de l&apos;annee, Bnei Yeshivot propose des cadres
+                d&apos;etude, des rencontres, des Chabbatot et un accompagnement
                 adapte aux jeunes francophones en Israel.
               </p>
               <div className="hero-actions">
@@ -94,13 +94,13 @@ export default function ProgrammePage() {
               <span className="eyebrow">Introduction</span>
               <h2>Une communaute qui accompagne chaque etape</h2>
               <p>
-                Arriver en Israel est une grande etape dans la vie d'un jeune.
+                Arriver en Israel est une grande etape dans la vie d&apos;un jeune.
                 Au-dela des demarches administratives, il est essentiel de
                 trouver un cadre, une communaute et des moments qui permettent
                 de grandir dans la Torah.
               </p>
               <p>
-                C'est pourquoi Bnei Yeshivot developpe differents programmes
+                C&apos;est pourquoi Bnei Yeshivot developpe differents programmes
                 pour accompagner les jeunes avant leur arrivee, pendant leur
                 sejour et dans leur construction personnelle.
               </p>
@@ -142,7 +142,7 @@ export default function ProgrammePage() {
               </div>
               <p>
                 Chaque programme repond a un besoin concret : garder un rythme
-                d'etude, vivre des moments forts, avancer dans son parcours et
+                d&apos;etude, vivre des moments forts, avancer dans son parcours et
                 rejoindre une communaute francophone solide.
               </p>
             </div>

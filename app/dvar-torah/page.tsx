@@ -63,7 +63,7 @@ export default async function DvarTorahPage() {
             <p>
               Retrouvez les feuillets mis a disposition par Bnei Yeshivot pour
               les Chabbatot et les fetes. Les prochains fichiers seront ajoutes
-              depuis l'interface admin.
+              depuis l&apos;interface admin.
             </p>
           </div>
         </section>

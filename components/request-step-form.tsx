@@ -188,49 +188,78 @@ type RequestSubmitResult = {
   issues?: { message: string }[];
 };
 
-function submitRequestFormData(
-  formData: FormData,
-  onProgress: (progress: number) => void,
+type UploadPlanItem = {
+  fieldName: string;
+  label: string;
+  file: File;
+};
+
+type PresignedUpload = {
+  fieldName: string;
+  label: string;
+  fileKey: string;
+  mimeType: string;
+  uploadUrl: string;
+};
+
+const documentLabels: Record<string, string> = {
+  passportFile: "Photo du passeport non israelien",
+  formFile: "Formulaire rempli",
+  birthCertificateFile: "Acte de naissance",
+  studentCertificateFile: "Certificat d'etudiant ou Massa",
+  identityFile: "Document d'identite / visa",
+};
+
+function putFileToS3(
+  upload: PresignedUpload,
+  file: File,
+  onProgress: (loaded: number) => void,
 ) {
-  return new Promise<RequestSubmitResult>((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const request = new XMLHttpRequest();
 
-    request.open("POST", "/api/requests");
+    request.open("PUT", upload.uploadUrl);
     request.responseType = "text";
+    request.setRequestHeader("Content-Type", upload.mimeType);
     request.upload.onprogress = (event) => {
-      if (event.lengthComputable && event.total > 0) {
-        onProgress(Math.max(1, Math.round((event.loaded / event.total) * 100)));
+      if (event.lengthComputable) {
+        onProgress(event.loaded);
       }
     };
     request.onload = () => {
-      let result: RequestSubmitResult;
-
-      try {
-        result = JSON.parse(request.responseText || "{}") as RequestSubmitResult;
-      } catch {
-        result = {
-          ok: false,
-          message:
-            request.responseText ||
-            "Le serveur n'a pas retourne une reponse lisible.",
-        };
-      }
-
-      if (request.status >= 200 && request.status < 300 && result.ok) {
-        resolve(result);
+      if (request.status >= 200 && request.status < 300) {
+        resolve();
         return;
       }
 
-      reject(result);
+      reject(new Error("Upload S3 refuse."));
     };
     request.onerror = () => {
-      reject({
-        ok: false,
-        message: "Connexion interrompue pendant l'envoi.",
-      });
+      reject(new Error("Connexion interrompue pendant l'upload."));
     };
-    request.send(formData);
+    request.send(file);
   });
+}
+
+async function createRequestPayload(
+  payload: Record<string, unknown>,
+): Promise<RequestSubmitResult> {
+  const response = await fetch("/api/requests", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const result = (await response.json().catch(() => ({
+    ok: false,
+    message: "Le serveur n'a pas retourne une reponse lisible.",
+  }))) as RequestSubmitResult;
+
+  if (!response.ok || !result.ok) {
+    throw result;
+  }
+
+  return result;
 }
 
 function NationalityCombobox({ id, name }: { id: string; name: string }) {
@@ -422,7 +451,91 @@ export function RequestStepForm({
 
     try {
       const formData = new FormData(event.currentTarget);
-      const result = await submitRequestFormData(formData, setSendProgress);
+      const payload = Object.fromEntries(
+        Array.from(formData.entries()).filter(([, value]) => !(value instanceof File)),
+      );
+      const files = Object.keys(documentLabels)
+        .map((fieldName) => {
+          const file = formData.get(fieldName);
+
+          if (!(file instanceof File) || file.size === 0) {
+            return null;
+          }
+
+          return {
+            fieldName,
+            file,
+            label: documentLabels[fieldName],
+          };
+        })
+        .filter((file): file is UploadPlanItem => Boolean(file));
+      const totalBytes = files.reduce((total, item) => total + item.file.size, 0);
+      const loadedByField = new Map<string, number>();
+      const updateUploadProgress = (fieldName: string, loaded: number) => {
+        loadedByField.set(fieldName, loaded);
+        const uploadedBytes = Array.from(loadedByField.values()).reduce(
+          (total, value) => total + value,
+          0,
+        );
+        const uploadPart = totalBytes > 0 ? (uploadedBytes / totalBytes) * 92 : 92;
+        setSendProgress(Math.max(1, Math.min(92, Math.round(uploadPart))));
+      };
+
+      const presignResponse = await fetch("/api/requests/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: type,
+          files: files.map(({ fieldName, file, label }) => ({
+            fieldName,
+            label,
+            fileName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            size: file.size,
+          })),
+        }),
+      });
+      const presignResult = (await presignResponse.json().catch(() => ({
+        ok: false,
+        message: "Impossible de preparer l'upload des documents.",
+      }))) as {
+        ok: boolean;
+        message?: string;
+        uploads?: PresignedUpload[];
+      };
+
+      if (!presignResponse.ok || !presignResult.ok || !presignResult.uploads) {
+        throw {
+          ok: false,
+          message:
+            presignResult.message ??
+            "Impossible de preparer l'upload des documents.",
+        };
+      }
+
+      await Promise.all(
+        presignResult.uploads.map((upload) => {
+          const file = files.find((item) => item.fieldName === upload.fieldName)?.file;
+
+          if (!file) {
+            throw new Error("Fichier introuvable pendant l'upload.");
+          }
+
+          return putFileToS3(upload, file, (loaded) =>
+            updateUploadProgress(upload.fieldName, loaded),
+          );
+        }),
+      );
+
+      setSendProgress(96);
+      const result = await createRequestPayload({
+        ...payload,
+        documents: presignResult.uploads.map(({ label, fileKey, mimeType }) => ({
+          label,
+          fileKey,
+          mimeType,
+        })),
+      });
 
       setSendProgress(100);
       setSubmitState({

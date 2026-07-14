@@ -116,7 +116,7 @@ export default function KesherNitsriPage() {
               <h2>Les actions soutenues</h2>
               <p>
                 Kesher Nitsri rend possibles des actions de solidarite menees
-                tout au long de l'annee.
+                tout au long de l&apos;annee.
               </p>
             </div>
             <div className="grid grid-4">
@@ -145,7 +145,7 @@ export default function KesherNitsriPage() {
                 <CardTitle>Un lien privilegie avec les actions</CardTitle>
                 <CardDescription>
                   Les membres integrent une communaute engagee et suivent les
-                  projets developpes par Bnei Yeshivot au fil de l'annee.
+                  projets developpes par Bnei Yeshivot au fil de l&apos;annee.
                 </CardDescription>
               </CardHeader>
               <CardContent>
