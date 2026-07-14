@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { HeaderAccountMenu } from "@/components/header-account-menu";
 import { Button } from "@/components/ui/button";
+import { isAdminUser, useAuthSession } from "@/components/auth-session";
 import { cn } from "@/lib/utils";
 
 export function SiteNavActions() {
   const pathname = usePathname();
+  const { user } = useAuthSession();
+  const bahourUser = user && !isAdminUser(user) ? user : null;
   const isBahourActive =
     pathname === "/client" || pathname.startsWith("/client/");
   const isRequestActive =
@@ -16,16 +20,20 @@ export function SiteNavActions() {
 
   return (
     <div className="nav-actions">
-      <Button
-        asChild
-        variant="secondary"
-        className={cn(
-          isBahourActive &&
-            "!bg-[var(--primary)] !text-white hover:!bg-[var(--primary)]"
-        )}
-      >
-        <Link href="/client">Espace Bahour</Link>
-      </Button>
+      {bahourUser ? (
+        <HeaderAccountMenu user={bahourUser} />
+      ) : (
+        <Button
+          asChild
+          variant="secondary"
+          className={cn(
+            isBahourActive &&
+              "!bg-[var(--primary)] !text-white hover:!bg-[var(--primary)]"
+          )}
+        >
+          <Link href="/client">Espace Bahour</Link>
+        </Button>
+      )}
       <Button
         asChild
         className={cn(

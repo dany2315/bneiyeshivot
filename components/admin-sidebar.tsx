@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   ChevronRight,
+  BookOpenText,
   ClipboardList,
   CreditCard,
   FileCheck,
@@ -65,6 +66,7 @@ const adminGroups: Array<{
       ["Visa etudiant", "/admin/visa", FileCheck],
       ["Koupat Holim", "/admin/koupat-holim", ClipboardList],
       ["Evenements", "/admin/evenements", CalendarDays],
+      ["Dvar Torah", "/admin/dvar-torah", BookOpenText],
       ["Talmoudo Beyado", "/admin/talmoudo-beyado", Trophy],
     ],
   },

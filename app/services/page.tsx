@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Info } from "lucide-react";
 
 export const metadata = {
   title: "Services",
@@ -21,6 +22,7 @@ const pageServices = [
       "Nous accompagnons gratuitement les etudiants dans leurs demarches aupres des caisses d'assurance maladie israeliennes.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
+    learnMoreHref: "/services/assurance-maladie",
     image:
       "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80",
   },
@@ -30,6 +32,7 @@ const pageServices = [
       "Nous vous accompagnons dans toutes les demarches pour obtenir ou renouveler votre visa etudiant.",
     action: "Deposer un dossier",
     href: "/demandes/visa",
+    learnMoreHref: "/services/visa-etudiant",
     image:
       "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80",
   },
@@ -39,6 +42,7 @@ const pageServices = [
       "Nous vous aidons a effectuer votre demande d'autorisation d'entree en Israel.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/",
+    learnMoreHref: "/services/eta-il",
     image:
       "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
   },
@@ -65,18 +69,9 @@ const pageServices = [
     description:
       "Tout ce qu'il faut savoir avant de venir etudier en Israel dans un guide complet telechargeable.",
     action: "Telecharger gratuitement",
-    href: "/services",
+    href: "/guide",
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "Dvar Torah",
-    description:
-      "Telechargez gratuitement les feuillets de Torah pour les fetes et les Chabbatot.",
-    action: "Telecharger",
-    href: "/programme",
-    image:
-      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80",
   },
 ];
 
@@ -89,9 +84,9 @@ export default function ServicesPage() {
             <span className="eyebrow">Accompagnement</span>
             <h1>Services</h1>
             <p>
-              Une page dediee pour presenter les services Bnei Yeshivot :
-              demandes visa, koupat holim, redirection ETA-IL et boutique pour
-              les nouveaux arrivants.
+              Des services concrets pour preparer votre arrivee, regulariser
+              vos demarches et garder un accompagnement fiable tout au long de
+              votre installation en Israel.
             </p>
           </div>
         </section>
@@ -101,13 +96,13 @@ export default function ServicesPage() {
             <div className="section-header">
               <h2>Choisir un service</h2>
               <p>
-                Les demandes visa et koupat holim creent un dossier suivi dans
-                l&apos;Espace Bahour. ETA-IL redirige uniquement vers le site
-                officiel.
+                Assurance maladie, visa, ETA-IL, installation, boutique et guide
+                pratique : chaque parcours vous oriente vers la bonne action au
+                bon moment.
               </p>
             </div>
             <div className="service-showcase">
-              {pageServices.map(({ title, description, action, href, image }) => (
+              {pageServices.map(({ title, description, action, href, learnMoreHref, image }) => (
                 <Card className="service-card" key={title}>
                   <div className="service-card-image">
                     <Image
@@ -121,7 +116,16 @@ export default function ServicesPage() {
                     <CardTitle>{title}</CardTitle>
                     <CardDescription>{description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex flex-wrap justify-end gap-2">
+                    {learnMoreHref ? (
+                      <Button asChild variant="ghost">
+                        <Link href={learnMoreHref}>
+                          <Info className="size-4 sm:hidden" />
+                          <span className="hidden sm:inline">En savoir plus</span>
+                          <span className="sr-only sm:hidden">En savoir plus</span>
+                        </Link>
+                      </Button>
+                    ) : null}
                     <Button asChild variant="secondary">
                       <Link href={href}>{action}</Link>
                     </Button>

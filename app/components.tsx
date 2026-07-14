@@ -48,6 +48,7 @@ export function SiteFooter() {
           <Link href="/services">Tous les services</Link>
           <Link href="/demandes/visa">Visa etudiant</Link>
           <Link href="/demandes/koupat-holim">Koupat Holim</Link>
+          <Link href="/dvar-torah">Dvar Torah</Link>
           <a href="https://israel-entry.piba.gov.il/">ETA-IL officiel</a>
         </div>
         <div>
@@ -56,6 +57,7 @@ export function SiteFooter() {
           <Link href="/client">Espace Bahour</Link>
           <Link href="/evenements">Evenements</Link>
           <Link href="/programme">Programme</Link>
+          <Link href="/guide">Guide PDF</Link>
         </div>
         <div>
           <h4>Contact</h4>

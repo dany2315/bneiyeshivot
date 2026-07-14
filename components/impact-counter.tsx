@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const statNumbers: Record<string, { end: number; suffix: string }> = {
   "1 200+": { end: 1200, suffix: "+" },
+  "1 500+": { end: 1500, suffix: "+" },
   "300+": { end: 300, suffix: "+" },
+  "400+": { end: 400, suffix: "+" },
   "40+": { end: 40, suffix: "+" },
   "100%": { end: 100, suffix: "%" },
 };

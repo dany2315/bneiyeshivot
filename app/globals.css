@@ -1683,6 +1683,276 @@ a.card:hover,
   max-width: 980px;
 }
 
+.program-detail-visual-hero {
+  position: relative;
+  display: grid;
+  min-height: 650px;
+  overflow: hidden;
+  align-items: end;
+  color: #fff;
+}
+
+.program-detail-visual-hero > img {
+  object-fit: cover;
+}
+
+.program-detail-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3, 23, 41, 0.95), rgba(6, 40, 70, 0.76) 48%, rgba(6, 40, 70, 0.28)),
+    radial-gradient(circle at 78% 18%, rgba(246, 170, 28, 0.22), transparent 23rem),
+    linear-gradient(0deg, rgba(3, 23, 41, 0.74), rgba(3, 23, 41, 0.06) 64%);
+}
+
+.program-detail-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 42px;
+  align-items: end;
+  padding: 92px 0;
+}
+
+.program-detail-hero-copy {
+  max-width: 860px;
+}
+
+.program-detail-visual-hero .eyebrow {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffd4b4;
+}
+
+.program-detail-visual-hero h1 {
+  max-width: 900px;
+  margin: 18px 0;
+  color: #fff;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(46px, 5.8vw, 82px);
+  line-height: 0.96;
+}
+
+.program-detail-visual-hero p {
+  max-width: 780px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+.program-detail-hero-card {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+.program-detail-hero-card [data-slot="card-title"] {
+  color: #fff;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.program-detail-hero-card [data-slot="card-description"] {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.program-detail-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 410px;
+  gap: 34px;
+  align-items: start;
+}
+
+.program-detail-intro-copy h2 {
+  margin: 16px 0;
+  color: var(--primary-strong);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(36px, 4vw, 58px);
+  line-height: 1;
+}
+
+.program-detail-intro-copy p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.program-detail-list-card,
+.program-detail-panel,
+.program-detail-resource-card,
+.program-detail-feature-card {
+  background:
+    radial-gradient(circle at top right, rgba(242, 99, 0, 0.1), transparent 14rem),
+    #fff;
+}
+
+.program-detail-check-list {
+  display: grid;
+  gap: 11px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.program-detail-check-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--primary);
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.program-detail-check-list svg {
+  margin-top: 2px;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.program-detail-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.program-detail-feature-card {
+  min-height: 240px;
+}
+
+.program-detail-feature-index {
+  display: inline-grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary), #0b3b63);
+  color: #fff;
+  font-weight: 900;
+}
+
+.program-detail-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.program-detail-flow-step {
+  min-height: 140px;
+  border: 1px solid rgba(223, 231, 240, 0.92);
+  border-radius: 16px;
+  background: #fff;
+  padding: 18px;
+  box-shadow: 0 18px 48px rgba(6, 40, 70, 0.045);
+}
+
+.program-detail-flow-step span {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.program-detail-flow-step strong {
+  display: block;
+  margin-top: 18px;
+  color: var(--primary);
+  line-height: 1.35;
+}
+
+.program-detail-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.program-detail-two-column .program-detail-panel:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.program-detail-info-list {
+  display: grid;
+  gap: 12px;
+}
+
+.program-detail-info-list div {
+  border-radius: 14px;
+  background: var(--primary-soft);
+  padding: 14px;
+}
+
+.program-detail-info-list small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.program-detail-info-list strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--primary);
+  line-height: 1.35;
+}
+
+.program-detail-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.program-detail-values div {
+  border: 1px solid rgba(223, 231, 240, 0.92);
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.82);
+  padding: 14px;
+}
+
+.program-detail-values strong {
+  color: var(--primary);
+}
+
+.program-detail-values p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.program-detail-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.program-detail-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.program-detail-chip-list li {
+  border: 1px solid rgba(242, 99, 0, 0.16);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
 
 .admin-layout {
   display: grid;
@@ -2165,6 +2435,8 @@ a.card:hover,
 
   .hero-inner,
   .programme-hero-grid,
+  .program-detail-hero-grid,
+  .program-detail-intro,
   .split,
   .about-story,
   .admin-layout,
@@ -2191,6 +2463,10 @@ a.card:hover,
 
   .grid-3,
   .grid-4,
+  .program-detail-feature-grid,
+  .program-detail-flow,
+  .program-detail-two-column,
+  .program-detail-resource-grid,
   .about-values-grid,
   .about-timeline,
   .partner-grid,

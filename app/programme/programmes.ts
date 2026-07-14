@@ -157,13 +157,13 @@ export const programmes: Program[] = [
   },
   {
     slug: "bayit-neeman",
-    title: "Bayit Neeman",
+    title: "Binian Adei Ad",
     eyebrow: "Foyer",
-    description: "Accompagnement des jeunes dans la construction de leur foyer.",
+    description: "Accompagner les jeunes dans la construction de leur futur foyer.",
     longDescription:
-      "Bayit Neeman accompagne les jeunes dans leur cheminement vers la construction d'un foyer base sur les valeurs de la Torah.",
+      "Binian Adei Ad accompagne les jeunes francophones dans leur parcours vers la construction d'un foyer solide, avec un accompagnement serieux base sur les valeurs de la Torah.",
     focusLabel: "Accompagnement",
-    ctaLabel: "Decouvrir Bayit Neeman",
+    ctaLabel: "Decouvrir Binian Adei Ad",
     image:
       "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1100&q=82",
     href: "/programme/bayit-neeman",

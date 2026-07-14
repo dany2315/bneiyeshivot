@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1086.0",
+    "@aws-sdk/s3-request-presigner": "^3.1086.0",
     "@base-ui/react": "^1.6.0",
     "@better-auth/prisma-adapter": "^1.6.23",
     "@prisma/client": "^6.13.0",

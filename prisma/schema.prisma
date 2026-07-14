@@ -80,6 +80,11 @@ enum ReceiptStatus {
   SENT
 }
 
+enum DvarTorahCategory {
+  CHABBAT
+  FETE
+}
+
 model User {
   id                  String               @id @default(cuid())
   name                String               @default("")
@@ -301,4 +306,19 @@ model AuditLog {
   entityId  String?
   metadata  Json?
   createdAt DateTime @default(now())
+}
+
+model DvarTorahFile {
+  id          String            @id @default(cuid())
+  title       String
+  slug        String            @unique
+  description String?
+  category    DvarTorahCategory
+  fileKey     String
+  fileUrl     String
+  mimeType    String
+  size        Int
+  published   Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }

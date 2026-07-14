@@ -10,6 +10,7 @@ const navLinks = [
   ["Services", "/services"],
   ["Evenements", "/evenements"],
   ["Programme", "/programme"],
+  ["Dvar Torah", "/dvar-torah"],
   ["Boutique", "/boutique"],
   ["Faire un don", "/dons"],
   ["Contact", "/contact"],

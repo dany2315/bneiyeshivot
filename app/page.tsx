@@ -25,6 +25,7 @@ import {
   Film,
   Gift,
   Heart,
+  Info,
   Play,
   School,
   ShoppingBasket,
@@ -37,6 +38,7 @@ const homeServices = [
       "Nous accompagnons gratuitement les etudiants dans leurs demarches aupres des caisses d'assurance maladie israeliennes.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
+    learnMoreHref: "/services/assurance-maladie",
     image:
       "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80",
   },
@@ -46,6 +48,7 @@ const homeServices = [
       "Nous vous accompagnons dans toutes les demarches pour obtenir ou renouveler votre visa etudiant.",
     action: "Deposer un dossier",
     href: "/demandes/visa",
+    learnMoreHref: "/services/visa-etudiant",
     image:
       "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80",
   },
@@ -55,6 +58,7 @@ const homeServices = [
       "Nous vous aidons a effectuer votre demande d'autorisation d'entree en Israel.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/",
+    learnMoreHref: "/services/eta-il",
     image:
       "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
   },
@@ -81,18 +85,9 @@ const homeServices = [
     description:
       "Tout ce qu'il faut savoir avant de venir etudier en Israel dans un guide complet telechargeable.",
     action: "Telecharger gratuitement",
-    href: "/services",
+    href: "/guide",
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    title: "Dvar Torah",
-    description:
-      "Telechargez gratuitement les feuillets de Torah pour les fetes et les Chabbatot.",
-    action: "Telecharger",
-    href: "/programme",
-    image:
-      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80",
   },
 ];
 
@@ -245,8 +240,9 @@ export default function Home() {
             <div className="section-header">
               <h2>Notre impact</h2>
               <p>
-                Les compteurs seront connectes aux donnees reelles admin :
-                demandes traitees, dons, inscriptions, evenements et programmes.
+                Chaque chiffre represente une action concrete menee aupres des
+                jeunes francophones : accueil, demarches, installation et
+                programmes pendant l'annee.
               </p>
             </div>
             <div className="grid grid-4">
@@ -262,13 +258,13 @@ export default function Home() {
             <div className="section-header">
               <h2>Nos services</h2>
               <p>
-                Retrouvez en un seul endroit les demarches essentielles pour
-                preparer votre arrivee, suivre vos dossiers et avancer avec un
-                accompagnement clair a chaque etape.
+                Avant l'arrivee comme pendant l'annee, notre equipe vous
+                accompagne dans les demarches qui comptent pour vous installer
+                sereinement et garder un lien clair avec Bnei Yeshivot.
               </p>
             </div>
             <div className="service-showcase">
-              {homeServices.map(({ title, description, action, href, image }) => (
+              {homeServices.map(({ title, description, action, href, learnMoreHref, image }) => (
                 <Card className="service-card" key={title}>
                   <div className="service-card-image">
                     <Image src={image} alt="" fill sizes="(max-width: 980px) 100vw, 33vw" />
@@ -277,7 +273,16 @@ export default function Home() {
                     <CardTitle>{title}</CardTitle>
                     <CardDescription>{description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex flex-wrap justify-end gap-2">
+                    {learnMoreHref ? (
+                      <Button asChild variant="ghost">
+                        <Link href={learnMoreHref}>
+                          <Info className="size-4 sm:hidden" />
+                          <span className="hidden sm:inline">En savoir plus</span>
+                          <span className="sr-only sm:hidden">En savoir plus</span>
+                        </Link>
+                      </Button>
+                    ) : null}
                     <Button asChild variant="secondary">
                       <Link href={href}>{action}</Link>
                     </Button>
