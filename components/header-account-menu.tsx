@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, LogOut, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { signOutRequest } from "@/components/auth-sign-out";
 import {
   getUserDisplayName,
   getUserInitials,
@@ -35,9 +35,7 @@ export function HeaderAccountMenu({ user }: HeaderAccountMenuProps) {
   async function signOut() {
     setLoading(true);
 
-    const response = await fetch("/api/auth/sign-out", {
-      method: "POST",
-    });
+    const response = await signOutRequest();
 
     if (!response.ok) {
       setLoading(false);
@@ -82,7 +80,7 @@ export function HeaderAccountMenu({ user }: HeaderAccountMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          render={<Link href="/client" />}
+          onClick={() => router.push("/client")}
           className="gap-2 px-3 py-2 text-sm font-semibold text-[var(--primary)]"
         >
           <LayoutDashboard className="size-4" />

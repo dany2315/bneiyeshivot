@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, LogOut, Mail, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { signOutRequest } from "@/components/auth-sign-out";
 import {
   Avatar,
   AvatarFallback,
 } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,9 +45,7 @@ export function BahourAccountMenu({
   async function signOut() {
     setLoading(true);
 
-    const response = await fetch("/api/auth/sign-out", {
-      method: "POST",
-    });
+    const response = await signOutRequest();
 
     if (!response.ok) {
       setLoading(false);
@@ -64,9 +62,10 @@ export function BahourAccountMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            variant="secondary"
-            className="h-auto min-h-14 gap-3 rounded-2xl border border-[var(--border)] bg-white px-3 py-2 text-left shadow-sm hover:bg-[var(--primary-soft)]"
+          <button
+            type="button"
+            className="grid size-12 place-items-center rounded-full border border-[var(--border)] bg-white shadow-sm transition hover:bg-[var(--primary-soft)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-label="Ouvrir le compte Bahour"
           />
         }
       >
@@ -75,15 +74,6 @@ export function BahourAccountMenu({
             {getInitials(firstName, lastName)}
           </AvatarFallback>
         </Avatar>
-        <span className="min-w-0">
-          <span className="flex items-center gap-1.5 text-sm font-bold text-[var(--primary)]">
-            <CheckCircle2 className="size-4 text-[var(--success)]" />
-            Connecte
-          </span>
-          <span className="block max-w-[190px] truncate text-xs font-semibold text-[var(--muted)]">
-            {fullName || email}
-          </span>
-        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -99,9 +89,12 @@ export function BahourAccountMenu({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 px-3 py-2 text-sm font-semibold text-[var(--primary)]">
-          <UserRound className="size-4" />
-          Session active 30 jours
+        <DropdownMenuItem
+          onClick={() => router.push("/client")}
+          className="gap-2 px-3 py-2 text-sm font-semibold text-[var(--primary)]"
+        >
+          <LayoutDashboard className="size-4" />
+          Mon espace
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={loading}

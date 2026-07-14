@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
+import { signOutRequest } from "@/components/auth-sign-out";
 import {
   Avatar,
   AvatarFallback,
@@ -66,9 +67,7 @@ export function MobileNav() {
   async function signOut() {
     setSigningOut(true);
 
-    const response = await fetch("/api/auth/sign-out", {
-      method: "POST",
-    });
+    const response = await signOutRequest();
 
     if (!response.ok) {
       setSigningOut(false);

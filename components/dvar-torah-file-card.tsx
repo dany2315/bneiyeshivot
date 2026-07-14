@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
@@ -46,21 +45,14 @@ export function DvarTorahFileCard({
   }
 
   return (
-    <Card className="group overflow-hidden border-[var(--border)] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="grid grid-cols-[112px_1fr] gap-0 sm:grid-cols-[150px_1fr]">
-        <div className="relative grid min-h-52 place-items-center bg-[linear-gradient(160deg,var(--primary),#0b385f)] p-4 text-white">
-          <div className="absolute inset-x-5 top-5 h-1 rounded-full bg-[var(--accent)]" />
-          <div className="grid gap-3 text-center">
-            <FileText className="mx-auto size-10 text-[var(--accent)]" />
-            <span className="text-xs font-black uppercase tracking-[0.18em] text-white/72">
-              PDF
-            </span>
-            <span className="text-sm font-bold leading-5">{category}</span>
+    <Card className="group border-[var(--border)] bg-white shadow-sm transition hover:border-[rgba(242,99,0,0.28)] hover:shadow-lg">
+      <CardContent className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="flex min-w-0 gap-4">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--border)] bg-[var(--primary-soft)] text-[var(--primary)]">
+            <FileText className="size-6" />
           </div>
-        </div>
-        <div className="grid min-w-0 gap-4 p-5">
-          <CardHeader className="p-0">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               <Badge variant={category === "Chabbat" ? "info" : "warning"}>
                 {category}
               </Badge>
@@ -68,33 +60,34 @@ export function DvarTorahFileCard({
                 {date}
               </span>
             </div>
-            <CardTitle className="text-2xl leading-tight">{title}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 p-0">
-            <p className="text-base leading-7 text-[var(--muted)]">
+            <CardTitle className="truncate text-xl leading-tight">
+              {title}
+            </CardTitle>
+            <p className="mt-2 line-clamp-2 text-base leading-6 text-[var(--muted)]">
               {description}
             </p>
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button asChild variant="ghost">
-                <Link href={href} target="_blank">
-                  <ExternalLink className="size-4" />
-                  Ouvrir
-                </Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <a href={href} download>
-                  <Download className="size-4" />
-                  Telecharger
-                </a>
-              </Button>
-              <Button type="button" variant="accent" onClick={shareFile}>
-                <Share2 className="size-4" />
-                Partager
-              </Button>
-            </div>
-          </CardContent>
+          </div>
         </div>
-      </div>
+
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link href={href} target="_blank">
+              <ExternalLink className="size-4" />
+              Ouvrir
+            </Link>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
+            <a href={href} download>
+              <Download className="size-4" />
+              Telecharger
+            </a>
+          </Button>
+          <Button type="button" variant="accent" size="sm" onClick={shareFile}>
+            <Share2 className="size-4" />
+            Partager
+          </Button>
+        </div>
+      </CardContent>
     </Card>
   );
 }

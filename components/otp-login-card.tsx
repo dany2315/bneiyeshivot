@@ -3,6 +3,7 @@
 import { type FormEvent, useState } from "react";
 import { UserRound } from "lucide-react";
 import { toast } from "sonner";
+import { signOutRequest } from "@/components/auth-sign-out";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,9 +53,7 @@ export function OtpLoginCard({
   });
 
   async function signOutRejectedSession() {
-    await fetch("/api/auth/sign-out", {
-      method: "POST",
-    });
+    await signOutRequest();
   }
 
   async function validateAudience() {

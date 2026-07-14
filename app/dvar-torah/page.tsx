@@ -1,8 +1,7 @@
-import { BookOpenText, Filter } from "lucide-react";
+import { BookOpenText } from "lucide-react";
 import { PageShell } from "../components";
-import { DvarTorahFileCard } from "@/components/dvar-torah-file-card";
+import { DvarTorahLibrary } from "@/components/dvar-torah-library";
 import { prisma } from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = {
@@ -70,35 +69,21 @@ export default async function DvarTorahPage() {
         </section>
 
         <section className="section">
-          <div className="container grid gap-6 lg:grid-cols-[320px_1fr]">
-            <Card className="h-fit border-[var(--border)] bg-white shadow-sm">
+          <div className="container grid gap-8">
+            <Card className="border-[var(--border)] bg-white shadow-sm">
               <CardHeader>
                 <BookOpenText className="size-8 text-[var(--accent)]" />
                 <CardTitle>Bibliotheque Torah</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <p className="text-base leading-7 text-[var(--muted)]">
-                  Les fichiers sont classes par categorie pour retrouver
-                  rapidement les feuillets de Chabbat ou de fete.
+                  Filtrez rapidement les feuillets par categorie, puis ouvrez,
+                  telechargez ou partagez le fichier souhaite.
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="info">
-                    <Filter className="size-3.5" />
-                    Chabbat
-                  </Badge>
-                  <Badge variant="warning">
-                    <Filter className="size-3.5" />
-                    Fete
-                  </Badge>
-                </div>
               </CardContent>
             </Card>
 
-            <div className="grid gap-5">
-              {files.map((file) => (
-                <DvarTorahFileCard key={file.slug} {...file} />
-              ))}
-            </div>
+            <DvarTorahLibrary files={files} />
           </div>
         </section>
       </main>
