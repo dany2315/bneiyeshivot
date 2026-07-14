@@ -26,10 +26,12 @@ import {
   Gift,
   Heart,
   Info,
-  Play,
   School,
   ShoppingBasket,
 } from "lucide-react";
+
+const homeVideoUrl =
+  "https://www.youtube-nocookie.com/embed/c0PKxmIQlSQ?rel=0&modestbranding=1&playsinline=1";
 
 const homeServices = [
   {
@@ -191,17 +193,15 @@ export default function Home() {
             </Card>
             <Card className="hero-video-card hero-video-card-mobile">
               <CardContent className="p-2">
-                <div className="home-video-player hero-video-player" aria-label="Video de presentation">
-                  <Image
-                    src="/logo-bnei-mark.png"
-                    alt=""
-                    width={370}
-                    height={335}
-                    className="home-video-mark"
+                <div className="home-video-player hero-video-player overflow-hidden" aria-label="Video de presentation">
+                  <iframe
+                    src={homeVideoUrl}
+                    title="Video de presentation Bnei Yeshivot"
+                    className="absolute inset-0 h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
                   />
-                  <button className="video-play-button" type="button" aria-label="Lire la video">
-                    <Play className="size-7" fill="currentColor" />
-                  </button>
                 </div>
               </CardContent>
             </Card>
@@ -215,21 +215,20 @@ export default function Home() {
                 <span className="eyebrow">Video de presentation</span>
                 <h2>Decouvrir Bnei Yeshivot en quelques minutes</h2>
                 <p>
-                  Un player moderne sera branche a la video de presentation,
-                  sans afficher de plateforme externe dans l&apos;interface.
+                  Une presentation claire de l'accompagnement Bnei Yeshivot,
+                  des services et de la vision portee pour les jeunes
+                  francophones en Israel.
                 </p>
               </div>
-              <div className="home-video-player" aria-label="Video de presentation">
-                <Image
-                  src="/logo-bnei-mark.png"
-                  alt=""
-                  width={370}
-                  height={335}
-                  className="home-video-mark"
+              <div className="home-video-player overflow-hidden" aria-label="Video de presentation">
+                <iframe
+                  src={homeVideoUrl}
+                  title="Video de presentation Bnei Yeshivot"
+                  className="absolute inset-0 h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
                 />
-                <button className="video-play-button" type="button" aria-label="Lire la video">
-                  <Play className="size-7" fill="currentColor" />
-                </button>
               </div>
             </div>
           </div>
