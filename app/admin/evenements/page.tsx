@@ -2,6 +2,7 @@ import Link from "next/link";
 import { EventRegistrationStatus } from "@prisma/client";
 import {
   createEvent,
+  deleteEvent,
   updateEvent,
   updateEventRegistrationStatus,
 } from "../actions";
@@ -11,6 +12,17 @@ import { EventFormDialog } from "@/components/event-form-dialog";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +52,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, Trash2, Users } from "lucide-react";
 
 export const metadata = {
   title: "Admin evenements",
@@ -84,13 +96,6 @@ export default async function AdminEventsPage() {
       </div>
 
       <section className="section">
-        <div className="section-header">
-          <h2>Evenements en base</h2>
-          <p>
-            Consultez les inscriptions de chaque evenement. Les evenements
-            passes peuvent recevoir des photos supplementaires.
-          </p>
-        </div>
         <div className="grid grid-3">
           {events.map((event) => {
             const isPast = event.startsAt < now;
@@ -241,6 +246,7 @@ export default async function AdminEventsPage() {
 
                   <EventFormDialog
                     action={updateEvent}
+                    key={event.updatedAt.toISOString()}
                     event={{
                       id: event.id,
                       title: event.title,
@@ -265,6 +271,43 @@ export default async function AdminEventsPage() {
                       </Link>
                     </Button>
                   )}
+
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      render={
+                        <Button variant="ghost">
+                          <Trash2 className="size-4" />
+                          Supprimer
+                        </Button>
+                      }
+                    />
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Supprimer cet evenement ?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Action irreversible. « {event.title} » et ses{" "}
+                          {event._count.registrations} inscription(s) seront
+                          definitivement supprimes.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <form action={deleteEvent}>
+                          <input
+                            name="eventId"
+                            type="hidden"
+                            value={event.id}
+                          />
+                          <AlertDialogAction type="submit" variant="destructive">
+                            <Trash2 className="size-4" />
+                            Supprimer
+                          </AlertDialogAction>
+                        </form>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             );

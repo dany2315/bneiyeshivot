@@ -1,7 +1,9 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -104,11 +106,71 @@ export function EventFormDialog({
   );
   const [videoUrls, setVideoUrls] = useState<string[]>(event?.videoUrls ?? []);
 
+  const [open, setOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [formKey, setFormKey] = useState(0);
+  const [isPending, startTransition] = useTransition();
+
   const now = new Date();
   const isUpcoming = !startsAt || new Date(startsAt) >= now;
 
+  function resetForm() {
+    setTitle(event?.title ?? "");
+    setDescription(event?.description ?? "");
+    setBody(event?.body ?? "");
+    setLocation(event?.location ?? "");
+    setStartsAt(event ? toDatetimeLocal(event.startsAt) : "");
+    setRequiresRegistration(event?.requiresRegistration ?? false);
+    setCoverPreview(event?.imageKey ?? null);
+    setGalleryUrls(event?.gallery ?? []);
+    setVideoUrls(event?.videoUrls ?? []);
+    setFormKey((key) => key + 1);
+  }
+
+  function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
+    formEvent.preventDefault();
+    // On capture les donnees AVANT de desactiver les champs (les champs
+    // desactives ne sont pas inclus dans un FormData).
+    const formData = new FormData(formEvent.currentTarget);
+    setError(null);
+    setProgress(10);
+
+    const timer = setInterval(() => {
+      setProgress((value) => (value < 90 ? value + (90 - value) * 0.12 : value));
+    }, 250);
+
+    startTransition(async () => {
+      try {
+        await action(formData);
+        setProgress(100);
+        setTimeout(() => {
+          setOpen(false);
+          setProgress(0);
+          if (mode === "create") resetForm();
+        }, 500);
+      } catch (submitError) {
+        setError(
+          submitError instanceof Error
+            ? submitError.message
+            : "La publication a echoue. Reessayez.",
+        );
+        setProgress(0);
+      } finally {
+        clearInterval(timer);
+      }
+    });
+  }
+
   return (
-    <Dialog>
+    <Dialog
+      onOpenChange={(next) => {
+        if (isPending) return;
+        setOpen(next);
+        if (!next) setError(null);
+      }}
+      open={open}
+    >
       <DialogTrigger
         render={
           mode === "edit" ? (
@@ -136,7 +198,12 @@ export function EventFormDialog({
         </DialogHeader>
 
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <form action={action} className="grid gap-4">
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <fieldset
+              className="m-0 grid gap-4 border-0 p-0 disabled:opacity-60"
+              disabled={isPending}
+              key={formKey}
+            >
             {mode === "edit" && event && (
               <input name="eventId" type="hidden" value={event.id} />
             )}
@@ -247,11 +314,34 @@ export function EventFormDialog({
               />
             </Field>
 
-            <Button className="w-fit" type="submit">
-              {mode === "edit"
-                ? "Enregistrer les modifications"
-                : "Creer l'evenement"}
+            {error && (
+              <p className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </p>
+            )}
+
+            {(isPending || progress > 0) && (
+              <div className="grid gap-1.5">
+                <Progress value={progress} />
+                <span className="text-sm text-[var(--muted)]">
+                  Publication de l&apos;evenement... {Math.round(progress)}%
+                </span>
+              </div>
+            )}
+
+            <Button className="w-fit" disabled={isPending} type="submit">
+              {isPending ? (
+                <>
+                  <Spinner />
+                  Publication...
+                </>
+              ) : mode === "edit" ? (
+                "Enregistrer les modifications"
+              ) : (
+                "Creer l'evenement"
+              )}
             </Button>
+            </fieldset>
           </form>
 
           <div className="grid h-fit gap-4 rounded-2xl bg-[var(--subtle)] p-4">

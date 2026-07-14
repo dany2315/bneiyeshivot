@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Les images d'evenement sont uploadees via server action : la limite
+      // par defaut de 1 Mo faisait echouer la creation avec photos.
+      bodySizeLimit: "25mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

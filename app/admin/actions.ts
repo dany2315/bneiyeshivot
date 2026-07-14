@@ -244,6 +244,43 @@ export async function updateEvent(formData: FormData) {
   revalidatePath(`/evenements/${existing.slug}`);
 }
 
+export async function deleteEvent(formData: FormData) {
+  const admin = await requireAdminUser();
+  const id = readString(formData, "eventId");
+
+  if (!id) {
+    throw new Error("Evenement introuvable.");
+  }
+
+  const existing = await prisma.event.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+
+  if (!existing) {
+    throw new Error("Evenement introuvable.");
+  }
+
+  // Les inscriptions liees doivent partir avant l'evenement (contrainte FK).
+  await prisma.$transaction([
+    prisma.eventRegistration.deleteMany({ where: { eventId: id } }),
+    prisma.event.delete({ where: { id } }),
+  ]);
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "event.deleted",
+      entity: "Event",
+      entityId: id,
+      metadata: { slug: existing.slug },
+    },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/evenements");
+}
+
 export async function addEventPastMedia(formData: FormData) {
   const admin = await requireAdminUser();
   const eventId = readString(formData, "eventId");
