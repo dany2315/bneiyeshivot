@@ -39,8 +39,7 @@ export const programmes: Program[] = [
       "Le Beth Hamidrach Bnei Yeshivot offre aux jeunes francophones un cadre chaleureux pour etudier, se retrouver et renforcer leur lien avec la Torah.",
     focusLabel: "Au programme",
     ctaLabel: "Decouvrir le Beth Hamidrach",
-    image:
-      "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1100&q=82",
+    image: "/programmes/beth-hamidrach.jpeg",
     href: "/programme/beth-hamidrach",
     Icon: BookOpen,
     actions: [

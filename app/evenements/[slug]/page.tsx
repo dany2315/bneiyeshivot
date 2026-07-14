@@ -4,6 +4,7 @@ import { PageShell, StatusBadge } from "../../components";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
 import { fileUrl } from "@/lib/files";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Camera, Film } from "lucide-react";
 
 export default async function EventDetailPage({
@@ -33,6 +42,9 @@ export default async function EventDetailPage({
 
   const content = parseEventContent(event.content);
   const gallery = [...content.gallery, ...content.pastPhotos];
+  const galleryPhotos = gallery
+    .map((src) => fileUrl(src))
+    .filter((src): src is string => Boolean(src));
 
   return (
     <PageShell>
@@ -127,7 +139,7 @@ export default async function EventDetailPage({
                     </span>
                     <span className="inline-flex items-center gap-2 rounded-full bg-[var(--subtle)] px-3 py-1">
                       <Camera className="size-4" />
-                      {gallery.length} photo(s)
+                      {galleryPhotos.length} photo(s)
                     </span>
                   </div>
                   <StatusBadge tone="gold">Inscriptions fermees</StatusBadge>
@@ -137,7 +149,7 @@ export default async function EventDetailPage({
           </div>
         </section>
 
-        {gallery.length > 0 && (
+        {galleryPhotos.length > 0 && (
           <section className="section band">
             <div className="container">
               <div className="section-header">
@@ -147,21 +159,59 @@ export default async function EventDetailPage({
                   l&apos;evenement.
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {gallery.map((src, index) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    alt=""
-                    className={
-                      index === 0
-                        ? "aspect-[4/3] rounded-2xl object-cover lg:col-span-2 lg:row-span-2 lg:h-full"
-                        : "aspect-[4/3] rounded-2xl object-cover"
-                    }
-                    key={`${src}-${index}`}
-                    src={fileUrl(src) ?? undefined}
-                  />
-                ))}
-              </div>
+              <Dialog>
+                <DialogTrigger
+                  render={
+                    <button className="gallery-card-trigger" type="button" />
+                  }
+                >
+                  <Card className="gallery-card event-gallery-card">
+                    <div className="gallery-card-mosaic">
+                      {galleryPhotos.slice(0, 5).map((photo, photoIndex) => (
+                        <div
+                          className={
+                            photoIndex === 0
+                              ? "gallery-mosaic-cell gallery-mosaic-main"
+                              : "gallery-mosaic-cell"
+                          }
+                          key={`${photo}-${photoIndex}`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img alt="" src={photo} />
+                        </div>
+                      ))}
+                    </div>
+                    <CardHeader>
+                      <Badge variant="info">{galleryPhotos.length} photos</Badge>
+                      <CardTitle>{event.title}</CardTitle>
+                      <CardDescription>{event.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                  <DialogHeader className="gallery-dialog-header">
+                    <DialogTitle>{event.title}</DialogTitle>
+                    <DialogDescription>
+                      Galerie apres evenement - {galleryPhotos.length} photo(s)
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="gallery-dialog-grid">
+                    {galleryPhotos.map((photo, photoIndex) => (
+                      <div
+                        className={
+                          photoIndex === 0
+                            ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                            : "gallery-dialog-photo"
+                        }
+                        key={`${photo}-${photoIndex}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img alt="" src={photo} />
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </section>
         )}
