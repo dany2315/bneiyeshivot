@@ -855,7 +855,8 @@ textarea {
 
 .ben-gallery-pair .gallery-card {
   display: grid;
-  grid-template-rows: auto 1fr;
+  align-content: start;
+  grid-template-rows: auto auto;
 }
 
 .ben-gallery-pair .gallery-card-mosaic {
@@ -885,6 +886,7 @@ textarea {
 .ben-short-card [data-slot="card-header"] {
   align-self: start;
   gap: 10px;
+  padding-top: 18px;
 }
 
 .ben-short-card [data-slot="badge"] {
