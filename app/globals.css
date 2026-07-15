@@ -2303,6 +2303,81 @@ a.card:hover,
   align-items: stretch;
 }
 
+.ben-region-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.65fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.ben-region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ben-region-card {
+  overflow: hidden;
+  border-color: rgba(223, 231, 240, 0.94);
+  background:
+    radial-gradient(circle at top right, rgba(242, 99, 0, 0.1), transparent 13rem),
+    #fff;
+  box-shadow: 0 20px 58px rgba(6, 40, 70, 0.06);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.ben-region-card-active {
+  transform: translateY(-2px);
+  border-color: rgba(242, 99, 0, 0.32);
+  box-shadow: 0 26px 74px rgba(6, 40, 70, 0.1);
+}
+
+.ben-region-card [data-slot="card-content"] {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.ben-region-card-header {
+  display: grid;
+  gap: 3px;
+}
+
+.ben-region-card-header strong {
+  color: var(--primary-strong);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.ben-region-card-header span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.ben-region-map {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  background:
+    linear-gradient(140deg, rgba(6, 40, 70, 0.08), transparent 34%),
+    radial-gradient(circle at 50% 40%, rgba(242, 99, 0, 0.12), transparent 14rem),
+    #eef5f8;
+}
+
+.ben-region-map-img {
+  position: absolute;
+  inset: 0;
+  padding: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 34px rgba(6, 40, 70, 0.13));
+}
+
 .ben-map-card,
 .ben-map-active-card,
 .ben-map-stat {
@@ -3126,6 +3201,11 @@ a.card:hover,
   }
 
   .ben-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ben-region-layout,
+  .ben-region-grid {
     grid-template-columns: 1fr;
   }
 
