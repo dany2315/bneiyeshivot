@@ -810,11 +810,10 @@ textarea {
 }
 
 .gallery-dialog-content [data-slot="dialog-close"] {
-  position: sticky;
-  top: 8px;
-  z-index: 5;
-  justify-self: end;
-  margin-bottom: -42px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
 }
 
 .gallery-dialog-header {

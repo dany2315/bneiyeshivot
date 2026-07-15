@@ -230,11 +230,6 @@ const programDetails: Record<string, ProgramDetail> = {
       "Participants",
       "Communautes partenaires",
     ],
-    testimonials: [
-      "Bahourim participants",
-      "Rabbanim",
-      "Responsables communautaires",
-    ],
   },
   shabbatot: {
     heroText:
@@ -691,7 +686,7 @@ export default async function ProgramDetailPage({
                 Tous les programmes
               </Link>
               <span className="eyebrow">{eyebrow}</span>
-              <h1>{slug === "ben-hazmanim" ? "Yeshiva Ben Azmanim" : title}</h1>
+              <h1>{slug === "ben-hazmanim" ? "Yeshivot Ben Azmanim" : title}</h1>
               <p>{detail.heroText || description}</p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
