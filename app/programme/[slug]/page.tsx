@@ -7,7 +7,7 @@ import { getProgram, programmes } from "../programmes";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
-import { TalmoudoRegistrationForm } from "@/components/talmoudo-registration-form";
+import { TalmoudoProgramSignupCta } from "@/components/talmoudo-program-signup-cta";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BenHazmanimFranceMap } from "@/components/ben-hazmanim-france-map";
@@ -690,13 +690,34 @@ export default async function ProgramDetailPage({
           }),
         ])
       : [null, []];
+  const nextMivhanSession = upcomingMivhanSessions[0] ?? null;
+  const nextMivhanRegistration =
+    currentUser && nextMivhanSession
+      ? await prisma.mivhanRegistration.findUnique({
+          where: {
+            sessionId_userId: {
+              sessionId: nextMivhanSession.id,
+              userId: currentUser.id,
+            },
+          },
+          select: { id: true },
+        })
+      : null;
   const talmoudoSessionOptions = upcomingMivhanSessions
     .map((session) => ({
       disabled: !isMivhanRegistrationOpen(session),
       id: session.id,
+      location: session.location,
       title: session.title,
-      dateLabel: session.date.toLocaleDateString("fr-FR"),
+      dateLabel: new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(session.date),
     }));
+  const nextMivhanOption =
+    nextMivhanSession && talmoudoSessionOptions.length > 0
+      ? talmoudoSessionOptions[0]
+      : null;
 
   return (
     <PageShell>
@@ -869,9 +890,10 @@ export default async function ProgramDetailPage({
                   renseigner son limoud, sauf informations de profil manquantes.
                 </p>
               </div>
-              <TalmoudoRegistrationForm
+              <TalmoudoProgramSignupCta
+                alreadyRegistered={Boolean(nextMivhanRegistration)}
                 initialUser={currentUser}
-                sessions={talmoudoSessionOptions}
+                session={nextMivhanOption}
               />
             </div>
           </section>

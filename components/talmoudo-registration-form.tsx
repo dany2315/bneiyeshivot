@@ -29,6 +29,7 @@ import { Spinner } from "@/components/ui/spinner";
 type TalmoudoSessionOption = {
   disabled?: boolean;
   id: string;
+  location?: string | null;
   title: string;
   dateLabel: string;
 };
