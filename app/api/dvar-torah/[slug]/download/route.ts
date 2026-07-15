@@ -7,7 +7,7 @@ import { getFileFromS3 } from "@/lib/uploads";
 const files: Record<string, string> = {
   "chabbat-berechit": "Dvar Torah - Chabbat Berechit",
   "hanouka-lumiere": "Dvar Torah - Hanouka",
-  "pessah-liberté": "Dvar Torah - Pessah",
+  "pessah-liberte": "Dvar Torah - Pessah",
 };
 
 function escapePdfText(value: string) {

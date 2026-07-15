@@ -12,7 +12,7 @@ export default function AdminContactPage({
 }) {
   return (
     <AdminServiceRequestsPage
-      description="Gestion des demandes de contact entrantes et du suivi des réponses."
+      description="Gestion des demandes de contact entrantes et du suivi des reponses."
       searchParams={searchParams}
       title="Demandes de contact"
       type={ServiceRequestType.GENERAL_CONTACT}

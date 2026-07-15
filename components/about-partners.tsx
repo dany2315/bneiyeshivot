@@ -10,7 +10,7 @@ const partnerGroups = [
     title: "Yeshivot partenaires",
     Icon: Users,
     items: [
-      "Yeshivat Torat Israël",
+      "Yeshivat Torat Israel",
       "Yeshivat Netivot Hatorah",
       "Yeshivat Ohr Yerushalayim",
       "Yeshivat Heichal David",
@@ -21,8 +21,8 @@ const partnerGroups = [
     Icon: Sparkles,
     items: [
       "Association d'entraide francophone",
-      "Centre communautaire Jérusalem",
-      "Réseau familles en Israël",
+      "Centre communautaire Jerusalem",
+      "Reseau familles en Israel",
       "Collectif jeunes olim",
     ],
   },
@@ -31,7 +31,7 @@ const partnerGroups = [
     Icon: Landmark,
     items: [
       "Institutions educatives francophones",
-      "Maisons d'étude partenaires",
+      "Maisons d'etude partenaires",
       "Centres de formation Torah",
       "Programmes jeunesse",
     ],
@@ -40,10 +40,10 @@ const partnerGroups = [
     title: "Organismes administratifs",
     Icon: Building2,
     items: [
-      "Services visa étudiant",
+      "Services visa etudiant",
       "Caisses d'assurance maladie",
       "Guichets administratifs locaux",
-      "Services d'accueil des étudiants",
+      "Services d'accueil des etudiants",
     ],
   },
   {

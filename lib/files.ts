@@ -1,6 +1,6 @@
-// Construit l'URL d'affichage d'un fichier stocké sur S3 (bucket prive).
-// On sert les fichiers d'événement via /api/files/<key> plutœt que via une
-// URL S3 directe (inaccèssible car le bucket n'est pas public).
+// Construit l'URL d'affichage d'un fichier stocke sur S3 (bucket prive).
+// On sert les fichiers d'evenement via /api/files/<key> plutot que via une
+// URL S3 directe (inaccessible car le bucket n'est pas public).
 export function fileUrl(keyOrUrl: string | null | undefined): string | null {
   if (!keyOrUrl) return null;
   // Anciennes valeurs stockees en URL complete : on les garde telles quelles.

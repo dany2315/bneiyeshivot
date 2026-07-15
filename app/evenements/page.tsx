@@ -17,7 +17,7 @@ import {
 import { ArrowRight, CalendarDays, MapPin, Users } from "lucide-react";
 
 export const metadata = {
-  title: "Événements",
+  title: "Evenements",
 };
 
 export default async function EventsPage() {
@@ -33,7 +33,7 @@ export default async function EventsPage() {
   });
 
   const upcoming = events.filter((event) => event.startsAt >= now);
-  // Un événement passe n'apparait qu'une fois publie par l'admin (texte + medias).
+  // Un evenement passe n'apparait qu'une fois publie par l'admin (texte + medias).
   const past = events
     .filter(
       (event) =>
@@ -47,8 +47,8 @@ export default async function EventsPage() {
       <main>
         <section className="page-hero">
           <div className="container">
-            <span className="eyebrow">Communauté Bnei Yeshivot</span>
-            <h1>Événements</h1>
+            <span className="eyebrow">Communaute Bnei Yeshivot</span>
+            <h1>Evenements</h1>
             <p>
               Retrouvez les prochains rendez-vous ouverts a la communaute et les
               souvenirs des evenements passes.
@@ -59,8 +59,8 @@ export default async function EventsPage() {
         <section className="section">
           <div className="container">
             <div className="section-header">
-              <h2>Événements À venir</h2>
-              <p>Les prochains rendez-vous de la communauté.</p>
+              <h2>Evenements a venir</h2>
+              <p>Les prochains rendez-vous de la communaute.</p>
             </div>
             {upcoming.length > 0 ? (
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -74,7 +74,7 @@ export default async function EventsPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState message="Aucun événement À venir pour le moment." />
+              <EmptyState message="Aucun evenement a venir pour le moment." />
             )}
           </div>
         </section>
@@ -83,8 +83,8 @@ export default async function EventsPage() {
           <section className="section band">
             <div className="container">
               <div className="section-header">
-                <h2>Événements passes</h2>
-                <p>Photos, videos et souvenirs des rencontres précédentes.</p>
+                <h2>Evenements passes</h2>
+                <p>Photos, videos et souvenirs des rencontres precedentes.</p>
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {past.map((event) => (
@@ -151,7 +151,7 @@ function EventMeta({ event }: { event: EventWithMeta }) {
       </span>
       <span className="inline-flex items-center gap-1">
         <MapPin className="size-4" />
-        {event.location || "Lieu à confirmer"}
+        {event.location || "Lieu a confirmer"}
       </span>
       {event.capacity != null && (
         <span className="inline-flex items-center gap-1">
@@ -177,7 +177,7 @@ function UpcomingCard({
       <EventImage
         badge={
           <>
-            <StatusBadge tone="blue">À venir</StatusBadge>
+            <StatusBadge tone="blue">A venir</StatusBadge>
             {event.requiresRegistration && (
               <Badge variant="success">Inscription</Badge>
             )}
@@ -204,7 +204,7 @@ function UpcomingCard({
               </Button>
               {!loggedIn && (
                 <span className="mt-2 block text-sm text-[var(--muted)] ">
-                  Connexion a l&apos;Espace Bahour demandée avant
+                  Connexion a l&apos;Espace Bahour demandee avant
                   l&apos;inscription.
                 </span>
               )}
@@ -227,7 +227,7 @@ function PastCard({ event }: { event: EventWithMeta }) {
   return (
     <Card className="overflow-hidden border-[var(--border)] bg-white shadow-[0_20px_70px_rgba(6,40,70,0.08)] pt-0">
       <EventImage
-        badge={<StatusBadge tone="gold">Passé</StatusBadge>}
+        badge={<StatusBadge tone="gold">Passe</StatusBadge>}
         imageKey={event.imageKey}
       />
       <CardHeader>

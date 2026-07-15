@@ -97,7 +97,7 @@ export default async function AdminUsersPage({
               className="pl-9"
               defaultValue={q ?? ""}
               name="q"
-              placeholder="Rechercher prénom, nom ou email..."
+              placeholder="Rechercher prenom, nom ou email..."
             />
           </div>
           <NativeSelect
@@ -125,9 +125,9 @@ export default async function AdminUsersPage({
                 <TableHead>Utilisateur</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Demandes</TableHead>
-                <TableHead>Événements</TableHead>
+                <TableHead>Evenements</TableHead>
                 <TableHead>Dons</TableHead>
-                <TableHead>Création</TableHead>
+                <TableHead>Creation</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

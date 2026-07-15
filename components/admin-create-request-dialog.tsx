@@ -17,7 +17,7 @@ export function AdminCreateRequestDialog({
 }: {
   type: "visa" | "koupat";
 }) {
-  const title = type === "visa" ? "Créer une demande visa" : "Créer une demande koupat holim";
+  const title = type === "visa" ? "Creer une demande visa" : "Creer une demande koupat holim";
 
   return (
     <Dialog>

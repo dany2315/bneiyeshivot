@@ -35,12 +35,12 @@ export function GuideDownloadForm() {
       const response = await fetch("/api/guide/download");
 
       if (!response.ok) {
-        toast.error("Impossible de télécharger le guide pour le moment.");
+        toast.error("Impossible de telecharger le guide pour le moment.");
         return;
       }
 
       downloadBlob(await response.blob());
-      toast.success("Guide téléchargé.");
+      toast.success("Guide telecharge.");
     }
 
     downloadForConnectedUser();
@@ -61,12 +61,12 @@ export function GuideDownloadForm() {
       const result = (await response.json().catch(() => null)) as {
         message?: string;
       } | null;
-      toast.error(result?.message ?? "Impossible de télécharger le guide.");
+      toast.error(result?.message ?? "Impossible de telecharger le guide.");
       return;
     }
 
     downloadBlob(await response.blob());
-    toast.success("Guide téléchargé.");
+    toast.success("Guide telecharge.");
   }
 
   if (loading) {
@@ -120,7 +120,7 @@ export function GuideDownloadForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="guide-first-name">Prénom</Label>
+          <Label htmlFor="guide-first-name">Prenom</Label>
           <Input id="guide-first-name" name="firstName" required />
         </div>
         <div className="grid gap-2">
@@ -132,7 +132,7 @@ export function GuideDownloadForm() {
           <Input id="guide-email" name="email" type="email" required />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="guide-phone">Numéro de téléphone</Label>
+          <Label htmlFor="guide-phone">Numero de telephone</Label>
           <PhoneInputGroup id="guide-phone" name="phone" required />
         </div>
       </div>

@@ -63,7 +63,7 @@ export function AdminFileInput({
             <AttachmentTitle>{summary || title}</AttachmentTitle>
             <AttachmentDescription>
               {summary
-                ? description || "Prêt pour l'envoi."
+                ? description || "Pret pour l'envoi."
                 : description || "Cliquez pour choisir un fichier."}
             </AttachmentDescription>
           </AttachmentContent>

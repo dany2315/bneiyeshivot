@@ -11,7 +11,7 @@ export async function registerForEvent(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
 
   if (!eventId) {
-    throw new Error("Événement invalide.");
+    throw new Error("Evenement invalide.");
   }
 
   const event = await prisma.event.findUnique({

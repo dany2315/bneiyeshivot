@@ -27,20 +27,16 @@ export type Program = {
     description: string;
     Icon: LucideIcon;
   }>;
-  stats?: Array<{
-    value: string;
-    label: string;
-  }>;
 };
 
 export const programmes: Program[] = [
   {
     slug: "beth-hamidrach",
-    title: "Beth Hamidrach - Leil Shishi",
-    eyebrow: "Étude",
-    description: "Un rendez-vous hebdomadaire autour de la Torah.",
+    title: "Beth Hamidrach",
+    eyebrow: "Etude",
+    description: "Etudier dans une ambiance chaleureuse.",
     longDescription:
-      "Chaque jeudi soir, un cadre chaleureux réunit près de 60 jeunes francophones autour du Limoud, de la pratique et du partage. Plus qu'un Seder : une véritable expérience de Torah.",
+      "Le Beth Hamidrach Bnei Yeshivot offre aux jeunes francophones un cadre chaleureux pour etudier, se retrouver et renforcer leur lien avec la Torah.",
     focusLabel: "Au programme",
     ctaLabel: "Decouvrir le Beth Hamidrach",
     image: "/programmes/beth-hamidrach.jpeg",
@@ -48,18 +44,18 @@ export const programmes: Program[] = [
     Icon: BookOpen,
     actions: [
       {
-        title: "Étude",
-        description: "Un temps de Limoud régulier dans une ambiance chaleureuse.",
+        title: "Seder limoud",
+        description: "Des etudes regulieres pour garder un rythme clair.",
         Icon: BookOpen,
       },
       {
-        title: "Rabbanim invités",
-        description: "Des interventions et échanges avec des Rabbanim.",
+        title: "Cours de Torah",
+        description: "Des cours adaptes et des rencontres avec des Rabbanim.",
         Icon: School,
       },
       {
-        title: "Ateliers Halakha",
-        description: "Des ateliers pratiques et des rencontres entre jeunes.",
+        title: "Cadre chaleureux",
+        description: "Des moments de partage dans une ambiance familiale.",
         Icon: Heart,
       },
     ],
@@ -69,37 +65,31 @@ export const programmes: Program[] = [
     title: "Ben Hazmanim",
     eyebrow: "Vacances",
     description:
-      "Le plus grand réseau francophone de Yéchivot Ben Hazmanim.",
+      "Des programmes de Torah partout en France et en Israel pendant les vacances.",
     longDescription:
-      "Un projet qui fédère des Kehilot, des Rabbanim et des centaines de Bahourim autour d'une même vision : offrir à chaque jeune un véritable Makom Torah pendant les vacances.",
-    focusLabel: "Le réseau",
-    ctaLabel: "Découvrir le réseau Ben Hazmanim",
+      "Pendant les periodes de vacances, Bnei Yeshivot organise des programmes permettant aux Bahourim et etudiants de continuer a progresser dans un cadre adapte.",
+    focusLabel: "Objectifs",
+    ctaLabel: "Voir les programmes Ben Hazmanim",
     image:
       "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1100&q=82",
     href: "/programme/ben-hazmanim",
     Icon: Sparkles,
     actions: [
       {
-        title: "Yéchivot Ben Hazmanim",
-        description: "Des centres d'étude actifs pendant les vacances.",
+        title: "Programmes de vacances",
+        description: "Garder un rythme d'etude pendant les periodes de pause.",
         Icon: Sparkles,
       },
       {
-        title: "Kehilot partenaires",
-        description: "Un réseau porté avec les communautés locales.",
+        title: "Rencontres",
+        description: "Creer des liens et renforcer la motivation.",
         Icon: Users,
       },
       {
-        title: "Makom Torah",
-        description: "Un cadre sérieux pour chaque Bahour francophone.",
+        title: "Etude et activites",
+        description: "Offrir une experience enrichissante autour de la Torah.",
         Icon: BookOpen,
       },
-    ],
-    stats: [
-      { value: "+250", label: "Bahourim" },
-      { value: "11", label: "centres d'étude" },
-      { value: "10+", label: "Kehilot partenaires" },
-      { value: "France & Israël", label: "réseau international" },
     ],
   },
   {
@@ -108,7 +98,7 @@ export const programmes: Program[] = [
     eyebrow: "Revision",
     description: "Un programme de revision avec examens, suivi et bourses.",
     longDescription:
-      "Talmoudo Beyado encouragé l'étude régulière, la revision et la progression personnelle à travers des objectifs, des examens et un suivi sérieux.",
+      "Talmoudo Beyado encourage l'etude reguliere, la revision et la progression personnelle a travers des objectifs, des examens et un suivi serieux.",
     focusLabel: "Le programme comprend",
     ctaLabel: "Decouvrir Talmoudo Beyado",
     image:
@@ -123,12 +113,12 @@ export const programmes: Program[] = [
       },
       {
         title: "Suivi personnel",
-        description: "Un suivi pour encourager la régularité et la revision.",
+        description: "Un suivi pour encourager la regularite et la revision.",
         Icon: Users,
       },
       {
         title: "Encouragements",
-        description: "Des objectifs d'étude et des encouragements concrets.",
+        description: "Des objectifs d'etude et des encouragements concrets.",
         Icon: Gift,
       },
     ],
@@ -136,10 +126,10 @@ export const programmes: Program[] = [
   {
     slug: "shabbatot",
     title: "Shabbatot",
-    eyebrow: "Communauté",
-    description: "Des Chabbatot inoubliables, réunissant des centaines de jeunes.",
+    eyebrow: "Communaute",
+    description: "Des Chabbatot inoubliables, reunissant des centaines de jeunes.",
     longDescription:
-      "Les Shabbatot organisés par Bnei Yeshivot reunissent des jeunes et des familles autour de la Torah, de la convivialite et d'une ambiance exceptionnelle.",
+      "Les Shabbatot organises par Bnei Yeshivot reunissent des jeunes et des familles autour de la Torah, de la convivialite et d'une ambiance exceptionnelle.",
     focusLabel: "Au programme",
     ctaLabel: "Decouvrir nos Shabbatot",
     image:
@@ -149,17 +139,17 @@ export const programmes: Program[] = [
     actions: [
       {
         title: "Grands Chabbatot",
-        description: "Des repas de Chabbat et des moments de fraternité.",
+        description: "Des repas de Chabbat et des moments de fraternite.",
         Icon: Users,
       },
       {
         title: "Ambiance Torah",
-        description: "Des études, conferences et divrei Torah.",
+        description: "Des etudes, conferences et divrei Torah.",
         Icon: BookOpen,
       },
       {
         title: "Lien communautaire",
-        description: "Des rencontres dans une atmosphère chaleureuse.",
+        description: "Des rencontres dans une atmosphere chaleureuse.",
         Icon: Heart,
       },
     ],
@@ -170,7 +160,7 @@ export const programmes: Program[] = [
     eyebrow: "Foyer",
     description: "Accompagner les jeunes dans la construction de leur futur foyer.",
     longDescription:
-      "Binian Adei Ad accompagne les jeunes francophones dans leur parcours vers la construction d'un foyer solide, avec un accompagnement sérieux base sur les valeurs de la Torah.",
+      "Binian Adei Ad accompagne les jeunes francophones dans leur parcours vers la construction d'un foyer solide, avec un accompagnement serieux base sur les valeurs de la Torah.",
     focusLabel: "Accompagnement",
     ctaLabel: "Decouvrir Binian Adei Ad",
     image:
@@ -180,17 +170,17 @@ export const programmes: Program[] = [
     actions: [
       {
         title: "Preparation",
-        description: "Des repères pour aborder cette étape avec maturite.",
+        description: "Des reperes pour aborder cette etape avec maturite.",
         Icon: HomeIcon,
       },
       {
         title: "Accompagnement",
-        description: "Une écoute sérieuse et adaptée aux besoins des jeunes.",
+        description: "Une ecoute serieuse et adaptee aux besoins des jeunes.",
         Icon: Heart,
       },
       {
         title: "Valeurs",
-        description: "Une construction guidee par la Torah et la responsabilité.",
+        description: "Une construction guidee par la Torah et la responsabilite.",
         Icon: BookOpen,
       },
     ],
@@ -200,9 +190,9 @@ export const programmes: Program[] = [
     title: "Chidoukhim",
     eyebrow: "Accompagnement",
     description:
-      "Un accompagnement sérieux et discret pour les jeunes en age de se marier.",
+      "Un accompagnement serieux et discret pour les jeunes en age de se marier.",
     longDescription:
-      "Chidoukhim propose un accompagnement base sur l'écoute, la discrétion et la confiance pour aider les jeunes à avancer dans leur recherche de leur futur conjoint.",
+      "Chidoukhim propose un accompagnement base sur l'ecoute, la discretion et la confiance pour aider les jeunes a avancer dans leur recherche de leur futur conjoint.",
     focusLabel: "Objectif",
     ctaLabel: "En savoir plus",
     image:
@@ -211,18 +201,18 @@ export const programmes: Program[] = [
     Icon: Heart,
     actions: [
       {
-        title: "Discrétion",
+        title: "Discretion",
         description: "Un accompagnement respectueux et confidentiel.",
         Icon: Heart,
       },
       {
-        title: "Écoute",
+        title: "Ecoute",
         description: "Un cadre humain pour comprendre chaque situation.",
         Icon: Users,
       },
       {
         title: "Responsabilite",
-        description: "Une démarche encadree avec sérieux et confiance.",
+        description: "Une demarche encadree avec serieux et confiance.",
         Icon: ClipboardCheck,
       },
     ],
@@ -232,9 +222,9 @@ export const programmes: Program[] = [
     title: "Programme Avrekhim",
     eyebrow: "Avrekhim",
     description:
-      "Accompagner les Avrekhim francophones en Israël.",
+      "Accompagner les Avrekhim francophones en Israel.",
     longDescription:
-      "Bnei Yeshivot accompagne également les Avrekhim francophones installes en Israël en developpant des cadres de Torah et une dynamique communautaire. Notre objectif est de permettre aux Avrekhim de continuer leur étude dans un environnement sérieux, chaleureux et adapté, tout en renforcant les liens entre les familles francophones.",
+      "Bnei Yeshivot accompagne egalement les Avrekhim francophones installes en Israel en developpant des cadres de Torah et une dynamique communautaire. Notre objectif est de permettre aux Avrekhim de continuer leur etude dans un environnement serieux, chaleureux et adapte, tout en renforcant les liens entre les familles francophones.",
     focusLabel: "Nos cadres",
     ctaLabel: "Decouvrir le Programme Avrekhim",
     image:
@@ -245,7 +235,7 @@ export const programmes: Program[] = [
       {
         title: "Kollel Erev Zikhron Eliyahou",
         description:
-          "Un cadre d'étude régulier a Jérusalem qui rassemble actuellement 12 Avrekhim.",
+          "Un cadre d'etude regulier a Jerusalem qui rassemble actuellement 12 Avrekhim.",
         Icon: BookOpen,
       },
       {
