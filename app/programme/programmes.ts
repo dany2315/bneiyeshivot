@@ -96,7 +96,7 @@ export const programmes: Program[] = [
       },
     ],
     stats: [
-      { value: "+250", label: "Bahourim" },
+      { value: "+300", label: "Bahourim par an" },
       { value: "11", label: "centres d'etude" },
       { value: "10+", label: "Kehilot partenaires" },
       { value: "France & Israel", label: "reseau international" },

@@ -3,7 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import Image from "next/image";
 import CountUp from "react-countup";
-import { CalendarDays, Clock3, Users } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -62,13 +62,21 @@ const regions: RegionMap[] = [
 const allCities = regions.flatMap((region) =>
   region.cities.map((city) => ({ ...city, region: region.name })),
 );
-const years = 10;
-const totalParticipants = 300;
+const participantsPerYear = 300;
+const totalParticipants = 3000;
 const daysPerYear = 30;
 const hoursPerDay = 3;
-const averageParticipantsPerYear = totalParticipants / years;
-const yearlyHours = averageParticipantsPerYear * daysPerYear * hoursPerDay;
+const yearlyHours = participantsPerYear * daysPerYear * hoursPerDay;
 const decadeHours = totalParticipants * daysPerYear * hoursPerDay;
+const logoFiles = [
+  "906f2a23-5a3d-41b6-a670-622727bc425b.jpeg",
+  "87894877-bbf0-4bdd-bfb3-7c05410a6ae1.jpeg",
+  "476dd32c-973f-41c4-9cdf-26b7855c96b3.jpeg",
+  "d2465f0f-c5a5-4522-84c6-90c1728b1e8a.jpeg",
+  "bb7765c2-14d1-44b3-adb9-2160b8eaf41a.jpeg",
+  "dd034949-264f-4079-b26a-14716c37d0b2.jpeg",
+  "IMG_1684.jpeg",
+];
 
 export function BenHazmanimFranceMap() {
   const [activeCity, setActiveCity] = useState(allCities[0]);
@@ -148,25 +156,26 @@ export function BenHazmanimFranceMap() {
             </div>
 
             <div className="ben-city-rail" aria-label="Lieux Ben Hazmanim">
-              {allCities.map((city) => (
-                <button
-                  className={cn(
-                    "ben-city-pill",
-                    city.name === activeCity.name && "ben-city-pill-active",
-                  )}
-                  key={`${city.region}-${city.name}`}
-                  onClick={() => setActiveCity(city)}
-                  type="button"
-                >
-                  {city.name}
-                </button>
-              ))}
+              <div className="ben-city-track">
+                {[...allCities, ...allCities].map((city, index) => (
+                  <button
+                    className={cn(
+                      "ben-city-pill",
+                      city.name === activeCity.name && "ben-city-pill-active",
+                    )}
+                    key={`${city.region}-${city.name}-${index}`}
+                    onClick={() => setActiveCity(city)}
+                    type="button"
+                  >
+                    {city.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="ben-map-stats">
               <Card className="ben-map-stat ben-map-stat-main">
                 <CardContent>
-                  <Clock3 className="size-5" />
                   <strong>
                     <CountUp
                       end={yearlyHours}
@@ -212,6 +221,21 @@ export function BenHazmanimFranceMap() {
                   <span>heures de Torah cumulees</span>
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="ben-logo-rail" aria-label="Logos Bnei Yeshivot">
+              <div className="ben-logo-track">
+                {[...logoFiles, ...logoFiles].map((file, index) => (
+                  <div className="ben-logo-item" key={`${file}-${index}`}>
+                    <Image
+                      alt=""
+                      fill
+                      sizes="120px"
+                      src={`/logobneiyeshivot/${file}`}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             <p className="ben-map-source">

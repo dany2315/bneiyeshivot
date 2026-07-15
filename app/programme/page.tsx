@@ -12,10 +12,7 @@ import {
 } from "@/components/ui/card";
 import {
   ArrowRight,
-  BookOpen,
-  CalendarDays,
   CheckCircle2,
-  Users,
 } from "lucide-react";
 
 export const metadata = {
@@ -58,27 +55,18 @@ export default function ProgrammePage() {
 
             <div className="programme-hero-panel" aria-label="Apercu des programmes">
               <div className="programme-hero-panel-row">
-                <span>
-                  <BookOpen className="size-5" />
-                </span>
                 <div>
                   <strong>Etude</strong>
                   <small>Beth Hamidrach, Talmoudo Beyado</small>
                 </div>
               </div>
               <div className="programme-hero-panel-row">
-                <span>
-                  <Users className="size-5" />
-                </span>
                 <div>
                   <strong>Rassemblement</strong>
                   <small>Chabbatot et Ben Hazmanim</small>
                 </div>
               </div>
               <div className="programme-hero-panel-row">
-                <span>
-                  <CalendarDays className="size-5" />
-                </span>
                 <div>
                   <strong>Accompagnement</strong>
                   <small>Bayit Neeman, Chidoukhim</small>
@@ -160,7 +148,6 @@ export default function ProgrammePage() {
                   ctaLabel,
                   image,
                   href,
-                  Icon,
                   actions,
                   stats,
                 }, index) => (
@@ -183,9 +170,6 @@ export default function ProgrammePage() {
                     </div>
                     <CardHeader className="program-card-header">
                       <div className="program-list-topline">
-                        <span className="icon-box">
-                          <Icon className="size-5" />
-                        </span>
                         <span className="program-kicker">{eyebrow}</span>
                       </div>
                       <CardTitle className="program-card-title">

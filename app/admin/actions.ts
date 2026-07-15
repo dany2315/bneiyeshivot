@@ -329,7 +329,7 @@ export async function addEventPastMedia(formData: FormData) {
         pastPhotos: [
           ...currentPhotos,
           ...photoUrls,
-          ...uploadedPhotos.map((file) => file.url),
+          ...uploadedPhotos.map((file) => file.key),
         ],
         pastPublished: true,
         pastMediaUpdatedBy: admin.id,

@@ -15,12 +15,7 @@ import {
 import {
   ArrowLeft,
   CheckCircle2,
-  FileText,
-  HeartHandshake,
-  MapPin,
   MessageCircle,
-  Sparkles,
-  Users,
 } from "lucide-react";
 
 type ProgramDetail = {
@@ -195,7 +190,7 @@ const programDetails: Record<string, ProgramDetail> = {
           "Une collaboration avec des Kehilot, Yechivot et acteurs de terrain.",
       },
       {
-        title: "Plus de 250 participants",
+        title: "Plus de 300 participants par an",
         description:
           "Les dernieres editions ont reuni des Bahourim, Avrekhim et etudiants en France et en Israel.",
       },
@@ -557,7 +552,6 @@ export default async function ProgramDetailPage({
     longDescription,
     ctaLabel,
     image,
-    Icon,
   } = program;
   const detail = programDetails[slug];
 
@@ -580,7 +574,7 @@ export default async function ProgramDetailPage({
                 Tous les programmes
               </Link>
               <span className="eyebrow">{eyebrow}</span>
-              <h1>{title}</h1>
+              <h1>{slug === "ben-hazmanim" ? "Yeshiva Ben Azmanim" : title}</h1>
               <p>{detail.heroText || description}</p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
@@ -599,9 +593,6 @@ export default async function ProgramDetailPage({
 
             <Card className="program-detail-hero-card">
               <CardHeader>
-                <span className="icon-box">
-                  <Icon className="size-5" />
-                </span>
                 <CardTitle>{description}</CardTitle>
                 <CardDescription>{longDescription}</CardDescription>
               </CardHeader>
@@ -693,9 +684,6 @@ export default async function ProgramDetailPage({
             {detail.audience?.length ? (
               <Card className="program-detail-panel">
                 <CardHeader>
-                  <span className="icon-box">
-                    <Users className="size-5" />
-                  </span>
                   <CardTitle>Pour qui ?</CardTitle>
                   <CardDescription>
                     Le programme s&apos;adresse aux jeunes qui souhaitent avancer
@@ -718,9 +706,6 @@ export default async function ProgramDetailPage({
             {detail.practical?.length ? (
               <Card className="program-detail-panel">
                 <CardHeader>
-                  <span className="icon-box">
-                    <MapPin className="size-5" />
-                  </span>
                   <CardTitle>Informations pratiques</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -739,9 +724,6 @@ export default async function ProgramDetailPage({
             {detail.values?.length ? (
               <Card className="program-detail-panel">
                 <CardHeader>
-                  <span className="icon-box">
-                    <HeartHandshake className="size-5" />
-                  </span>
                   <CardTitle>Les valeurs</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -766,9 +748,6 @@ export default async function ProgramDetailPage({
                 {detail.gallery?.length ? (
                   <Card className="program-detail-resource-card">
                     <CardHeader>
-                      <span className="icon-box">
-                        <Sparkles className="size-5" />
-                      </span>
                       <CardTitle>Galerie</CardTitle>
                       <CardDescription>
                         Photos et videos pour montrer l&apos;ambiance du programme.
@@ -787,9 +766,6 @@ export default async function ProgramDetailPage({
                 {detail.testimonials?.length ? (
                   <Card className="program-detail-resource-card">
                     <CardHeader>
-                      <span className="icon-box">
-                        <MessageCircle className="size-5" />
-                      </span>
                       <CardTitle>Temoignages</CardTitle>
                       <CardDescription>
                         Des retours de ceux qui vivent le programme.
@@ -808,9 +784,6 @@ export default async function ProgramDetailPage({
                 {detail.formFields?.length ? (
                   <Card className="program-detail-resource-card">
                     <CardHeader>
-                      <span className="icon-box">
-                        <FileText className="size-5" />
-                      </span>
                       <CardTitle>Inscription</CardTitle>
                       <CardDescription>
                         Le formulaire permettra de transmettre les informations
