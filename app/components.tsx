@@ -1,9 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteNavActions } from "@/components/site-nav-actions";
 import { SiteNavLinks } from "@/components/site-nav-links";
+
+const whatsappGroupUrl =
+  "https://chat.whatsapp.com/EJr8re5PAc6B3hTYuwEp7J?s=cl&p=i&ilr=1";
 
 export function SiteHeader() {
   return (
@@ -61,9 +65,26 @@ export function SiteFooter() {
         </div>
         <div>
           <h4>Contact</h4>
-          <span>WhatsApp</span>
-          <span>Email</span>
-          <span>Jerusalem / France</span>
+          <a href={whatsappGroupUrl} target="_blank" rel="noreferrer">
+            <MessageCircle className="size-4" aria-hidden="true" />
+            Groupe WhatsApp
+          </a>
+          <a href="mailto:contact@bneiyeshivot.com">
+            <Mail className="size-4" aria-hidden="true" />
+            contact@bneiyeshivot.com
+          </a>
+          <a href="tel:+33767967148">
+            <Phone className="size-4" aria-hidden="true" />
+            +33 7 67 96 71 48
+          </a>
+          <a href="tel:+972534727103">
+            <Phone className="size-4" aria-hidden="true" />
+            +972 53 472 7103
+          </a>
+          <span>
+            <MapPin className="size-4" aria-hidden="true" />
+            17 Rehov Apisga, Bayit Vagan, Jerusalem
+          </span>
         </div>
       </div>
     </footer>
