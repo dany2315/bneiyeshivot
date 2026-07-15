@@ -8,9 +8,10 @@ export async function GET(
   const { key } = await params;
   const fileKey = key.map((part) => decodeURIComponent(part)).join("/");
 
-  // Securite : seuls les medias d'evenement sont servis publiquement.
+  // Securite : seuls les medias publics du site et les medias d'evenement
+  // sont servis publiquement.
   // Les documents de dossier (passeports, etc.) ont leurs propres routes protegees.
-  if (!fileKey.startsWith("events/")) {
+  if (!fileKey.startsWith("events/") && !fileKey.startsWith("public/")) {
     return NextResponse.json({ message: "Introuvable." }, { status: 404 });
   }
 

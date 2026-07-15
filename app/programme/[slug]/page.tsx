@@ -2,10 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "../../components";
+import benHazmanimGallery from "@/public/programmes/ben-azmanim/gallery.json";
 import { getProgram, programmes } from "../programmes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BenHazmanimFranceMap } from "@/components/ben-hazmanim-france-map";
+import { fileUrl } from "@/lib/files";
 import {
   Card,
   CardContent,
@@ -70,44 +72,21 @@ type VisualGalleryAlbum = {
 
 const benHazmanimShortUrl =
   "https://www.youtube-nocookie.com/embed/kuM2P0GIs8o?rel=0&modestbranding=1&playsinline=1";
+const benHazmanimPhotos = benHazmanimGallery.items
+  .map((item) => fileUrl(item.key))
+  .filter((src): src is string => Boolean(src));
 
 const benHazmanimGalleryAlbums: VisualGalleryAlbum[] = [
   {
     title: "Photos",
-    description: "Moments d'etude, ambiance et rassemblements Ben Hazmanim.",
-    photos: [
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1506869640319-fe1a24fd76dc?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=900&q=80",
-    ],
+    description: "Toutes les photos importees du dossier Drive Ben Hazmanim.",
+    photos: benHazmanimPhotos,
   },
   {
     title: "Videos",
     description: "Courts formats, prises de parole et souvenirs du programme.",
     videoUrl: benHazmanimShortUrl,
-    photos: [
-      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=80",
-    ],
-  },
-  {
-    title: "Communautes",
-    description: "Les villes, Kehilot et groupes qui portent le reseau.",
-    photos: [
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=900&q=80",
-    ],
+    photos: benHazmanimPhotos.slice(0, 6),
   },
 ];
 
