@@ -160,6 +160,7 @@ export default function ProgrammePage() {
                   ctaLabel,
                   image,
                   href,
+                  slug,
                   actions,
                   stats,
                 }, index) => (
@@ -214,12 +215,26 @@ export default function ProgrammePage() {
                           ))}
                         </div>
                       ) : null}
-                      <Button asChild variant="secondary">
-                        <Link href={href}>
-                          {ctaLabel}
-                          <ArrowRight className="size-4" />
-                        </Link>
-                      </Button>
+                      {slug === "talmoudo-beyado" ? (
+                        <div className="flex flex-wrap gap-3">
+                          <Button asChild variant="accent">
+                            <Link href="/programme/talmoudo-beyado#inscription-talmoudo">
+                              M&apos;inscrire au mivhan
+                              <ArrowRight className="size-4" />
+                            </Link>
+                          </Button>
+                          <Button asChild variant="secondary">
+                            <Link href={href}>Decouvrir</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button asChild variant="secondary">
+                          <Link href={href}>
+                            {ctaLabel}
+                            <ArrowRight className="size-4" />
+                          </Link>
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ),
