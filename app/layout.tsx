@@ -17,16 +17,62 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+  "https://bneiyeshivot.com";
+
+const siteName = "Bnei Yeshivot";
+const siteDescription =
+  "Bnei Yeshivot accompagne les jeunes francophones en Israel : demarches, programmes Torah, evenements, dons et Espace Bahour.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Bnei Yeshivot",
+    default: "Bnei Yeshivot | France - Israel",
     template: "%s | Bnei Yeshivot",
   },
-  description:
-    "Bnei Yeshivot accompagne les jeunes francophones en Israel : demandes, dons, evenements et Espace Bahour.",
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+  description: siteDescription,
+  applicationName: siteName,
+  keywords: [
+    "Bnei Yeshivot",
+    "yeshiva",
+    "Israel",
+    "francophone",
+    "bahourim",
+    "avrekhim",
+    "Torah",
+    "visa etudiant",
+    "koupat holim",
+    "dons",
+    "Kesher Nitsri",
+  ],
+  authors: [{ name: siteName }],
+  creator: siteName,
+  publisher: siteName,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: siteUrl,
+    siteName,
+    title: "Bnei Yeshivot | France - Israel",
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bnei Yeshivot | France - Israel",
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+    },
   },
 };
 
