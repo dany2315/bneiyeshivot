@@ -354,8 +354,10 @@ export default async function ClientPage() {
                               {registration.massehet ?? "Massehet"}
                             </strong>
                             <p className="text-sm text-[var(--muted)]">
-                              {registration.dafStart && registration.dafEnd
-                                ? `Du daf ${registration.dafStart} au daf ${registration.dafEnd}`
+                              {registration.dapim
+                                ? `Dapim : ${registration.dapim}`
+                                : registration.dafStart && registration.dafEnd
+                                  ? `Du daf ${registration.dafStart} au daf ${registration.dafEnd}`
                                 : "Dapim a confirmer"}
                             </p>
                           </div>

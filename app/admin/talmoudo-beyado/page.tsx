@@ -1,5 +1,6 @@
 import { AdminShell } from "@/components/admin-sidebar";
 import { StatusBadge } from "@/app/components";
+import { TalmoudoLimoudFields } from "@/components/talmoudo-limoud-fields";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import {
@@ -315,9 +316,7 @@ export default async function AdminTalmoudoBeyadoPage() {
                             <Input name="phone" placeholder="Telephone" required />
                             <Input name="parentPhone" placeholder="Telephone parents" />
                             <Input name="yeshiva" placeholder="Yeshiva" required />
-                            <Input name="massehet" placeholder="Massehet" required />
-                            <Input name="dafStart" placeholder="Du daf" required />
-                            <Input name="dafEnd" placeholder="Au daf" required />
+                            <TalmoudoLimoudFields />
                           </div>
                           <Button type="submit">Inscrire</Button>
                         </form>
@@ -361,8 +360,10 @@ export default async function AdminTalmoudoBeyadoPage() {
                                 <div className="grid gap-1">
                                   <strong>{registration.massehet ?? "-"}</strong>
                                   <span className="text-sm text-[var(--muted)]">
-                                    {registration.dafStart && registration.dafEnd
-                                      ? `${registration.dafStart} - ${registration.dafEnd}`
+                                    {registration.dapim
+                                      ? registration.dapim
+                                      : registration.dafStart && registration.dafEnd
+                                        ? `${registration.dafStart} - ${registration.dafEnd}`
                                       : "-"}
                                   </span>
                                 </div>

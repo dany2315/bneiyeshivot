@@ -3,6 +3,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { Check, Send } from "lucide-react";
 import { PhoneInputGroup } from "@/components/phone-input-group";
+import { TalmoudoLimoudFields } from "@/components/talmoudo-limoud-fields";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -236,23 +237,7 @@ export function TalmoudoRegistrationForm({
                 <input name="parentPhone" type="hidden" value={initialUser?.parentPhone ?? ""} />
               )}
 
-              <Field>
-                <FieldLabel htmlFor="talmoudo-massehet">Massehet</FieldLabel>
-                <Input
-                  id="talmoudo-massehet"
-                  name="massehet"
-                  placeholder="Ex. Baba Kama"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="talmoudo-daf-start">Du daf</FieldLabel>
-                <Input id="talmoudo-daf-start" name="dafStart" placeholder="Ex. 12a" required />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="talmoudo-daf-end">Au daf</FieldLabel>
-                <Input id="talmoudo-daf-end" name="dafEnd" placeholder="Ex. 19b" required />
-              </Field>
+              <TalmoudoLimoudFields />
             </FieldGroup>
 
             {status !== "idle" && (

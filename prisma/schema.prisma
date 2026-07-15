@@ -303,6 +303,7 @@ model MivhanRegistration {
   phone             String?
   yeshiva           String?
   massehet          String?
+  dapim             String?
   dafStart          String?
   dafEnd            String?
   status            MivhanRegistrationStatus @default(REGISTERED)

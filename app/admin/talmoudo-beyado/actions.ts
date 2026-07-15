@@ -130,8 +130,7 @@ export async function createAdminTalmoudoRegistration(formData: FormData) {
       parentPhone: readString(formData, "parentPhone"),
       yeshiva: readString(formData, "yeshiva"),
       massehet: readString(formData, "massehet"),
-      dafStart: readString(formData, "dafStart"),
-      dafEnd: readString(formData, "dafEnd"),
+      dapim: readString(formData, "dapim"),
     },
     {
       actorId: admin.id,

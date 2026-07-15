@@ -15,8 +15,12 @@ export const talmoudoRegistrationSchema = z.object({
   parentPhone: z.string().trim().optional().default(""),
   yeshiva: z.string().trim().min(2, "Yeshiva requise"),
   massehet: z.string().trim().min(2, "Massehet requise"),
-  dafStart: z.string().trim().min(1, "Daf de debut requis"),
-  dafEnd: z.string().trim().min(1, "Daf de fin requis"),
+  dapim: z
+    .string()
+    .trim()
+    .min(1, "Les plages de dapim sont requises"),
+  dafStart: z.string().trim().optional().default(""),
+  dafEnd: z.string().trim().optional().default(""),
 });
 
 export type TalmoudoRegistrationInput = z.infer<
@@ -108,6 +112,7 @@ export async function createTalmoudoRegistration(
         phone: input.phone,
         yeshiva: input.yeshiva,
         massehet: input.massehet,
+        dapim: input.dapim,
         dafStart: input.dafStart,
         dafEnd: input.dafEnd,
       },
@@ -118,6 +123,7 @@ export async function createTalmoudoRegistration(
         phone: input.phone,
         yeshiva: input.yeshiva,
         massehet: input.massehet,
+        dapim: input.dapim,
         dafStart: input.dafStart,
         dafEnd: input.dafEnd,
       },
