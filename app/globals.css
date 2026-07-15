@@ -2328,6 +2328,15 @@ a.card:hover,
     linear-gradient(140deg, rgba(6, 40, 70, 0.08), transparent 34%),
     radial-gradient(circle at 50% 40%, rgba(242, 99, 0, 0.16), transparent 18rem),
     #eef5f8;
+  touch-action: none;
+}
+
+.ben-map-viewport {
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--map-zoom));
+  transform-origin: 52% 38%;
+  transition: transform 220ms ease;
 }
 
 .ben-france-map-img {
@@ -2385,17 +2394,57 @@ a.card:hover,
 }
 
 .ben-map-source {
-  position: absolute;
-  left: 18px;
-  bottom: 16px;
   margin: 0;
+  color: rgba(6, 40, 70, 0.38);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.ben-map-controls {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(223, 231, 240, 0.8);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  color: rgba(6, 40, 70, 0.58);
-  padding: 7px 10px;
-  font-size: 11px;
-  font-weight: 780;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 4px;
+  box-shadow: 0 14px 34px rgba(6, 40, 70, 0.12);
   backdrop-filter: blur(10px);
+}
+
+.ben-map-controls button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.ben-map-controls button:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.ben-map-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.ben-map-controls span {
+  min-width: 46px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
 }
 
 .ben-city-rail {

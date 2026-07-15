@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type TouchEvent } from "react";
 import Image from "next/image";
 import CountUp from "react-countup";
-import { CalendarDays, Clock3, MapPin, Users } from "lucide-react";
+import { CalendarDays, Clock3, MapPin, Minus, Plus, RotateCcw, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +30,61 @@ const decadeHours = totalParticipants * daysPerYear * hoursPerDay;
 
 export function BenHazmanimFranceMap() {
   const [activeCity, setActiveCity] = useState(cities[0]);
+  const [zoom, setZoom] = useState(1);
+  const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
   const selectedIndex = useMemo(
     () => cities.findIndex((city) => city.name === activeCity.name),
     [activeCity],
   );
+  const zoomPercent = Math.round(zoom * 100);
+  const zoomStyle = { "--map-zoom": zoom } as CSSProperties;
+
+  function updateZoom(nextZoom: number) {
+    setZoom(Math.max(1, Math.min(2.2, Number(nextZoom.toFixed(1)))));
+  }
+
+  function touchDistance(touches: TouchEvent<HTMLDivElement>["touches"]) {
+    const first = touches[0];
+    const second = touches[1];
+
+    if (!first || !second) {
+      return 0;
+    }
+
+    return Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
+  }
+
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
+    if (event.touches.length !== 2) {
+      return;
+    }
+
+    pinchRef.current = {
+      distance: touchDistance(event.touches),
+      zoom,
+    };
+  }
+
+  function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
+    if (event.touches.length !== 2 || !pinchRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextDistance = touchDistance(event.touches);
+
+    if (nextDistance <= 0 || pinchRef.current.distance <= 0) {
+      return;
+    }
+
+    updateZoom(pinchRef.current.zoom * (nextDistance / pinchRef.current.distance));
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (event.touches.length < 2) {
+      pinchRef.current = null;
+    }
+  }
 
   return (
     <section className="section ben-map-section">
@@ -53,40 +104,76 @@ export function BenHazmanimFranceMap() {
         <div className="ben-map-layout">
           <Card className="ben-map-card">
             <CardContent>
-              <div className="ben-map-shell" aria-label="Carte des programmes en France">
-                <Image
-                  alt=""
-                  className="ben-france-map-img"
-                  fill
-                  priority
-                  sizes="(max-width: 980px) 100vw, 58vw"
-                  src="/maps/france-metropole.svg"
-                  unoptimized
-                />
+              <div
+                className="ben-map-shell"
+                aria-label="Carte des programmes en France"
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchMove}
+                onTouchStart={handleTouchStart}
+              >
+                <div className="ben-map-viewport" style={zoomStyle}>
+                  <Image
+                    alt=""
+                    className="ben-france-map-img"
+                    fill
+                    priority
+                    sizes="(max-width: 980px) 100vw, 58vw"
+                    src="/maps/france-metropole.svg"
+                    unoptimized
+                  />
 
-                {cities.map((city, index) => (
+                  {cities.map((city, index) => (
+                    <button
+                      className={cn(
+                        "ben-map-point",
+                        city.name === activeCity.name && "ben-map-point-active",
+                      )}
+                      key={city.name}
+                      onClick={() => setActiveCity(city)}
+                      style={{
+                        "--point-x": `${city.x}%`,
+                        "--point-y": `${city.y}%`,
+                        "--point-delay": `${index * 90}ms`,
+                      } as CSSProperties}
+                      type="button"
+                      aria-label={`Voir ${city.name}`}
+                    >
+                      <span />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="ben-map-controls" aria-label="Controle du zoom">
                   <button
-                    className={cn(
-                      "ben-map-point",
-                      city.name === activeCity.name && "ben-map-point-active",
-                    )}
-                    key={city.name}
-                    onClick={() => setActiveCity(city)}
-                    style={{
-                      "--point-x": `${city.x}%`,
-                      "--point-y": `${city.y}%`,
-                      "--point-delay": `${index * 90}ms`,
-                    } as CSSProperties}
                     type="button"
-                    aria-label={`Voir ${city.name}`}
+                    onClick={() => updateZoom(zoom - 0.2)}
+                    aria-label="Dezoomer"
+                    disabled={zoom <= 1}
                   >
-                    <span />
+                    <Minus className="size-4" />
                   </button>
-                ))}
-                <p className="ben-map-source">
-                  Carte issue de france-geojson, donnees ouvertes IGN/INSEE.
-                </p>
+                  <span>{zoomPercent}%</span>
+                  <button
+                    type="button"
+                    onClick={() => updateZoom(zoom + 0.2)}
+                    aria-label="Zoomer"
+                    disabled={zoom >= 2.2}
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateZoom(1)}
+                    aria-label="Reinitialiser le zoom"
+                  >
+                    <RotateCcw className="size-4" />
+                  </button>
+                </div>
               </div>
+
+              <p className="ben-map-source">
+                Carte: france-geojson, donnees ouvertes IGN/INSEE.
+              </p>
 
               <div className="ben-city-rail">
                 {cities.map((city) => (
