@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type FormEvent, useMemo, useState } from "react";
 import { Check, Send } from "lucide-react";
 import { PhoneInputGroup } from "@/components/phone-input-group";
@@ -130,7 +131,30 @@ export function TalmoudoRegistrationForm({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        {sessions.length === 0 ? (
+        {status === "success" ? (
+          <div className="grid gap-4 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex size-9 items-center justify-center rounded-full bg-emerald-600 text-white">
+                <Check className="size-5" />
+              </span>
+              <div>
+                <strong className="text-lg">Inscription enregistree</strong>
+                <p className="text-sm text-emerald-900">
+                  Elle apparaitra dans votre espace Bahour avec le detail du
+                  mivhan.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild>
+                <Link href="/client">Voir mon espace Bahour</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/">Retour a l&apos;accueil</Link>
+              </Button>
+            </div>
+          </div>
+        ) : sessions.length === 0 ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--muted)]">
             Les inscriptions ouvriront des que l&apos;administration aura fixe le
             prochain mivhan.
@@ -257,12 +281,10 @@ export function TalmoudoRegistrationForm({
               <TalmoudoLimoudFields />
             </FieldGroup>
 
-            {status !== "idle" && (
+            {(status === "loading" || status === "error") && (
               <div
                 className={
-                  status === "success"
-                    ? "rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-emerald-900"
-                    : status === "error"
+                  status === "error"
                       ? "rounded-xl border border-red-200 bg-red-50 p-4 text-base text-red-900"
                       : "rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--primary)]"
                 }
@@ -279,11 +301,6 @@ export function TalmoudoRegistrationForm({
                 <>
                   <Spinner />
                   Envoi...
-                </>
-              ) : status === "success" ? (
-                <>
-                  <Check />
-                  Inscription envoyee
                 </>
               ) : (
                 <>
