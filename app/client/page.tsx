@@ -9,8 +9,8 @@ import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/event-content";
 import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
-import { TalmoudoRegistrationForm } from "@/components/talmoudo-registration-form";
 import { BahourMivhanRegistrationCard } from "@/components/bahour-mivhan-registration-card";
+import { BahourMivhanSignupCards } from "@/components/bahour-mivhan-signup-cards";
 import {
   Alert,
   AlertDescription,
@@ -135,12 +135,20 @@ export default async function ClientPage() {
         : total,
     0,
   );
-  const talmoudoSessionOptions = mivhanSessions.map((session) => ({
-    disabled: !isMivhanRegistrationOpen(session),
-    id: session.id,
-    title: session.title,
-    dateLabel: session.date.toLocaleDateString("fr-FR"),
-  }));
+  const registeredFutureSessionIds = new Set(
+    mivhanRegistrations
+      .filter((registration) => registration.session.date >= new Date())
+      .map((registration) => registration.sessionId),
+  );
+  const talmoudoSessionOptions = mivhanSessions
+    .filter((session) => !registeredFutureSessionIds.has(session.id))
+    .map((session) => ({
+      disabled: !isMivhanRegistrationOpen(session),
+      id: session.id,
+      title: session.title,
+      dateLabel: formatDateTime(session.date),
+      location: session.location,
+    }));
 
   return (
     <PageShell>
@@ -316,8 +324,7 @@ export default async function ClientPage() {
                   </Card>
                 </div>
 
-                <TalmoudoRegistrationForm
-                  compact
+                <BahourMivhanSignupCards
                   initialUser={user}
                   sessions={talmoudoSessionOptions}
                 />
