@@ -680,7 +680,7 @@ export default async function ProgramDetailPage({
   }
 
   const primaryCta = detail.primaryCta || ctaLabel;
-  const [currentUser, openMivhanSessions] =
+  const [currentUser, upcomingMivhanSessions] =
     slug === "talmoudo-beyado"
       ? await Promise.all([
           getCurrentUser(),
@@ -690,9 +690,9 @@ export default async function ProgramDetailPage({
           }),
         ])
       : [null, []];
-  const talmoudoSessionOptions = openMivhanSessions
-    .filter(isMivhanRegistrationOpen)
+  const talmoudoSessionOptions = upcomingMivhanSessions
     .map((session) => ({
+      disabled: !isMivhanRegistrationOpen(session),
       id: session.id,
       title: session.title,
       dateLabel: session.date.toLocaleDateString("fr-FR"),

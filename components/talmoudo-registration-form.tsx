@@ -26,6 +26,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 
 type TalmoudoSessionOption = {
+  disabled?: boolean;
   id: string;
   title: string;
   dateLabel: string;
@@ -65,11 +66,16 @@ export function TalmoudoRegistrationForm({
   const missingPhone = isConnected && !initialUser?.phone;
   const missingParentPhone = isConnected && !initialUser?.parentPhone;
   const missingYeshiva = isConnected && !initialUser?.yeshiva;
-  const defaultSessionId = sessions[0]?.id ?? "";
+  const enabledSessions = sessions.filter((session) => !session.disabled);
+  const defaultSessionId = enabledSessions[0]?.id ?? "";
   const title = compact ? "Inscription au prochain mivhan" : "Inscription Talmoudo Beyado";
   const description = useMemo(() => {
     if (sessions.length === 0) {
-      return "Aucun mivhan ouvert pour le moment.";
+      return "Aucun mivhan futur pour le moment.";
+    }
+
+    if (enabledSessions.length === 0) {
+      return "Les prochains mivhanim sont affiches, mais les inscriptions sont fermees.";
     }
 
     if (isConnected) {
@@ -77,14 +83,15 @@ export function TalmoudoRegistrationForm({
     }
 
     return "Creez votre inscription avec vos coordonnees, votre yeshiva et les dapim choisis.";
-  }, [isConnected, sessions.length]);
+  }, [enabledSessions.length, isConnected, sessions.length]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setStatus("loading");
     setMessage("Inscription en cours...");
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
 
     try {
@@ -104,7 +111,7 @@ export function TalmoudoRegistrationForm({
 
       setStatus("success");
       setMessage("Inscription enregistree. Elle apparaitra dans votre espace Bahour.");
-      event.currentTarget.reset();
+      form.reset();
     } catch (error) {
       const result = error as SubmitResult;
       setStatus("error");
@@ -140,9 +147,19 @@ export function TalmoudoRegistrationForm({
                   name="sessionId"
                   required
                 >
+                  {defaultSessionId ? null : (
+                    <NativeSelectOption value="">
+                      Aucun mivhan ouvert a l&apos;inscription
+                    </NativeSelectOption>
+                  )}
                   {sessions.map((session) => (
-                    <NativeSelectOption key={session.id} value={session.id}>
+                    <NativeSelectOption
+                      disabled={session.disabled}
+                      key={session.id}
+                      value={session.id}
+                    >
                       {session.title} - {session.dateLabel}
+                      {session.disabled ? " - inscriptions fermees" : ""}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -254,7 +271,10 @@ export function TalmoudoRegistrationForm({
               </div>
             )}
 
-            <Button disabled={status === "loading"} type="submit">
+            <Button
+              disabled={status === "loading" || enabledSessions.length === 0}
+              type="submit"
+            >
               {status === "loading" ? (
                 <>
                   <Spinner />

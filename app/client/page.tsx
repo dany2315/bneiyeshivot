@@ -135,8 +135,8 @@ export default async function ClientPage() {
         : total,
     0,
   );
-  const openMivhanSessions = mivhanSessions.filter(isMivhanRegistrationOpen);
-  const talmoudoSessionOptions = openMivhanSessions.map((session) => ({
+  const talmoudoSessionOptions = mivhanSessions.map((session) => ({
+    disabled: !isMivhanRegistrationOpen(session),
     id: session.id,
     title: session.title,
     dateLabel: session.date.toLocaleDateString("fr-FR"),
