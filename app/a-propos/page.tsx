@@ -26,7 +26,7 @@ import type { LucideIcon } from "lucide-react";
 export const metadata = {
   title: "A propos",
   description:
-    "Decouvrez l'histoire, la mission, les valeurs, l'equipe et les partenaires de Bnei Yeshivot.",
+    "Decouvrez l'histoire, la mission, les valeurs et les partenaires de Bnei Yeshivot.",
 };
 
 const missionPillars = [
@@ -298,33 +298,6 @@ const completeStorySections = [
   },
 ];
 
-const team = [
-  {
-    name: "Meir Guetta",
-    role: "President - Fondateur",
-    image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=900&q=80",
-    description:
-      "Responsable de la vision, du developpement et de l'accompagnement des jeunes francophones.",
-  },
-  {
-    name: "Responsable administratif",
-    role: "Demarches et suivi",
-    image:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=900&q=80",
-    description:
-      "Coordonne les demandes visa, assurance maladie et informations pratiques pour les etudiants.",
-  },
-  {
-    name: "Responsable programmes",
-    role: "Torah et evenements",
-    image:
-      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80",
-    description:
-      "Organise les programmes, Chabbatot, cours et temps forts de l'annee.",
-  },
-];
-
 const faqs = [
   [
     "Qui peut beneficier de vos services ?",
@@ -588,39 +561,6 @@ export default function AboutPage() {
                 </ul>
               </CardContent>
             </Card>
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="container">
-            <div className="section-header">
-              <h2>Notre equipe</h2>
-              <p>
-                Une equipe engagee pour inspirer confiance, repondre avec
-                serieux et accompagner chaque jeune avec attention.
-              </p>
-            </div>
-            <div className="grid grid-3">
-              {team.map((member) => (
-                <Card className="team-card" key={member.name}>
-                  <div className="team-photo">
-                    <Image
-                      alt=""
-                      fill
-                      sizes="(max-width: 980px) 100vw, 33vw"
-                      src={member.image}
-                    />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{member.name}</CardTitle>
-                    <CardDescription>{member.role}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{member.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </div>
         </section>
 
