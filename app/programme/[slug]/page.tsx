@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PageShell } from "../../components";
 import { getProgram, programmes } from "../programmes";
 import { Button } from "@/components/ui/button";
+import { BenHazmanimFranceMap } from "@/components/ben-hazmanim-france-map";
 import {
   Card,
   CardContent,
@@ -663,6 +664,8 @@ export default async function ProgramDetailPage({
             </div>
           </div>
         </section>
+
+        {slug === "ben-hazmanim" ? <BenHazmanimFranceMap /> : null}
 
         {detail.flow?.length ? (
           <section className="section">
