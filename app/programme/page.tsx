@@ -30,7 +30,7 @@ export default function ProgrammePage() {
       <main>
         <section className="programme-hero">
           <Image
-            src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1800&q=86"
+            src="/programmes-hero.jpg"
             alt=""
             fill
             priority

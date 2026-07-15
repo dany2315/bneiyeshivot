@@ -91,8 +91,8 @@ export function BenHazmanimFranceMap() {
             <h2>Les regions ou les programmes ont pris vie</h2>
           </div>
           <p>
-            Chaque region affiche ses propres points de programme, pour voir
-            clairement ou les Ben Hazmanim ont ete organises.
+            Un reseau de lieux d&apos;etude qui a grandi avec les communautes
+            locales, de la region parisienne jusqu&apos;a Jerusalem.
           </p>
         </div>
 

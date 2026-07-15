@@ -16,7 +16,7 @@ export const services = [
   {
     title: "ETA-IL",
     description:
-      "Redirection vers la procedure officielle. Aucun dossier n'est gere dans l'admin pour ce service.",
+      "Acces direct a la procedure officielle d'autorisation d'entree en Israel.",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     code: "ETA",
   },

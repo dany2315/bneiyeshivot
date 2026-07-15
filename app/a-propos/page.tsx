@@ -319,7 +319,7 @@ export default function AboutPage() {
       <main>
         <section className="about-hero">
           <Image
-            src="https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1800&q=85"
+            src="/about-hero.jpg"
             alt=""
             fill
             priority
@@ -445,13 +445,17 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="section band">
+        <section className="section band about-complete-section">
           <div className="container">
-            <div className="section-header">
-              <h2>Notre histoire complete</h2>
+            <div className="section-header about-complete-header">
+              <div>
+                <span className="eyebrow">Notre histoire</span>
+                <h2>Notre histoire complete</h2>
+              </div>
               <p>
-                Le texte complet de presentation, organise pour rester lisible
-                tout en conservant l&apos;esprit de la page.
+                De la premiere initiative au Raincy jusqu&apos;a la maison de
+                Jerusalem, une meme mission guide chaque etape : accompagner la
+                jeunesse francophone dans un cadre de Torah solide et vivant.
               </p>
             </div>
             <div className="about-complete-story">
@@ -459,8 +463,10 @@ export default function AboutPage() {
                 <article className="about-complete-card" key={section.title}>
                   <div className="about-complete-card-heading">
                     <span>{String(index + 1).padStart(2, "0")}</span>
-                    <small>{section.eyebrow}</small>
-                    <h3>{section.title}</h3>
+                    <div>
+                      <small>{section.eyebrow}</small>
+                      <h3>{section.title}</h3>
+                    </div>
                   </div>
                   <div className="about-complete-card-body">
                     {section.paragraphs.map((paragraph) => (
@@ -642,8 +648,8 @@ export default function AboutPage() {
             <div className="section-header">
               <h2>Nos partenaires</h2>
               <p>
-                Selectionnez une categorie pour afficher la liste des reseaux et
-                structures qui travaillent avec Bnei Yeshivot.
+                Un reseau de Yechivot, Kehilot, institutions et partenaires qui
+                portent avec nous l&apos;accompagnement de la jeunesse francophone.
               </p>
             </div>
             <AboutPartners />

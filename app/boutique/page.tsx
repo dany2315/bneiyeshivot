@@ -23,9 +23,8 @@ export default function StorePage() {
             <span className="eyebrow">Installation en Israel</span>
             <h1>Boutique literie</h1>
             <p>
-              Premiere base pour vendre des packs d&apos;installation sans
-              compte, avec suivi commande dans l&apos;Espace Bahour et gestion
-              admin.
+              Des packs simples pour preparer l&apos;arrivee en Israel avec le
+              necessaire de literie, a commander avant l&apos;installation.
             </p>
           </div>
         </section>

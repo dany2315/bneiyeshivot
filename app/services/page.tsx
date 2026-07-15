@@ -151,7 +151,7 @@ export default function ServicesPage() {
               <CardHeader>
                 <CardTitle>Parcours type</CardTitle>
                 <CardDescription>
-                  Depot de demande, upload des pieces, verification admin,
+                  Depot de demande, envoi des pieces, verification par l&apos;equipe,
                   relance si besoin, puis suivi depuis l&apos;Espace Bahour.
                 </CardDescription>
               </CardHeader>

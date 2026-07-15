@@ -561,7 +561,8 @@ function ProgramVisualGallery() {
             <h2>Photos et Short Ben Hazmanim</h2>
           </div>
           <p>
-            Les photos importees du dossier Drive et le Short video du programme.
+            Des images et un format court pour retrouver l&apos;ambiance du
+            programme Ben Hazmanim.
           </p>
         </div>
 
@@ -594,7 +595,7 @@ function ProgramVisualGallery() {
                   <Badge variant="info">{benHazmanimPhotos.length} photos</Badge>
                   <CardTitle>Galerie photos</CardTitle>
                   <CardDescription>
-                    Toutes les photos importees du dossier Drive Ben Hazmanim.
+                    Moments d&apos;etude, rencontres et ambiance du programme.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -603,7 +604,7 @@ function ProgramVisualGallery() {
               <DialogHeader className="gallery-dialog-header">
                 <DialogTitle>Galerie photos</DialogTitle>
                 <DialogDescription>
-                  Toutes les photos importees du dossier Drive Ben Hazmanim.
+                  Moments d&apos;etude, rencontres et ambiance du programme.
                 </DialogDescription>
               </DialogHeader>
               <div className="gallery-dialog-grid">

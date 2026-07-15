@@ -26,8 +26,8 @@ export default function ContactPage() {
             <span className="eyebrow">Nous contacter</span>
             <h1>Contact</h1>
             <p>
-              Les demandes de contact entreront dans l&apos;admin avec statut,
-              source, assignation et historique de traitement.
+              Une question, une demande d&apos;accompagnement ou un besoin pratique ?
+              Notre equipe vous repond en France comme en Israel.
             </p>
           </div>
         </section>
