@@ -2305,14 +2305,14 @@ a.card:hover,
 
 .ben-region-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.65fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   align-items: start;
 }
 
 .ben-region-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -2557,8 +2557,7 @@ a.card:hover,
 }
 
 .ben-map-insight {
-  display: grid;
-  gap: 16px;
+  display: block;
 }
 
 .ben-map-active-card [data-slot="card-content"] {
@@ -2617,7 +2616,8 @@ a.card:hover,
 .ben-map-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
+  width: 100%;
 }
 
 .ben-map-stat-main {
@@ -2627,9 +2627,9 @@ a.card:hover,
 .ben-map-stat [data-slot="card-content"] {
   display: grid;
   gap: 8px;
-  min-height: 152px;
+  min-height: 176px;
   align-content: center;
-  padding: 20px;
+  padding: 24px;
 }
 
 .ben-map-stat svg {
@@ -3208,9 +3208,12 @@ a.card:hover,
     grid-template-columns: 1fr;
   }
 
-  .ben-region-layout,
-  .ben-region-grid {
+  .ben-region-layout {
     grid-template-columns: 1fr;
+  }
+
+  .ben-region-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ben-map-shell {
@@ -3218,7 +3221,7 @@ a.card:hover,
   }
 
   .ben-map-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .ben-map-stat-main {
@@ -3350,6 +3353,11 @@ a.card:hover,
 }
 
 @media (max-width: 720px) {
+  .ben-region-grid,
+  .ben-map-stats {
+    grid-template-columns: 1fr;
+  }
+
   .step-dot .step-copy small {
     display: none;
   }
