@@ -73,19 +73,21 @@ export function BahourMivhanSignupCards({
               <DialogTrigger render={<Button disabled={session.disabled} />}>
                 S&apos;inscrire a ce mivhan
               </DialogTrigger>
-              <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
-                <DialogHeader>
+              <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl">
+                <DialogHeader className="sticky top-0 z-20 border-b border-[var(--border)] bg-popover p-4 pr-12">
                   <DialogTitle>{session.title}</DialogTitle>
                   <DialogDescription>
                     Completez votre massehet et vos plages de dapim pour ce
                     mivhan.
                   </DialogDescription>
                 </DialogHeader>
-                <TalmoudoRegistrationForm
-                  compact
-                  initialUser={initialUser}
-                  sessions={[session]}
-                />
+                <div className="max-h-[calc(92vh-96px)] overflow-y-auto p-4">
+                  <TalmoudoRegistrationForm
+                    compact
+                    initialUser={initialUser}
+                    sessions={[session]}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           </CardContent>

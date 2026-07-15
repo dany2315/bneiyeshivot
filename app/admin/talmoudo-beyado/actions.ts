@@ -161,6 +161,81 @@ export async function updateMivhanSessionSettingsState(
   );
 }
 
+export async function setMivhanSessionClosed(formData: FormData) {
+  const admin = await requireAdminUser();
+  const sessionId = readString(formData, "sessionId");
+  const registrationsClosed = readString(formData, "registrationsClosed") === "true";
+
+  if (!sessionId) {
+    throw new Error("Mivhan introuvable.");
+  }
+
+  await prisma.mivhanSession.update({
+    where: { id: sessionId },
+    data: { registrationsClosed },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: registrationsClosed
+        ? "talmoudo.session.closed"
+        : "talmoudo.session.opened",
+      entity: "MivhanSession",
+      entityId: sessionId,
+    },
+  });
+
+  revalidatePath("/admin/talmoudo-beyado");
+  revalidatePath("/client");
+  revalidatePath("/programme/talmoudo-beyado");
+}
+
+export async function setMivhanSessionClosedState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  const closing = readString(formData, "registrationsClosed") === "true";
+
+  return actionResult(
+    () => setMivhanSessionClosed(formData),
+    closing ? "Inscriptions fermees." : "Inscriptions ouvertes.",
+  );
+}
+
+export async function deleteMivhanSession(formData: FormData) {
+  const admin = await requireAdminUser();
+  const sessionId = readString(formData, "sessionId");
+
+  if (!sessionId) {
+    throw new Error("Mivhan introuvable.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.mivhanRegistration.deleteMany({ where: { sessionId } });
+    await tx.mivhanSession.delete({ where: { id: sessionId } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "talmoudo.session.deleted",
+        entity: "MivhanSession",
+        entityId: sessionId,
+      },
+    });
+  });
+
+  revalidatePath("/admin/talmoudo-beyado");
+  revalidatePath("/client");
+  revalidatePath("/programme/talmoudo-beyado");
+}
+
+export async function deleteMivhanSessionState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  return actionResult(() => deleteMivhanSession(formData), "Mivhan supprime.");
+}
+
 export async function createAdminTalmoudoRegistration(formData: FormData) {
   const admin = await requireAdminUser();
 

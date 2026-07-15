@@ -1,17 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { StatusBadge } from "@/app/components";
 import {
   createAdminTalmoudoRegistrationState,
   createMivhanSessionState,
+  deleteMivhanSessionState,
+  setMivhanSessionClosedState,
   updateAdminTalmoudoRegistrationState,
   updateMivhanRegistrationResultState,
   updateMivhanSessionSettingsState,
+  type TalmoudoActionState,
 } from "@/app/admin/talmoudo-beyado/actions";
 import {
+  TalmoudoActionButton,
   TalmoudoDialogActionForm,
-  TalmoudoInlineActionForm,
 } from "@/components/talmoudo-action-form";
 import { TalmoudoLimoudFields } from "@/components/talmoudo-limoud-fields";
 import { Button } from "@/components/ui/button";
@@ -37,11 +42,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   CalendarPlus,
   ClipboardCheck,
   Edit3,
+  Lock,
+  MoreHorizontal,
   Plus,
   Search,
+  Trash2,
+  Unlock,
 } from "lucide-react";
 import { dapimRangesToHebrew } from "@/lib/shas";
 
@@ -142,11 +169,20 @@ function registrationSearchText(registration: AdminRegistration) {
     .toLowerCase();
 }
 
-function MivhanSettingsForm({ session }: { session: AdminSession }) {
+function EditMivhanDialog({ session }: { session: AdminSession }) {
   return (
-    <TalmoudoInlineActionForm
+    <TalmoudoDialogActionForm
       action={updateMivhanSessionSettingsState}
+      className="sm:max-w-2xl"
+      description="Modifiez la date, le lieu, le delai de fermeture et le statut des inscriptions."
       submitLabel="Enregistrer les reglages"
+      title="Modifier le mivhan"
+      trigger={
+        <Button className="w-full justify-start" size="sm" variant="secondary">
+          <Edit3 />
+          Modifier
+        </Button>
+      }
     >
       <input name="sessionId" type="hidden" value={session.id} />
       <div className="form-grid">
@@ -192,7 +228,7 @@ function MivhanSettingsForm({ session }: { session: AdminSession }) {
       <p className="text-sm text-[var(--muted)]">
         Fermeture automatique prevue le {formatDate(getCloseDate(session))}.
       </p>
-    </TalmoudoInlineActionForm>
+    </TalmoudoDialogActionForm>
   );
 }
 
@@ -252,7 +288,7 @@ function AddRegistrationDialog({ sessionId }: { sessionId: string }) {
       submitLabel="Inscrire"
       title="Inscription admin"
       trigger={
-        <Button className="w-fit" variant="secondary">
+        <Button className="w-full justify-start" size="sm" variant="secondary">
           <Plus />
           Inscrire un Bahour
         </Button>
@@ -264,6 +300,60 @@ function AddRegistrationDialog({ sessionId }: { sessionId: string }) {
         <TalmoudoLimoudFields />
       </div>
     </TalmoudoDialogActionForm>
+  );
+}
+
+function DeleteMivhanDialog({ session }: { session: AdminSession }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const initialState: TalmoudoActionState = { ok: false, message: "" };
+  const [state, formAction, pending] = useActionState(
+    deleteMivhanSessionState,
+    initialState,
+  );
+
+  useEffect(() => {
+    if (!state.message) return;
+
+    if (state.ok) {
+      toast.success(state.message);
+      window.setTimeout(() => setOpen(false), 0);
+      router.refresh();
+      return;
+    }
+
+    toast.error(state.message);
+  }, [router, state]);
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger
+        render={
+          <Button className="w-full justify-start" size="sm" variant="destructive" />
+        }
+      >
+        <Trash2 />
+        Supprimer
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Supprimer ce mivhan ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cette action supprimera le mivhan &quot;{session.title}&quot; et
+            toutes ses inscriptions. Elle est definitive.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending}>Non</AlertDialogCancel>
+          <form action={formAction}>
+            <input name="sessionId" type="hidden" value={session.id} />
+            <AlertDialogAction disabled={pending} type="submit">
+              Oui je supprime
+            </AlertDialogAction>
+          </form>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -371,6 +461,60 @@ function ResultDialog({ registration }: { registration: AdminRegistration }) {
   );
 }
 
+function SessionActionsMenu({ session }: { session: AdminSession }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label="Actions du mivhan"
+            size="icon-sm"
+            type="button"
+            variant="secondary"
+          />
+        }
+      >
+        <MoreHorizontal />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem render={<div />}>
+          <EditMivhanDialog session={session} />
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<div />}>
+          <AddRegistrationDialog sessionId={session.id} />
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<div />}>
+          <TalmoudoActionButton
+            action={setMivhanSessionClosedState}
+            fields={{
+              sessionId: session.id,
+              registrationsClosed: session.registrationsClosed
+                ? "false"
+                : "true",
+            }}
+          >
+            {session.registrationsClosed ? (
+              <>
+                <Unlock />
+                Ouvrir les inscriptions
+              </>
+            ) : (
+              <>
+                <Lock />
+                Fermer les inscriptions
+              </>
+            )}
+          </TalmoudoActionButton>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<div />} variant="destructive">
+          <DeleteMivhanDialog session={session} />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function AdminTalmoudoPageClient({
   gradedCount,
   sessions,
@@ -451,6 +595,12 @@ export function AdminTalmoudoPageClient({
       </div>
 
       <section className="section admin-section-tight">
+        <div className="section-header">
+          <div>
+            <span className="eyebrow">Indicateurs</span>
+            <h2>Pilotage Talmoudo Beyado</h2>
+          </div>
+        </div>
         <div className="grid grid-3">
           <Card>
             <CardHeader>
@@ -472,6 +622,17 @@ export function AdminTalmoudoPageClient({
           </Card>
         </div>
 
+        <div className="section-header mt-8">
+          <div>
+            <span className="eyebrow">Mivhanim</span>
+            <h2>Gestion par mivhan</h2>
+          </div>
+          <p>
+            Selectionnez un mivhan pour voir ses inscriptions, rechercher un
+            Bahour et mettre a jour les resultats.
+          </p>
+        </div>
+
         {sessions.length === 0 ? (
           <Card className="mt-6">
             <CardHeader>
@@ -482,45 +643,60 @@ export function AdminTalmoudoPageClient({
             </CardHeader>
           </Card>
         ) : (
-          <div className="mt-6 grid gap-6">
+          <div className="grid gap-6">
             <div className="grid grid-3">
               {sessions.map((session) => {
                 const open = isOpen(session);
 
                 return (
-                  <button
-                    className="text-left"
+                  <Card
+                    className={
+                      selectedSessionId === session.id
+                        ? "border-[var(--accent)] shadow-[0_18px_45px_rgba(242,99,0,0.16)]"
+                        : ""
+                    }
                     key={session.id}
-                    onClick={() => {
-                      setSelectedSessionId(session.id);
-                      setQuery("");
-                    }}
-                    type="button"
                   >
-                    <Card
-                      className={
-                        selectedSessionId === session.id
-                          ? "border-[var(--accent)] shadow-[0_18px_45px_rgba(242,99,0,0.16)]"
-                          : ""
-                      }
+                    <CardHeader
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSelectedSessionId(session.id);
+                        setQuery("");
+                      }}
                     >
-                      <CardHeader>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
                         <CardTitle>{session.title}</CardTitle>
                         <CardDescription>
                           {formatDate(session.date)}
                           {session.location ? ` - ${session.location}` : ""}
                         </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex flex-wrap gap-2">
+                        </div>
+                        <div onClick={(event) => event.stopPropagation()}>
+                          <SessionActionsMenu session={session} />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent
+                      className="grid cursor-pointer gap-3"
+                      onClick={() => {
+                        setSelectedSessionId(session.id);
+                        setQuery("");
+                      }}
+                    >
+                      <div className="flex flex-wrap gap-2">
                         <StatusBadge tone={open ? "green" : "gold"}>
                           {open ? "Ouvert" : "Ferme"}
                         </StatusBadge>
                         <StatusBadge tone="blue">
                           {session.registrations.length} inscrit(s)
                         </StatusBadge>
-                      </CardContent>
-                    </Card>
-                  </button>
+                      </div>
+                      <p className="text-sm text-[var(--muted)]">
+                        Fermeture automatique : {formatDate(getCloseDate(session))}
+                      </p>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
@@ -535,12 +711,9 @@ export function AdminTalmoudoPageClient({
                         Detail du mivhan, inscriptions et resultats.
                       </CardDescription>
                     </div>
-                    <AddRegistrationDialog sessionId={selectedSession.id} />
                   </div>
                 </CardHeader>
                 <CardContent className="grid gap-5">
-                  <MivhanSettingsForm session={selectedSession} />
-
                   <div className="relative max-w-xl">
                     <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
                     <Input

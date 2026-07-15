@@ -132,3 +132,51 @@ export function TalmoudoInlineActionForm({
     </form>
   );
 }
+
+export function TalmoudoActionButton({
+  action,
+  children,
+  fields,
+  variant = "secondary",
+}: {
+  action: (
+    state: TalmoudoActionState,
+    formData: FormData,
+  ) => Promise<TalmoudoActionState>;
+  children: ReactNode;
+  fields: Record<string, string>;
+  variant?: React.ComponentProps<typeof Button>["variant"];
+}) {
+  const router = useRouter();
+  const [state, formAction, pending] = useActionState(action, initialState);
+
+  useEffect(() => {
+    if (!state.message) return;
+
+    if (state.ok) {
+      toast.success(state.message);
+      router.refresh();
+      return;
+    }
+
+    toast.error(state.message);
+  }, [router, state]);
+
+  return (
+    <form action={formAction}>
+      {Object.entries(fields).map(([name, value]) => (
+        <input key={name} name={name} type="hidden" value={value} />
+      ))}
+      <Button
+        className="w-full justify-start"
+        disabled={pending}
+        size="sm"
+        type="submit"
+        variant={variant}
+      >
+        {pending ? <Loader2 className="animate-spin" /> : null}
+        {children}
+      </Button>
+    </form>
+  );
+}
