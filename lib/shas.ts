@@ -65,3 +65,28 @@ export function numberToHebrew(value: number) {
 export function dafLabel(daf: number, side: "a" | "b") {
   return `דף ${numberToHebrew(daf)} ע״${side === "a" ? "א" : "ב"}`;
 }
+
+export function dafValueToLabel(value: string) {
+  const match = value.match(/^(\d+)([ab])$/);
+
+  if (!match) return value;
+
+  return dafLabel(Number(match[1]), match[2] as "a" | "b");
+}
+
+export function dapimRangesToHebrew(value?: string | null) {
+  if (!value) return "";
+
+  return value
+    .split(";")
+    .map((range) => range.trim())
+    .filter(Boolean)
+    .map((range) => {
+      const [from, to] = range.split("-").map((item) => item.trim());
+
+      if (!from || !to) return range;
+
+      return `${dafValueToLabel(from)} עד ${dafValueToLabel(to)}`;
+    })
+    .join("; ");
+}

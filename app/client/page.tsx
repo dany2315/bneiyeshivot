@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/event-content";
 import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
 import { TalmoudoRegistrationForm } from "@/components/talmoudo-registration-form";
+import { BahourMivhanRegistrationCard } from "@/components/bahour-mivhan-registration-card";
 import {
   Alert,
   AlertDescription,
@@ -333,51 +334,12 @@ export default async function ClientPage() {
                 ) : (
                   <div className="grid grid-3">
                     {mivhanRegistrations.map((registration) => (
-                      <Card key={registration.id}>
-                        <CardHeader>
-                          <Trophy className="size-5 text-[var(--accent)]" />
-                          <CardTitle>{registration.session.title}</CardTitle>
-                          <CardDescription>
-                            {formatDateTime(registration.session.date)}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-3">
-                          <StatusBadge
-                            tone={registration.grade === null ? "blue" : "green"}
-                          >
-                            {registration.grade === null
-                              ? "Inscrit"
-                              : `${registration.grade} / 100`}
-                          </StatusBadge>
-                          <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
-                            <strong className="text-[var(--primary)]">
-                              {registration.massehet ?? "Massehet"}
-                            </strong>
-                            <p className="text-sm text-[var(--muted)]">
-                              {registration.dapim
-                                ? `Dapim : ${registration.dapim}`
-                                : registration.dafStart && registration.dafEnd
-                                  ? `Du daf ${registration.dafStart} au daf ${registration.dafEnd}`
-                                : "Dapim a confirmer"}
-                            </p>
-                          </div>
-                          <div className="grid gap-1 text-sm text-[var(--muted)]">
-                            <span>
-                              Recompense :{" "}
-                              {formatReward(
-                                registration.rewardAmountCents,
-                                registration.rewardCurrency,
-                              )}
-                            </span>
-                            <span>
-                              Statut :{" "}
-                              {registration.rewardPaid
-                                ? "recompense donnee"
-                                : "en attente"}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <BahourMivhanRegistrationCard
+                        canEdit={isMivhanRegistrationOpen(registration.session)}
+                        dateLabel={formatDateTime(registration.session.date)}
+                        key={registration.id}
+                        registration={registration}
+                      />
                     ))}
                   </div>
                 )}

@@ -2,6 +2,78 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
+function dafValueToAmudIndex(value: string) {
+  const match = value.match(/^(\d+)([ab])$/);
+
+  if (!match) return null;
+
+  const daf = Number(match[1]);
+  const side = match[2];
+
+  if (!Number.isInteger(daf) || daf < 2) return null;
+
+  return daf * 2 + (side === "b" ? 1 : 0);
+}
+
+function validateDapimRanges(value: string, context: z.RefinementCtx) {
+  const ranges = value
+    .split(";")
+    .map((range) => range.trim())
+    .filter(Boolean);
+
+  if (ranges.length === 0) {
+    context.addIssue({
+      code: "custom",
+      message: "Les plages de dapim sont requises.",
+    });
+    return z.NEVER;
+  }
+
+  if (ranges.length > 2) {
+    context.addIssue({
+      code: "custom",
+      message: "Vous pouvez choisir 2 plages maximum.",
+    });
+    return z.NEVER;
+  }
+
+  let totalAmudim = 0;
+
+  for (const range of ranges) {
+    const [from, to] = range.split("-").map((item) => item.trim());
+    const fromIndex = from ? dafValueToAmudIndex(from) : null;
+    const toIndex = to ? dafValueToAmudIndex(to) : null;
+
+    if (fromIndex === null || toIndex === null) {
+      context.addIssue({
+        code: "custom",
+        message: "Plage de dapim invalide.",
+      });
+      return z.NEVER;
+    }
+
+    if (toIndex < fromIndex) {
+      context.addIssue({
+        code: "custom",
+        message: "Le daf de fin doit etre apres le daf de debut.",
+      });
+      return z.NEVER;
+    }
+
+    totalAmudim += toIndex - fromIndex + 1;
+  }
+
+  if (totalAmudim !== 16) {
+    context.addIssue({
+      code: "custom",
+      message: "Les plages doivent couvrir exactement 8 dapim.",
+    });
+    return z.NEVER;
+  }
+
+  return ranges.join("; ");
+}
+
 export const talmoudoRegistrationSchema = z.object({
   sessionId: z.string().trim().min(1, "Mivhan requis"),
   firstName: z.string().trim().min(2, "Prenom requis"),
@@ -18,7 +90,8 @@ export const talmoudoRegistrationSchema = z.object({
   dapim: z
     .string()
     .trim()
-    .min(1, "Les plages de dapim sont requises"),
+    .min(1, "Les plages de dapim sont requises")
+    .transform(validateDapimRanges),
   dafStart: z.string().trim().optional().default(""),
   dafEnd: z.string().trim().optional().default(""),
 });

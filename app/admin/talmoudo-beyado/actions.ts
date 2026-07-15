@@ -32,6 +32,30 @@ function formatReward(amountCents: number | null, currency: string) {
   }).format(amountCents / 100);
 }
 
+export type TalmoudoActionState = {
+  ok: boolean;
+  message: string;
+};
+
+const initialError = (message = "Action impossible.") => ({
+  ok: false,
+  message,
+});
+
+async function actionResult(
+  callback: () => Promise<void>,
+  successMessage: string,
+): Promise<TalmoudoActionState> {
+  try {
+    await callback();
+    return { ok: true, message: successMessage };
+  } catch (error) {
+    return initialError(
+      error instanceof Error ? error.message : "Action impossible.",
+    );
+  }
+}
+
 export async function createMivhanSession(formData: FormData) {
   const admin = await requireAdminUser();
   const title = readString(formData, "title");
@@ -76,6 +100,16 @@ export async function createMivhanSession(formData: FormData) {
   revalidatePath("/programme/talmoudo-beyado");
 }
 
+export async function createMivhanSessionState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  return actionResult(
+    () => createMivhanSession(formData),
+    "Mivhan cree avec succes.",
+  );
+}
+
 export async function updateMivhanSessionSettings(formData: FormData) {
   const admin = await requireAdminUser();
   const sessionId = readString(formData, "sessionId");
@@ -117,6 +151,16 @@ export async function updateMivhanSessionSettings(formData: FormData) {
   revalidatePath("/programme/talmoudo-beyado");
 }
 
+export async function updateMivhanSessionSettingsState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  return actionResult(
+    () => updateMivhanSessionSettings(formData),
+    "Reglages du mivhan mis a jour.",
+  );
+}
+
 export async function createAdminTalmoudoRegistration(formData: FormData) {
   const admin = await requireAdminUser();
 
@@ -141,6 +185,103 @@ export async function createAdminTalmoudoRegistration(formData: FormData) {
 
   revalidatePath("/admin/talmoudo-beyado");
   revalidatePath("/client");
+}
+
+export async function createAdminTalmoudoRegistrationState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  return actionResult(
+    () => createAdminTalmoudoRegistration(formData),
+    "Inscription enregistree.",
+  );
+}
+
+export async function updateAdminTalmoudoRegistration(formData: FormData) {
+  const admin = await requireAdminUser();
+  const registrationId = readString(formData, "registrationId");
+  const firstName = readString(formData, "firstName");
+  const lastName = readString(formData, "lastName");
+  const email = readString(formData, "email").toLowerCase();
+  const phone = readString(formData, "phone");
+  const parentPhone = readString(formData, "parentPhone");
+  const yeshiva = readString(formData, "yeshiva");
+  const massehet = readString(formData, "massehet");
+  const dapim = readString(formData, "dapim");
+
+  if (
+    !registrationId ||
+    !firstName ||
+    !lastName ||
+    !email ||
+    !phone ||
+    !yeshiva ||
+    !massehet ||
+    !dapim
+  ) {
+    throw new Error("Tous les champs obligatoires doivent etre renseignes.");
+  }
+
+  const registration = await prisma.mivhanRegistration.findUnique({
+    where: { id: registrationId },
+    select: { userId: true },
+  });
+
+  if (!registration) {
+    throw new Error("Inscription introuvable.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.mivhanRegistration.update({
+      where: { id: registrationId },
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone,
+        yeshiva,
+        massehet,
+        dapim,
+      },
+    });
+
+    if (registration.userId) {
+      await tx.user.update({
+        where: { id: registration.userId },
+        data: {
+          firstName,
+          lastName,
+          email,
+          name: `${firstName} ${lastName}`.trim(),
+          phone,
+          parentPhone: parentPhone || undefined,
+          yeshiva,
+        },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "talmoudo.registration.updated",
+        entity: "MivhanRegistration",
+        entityId: registrationId,
+      },
+    });
+  });
+
+  revalidatePath("/admin/talmoudo-beyado");
+  revalidatePath("/client");
+}
+
+export async function updateAdminTalmoudoRegistrationState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  return actionResult(
+    () => updateAdminTalmoudoRegistration(formData),
+    "Inscription modifiee.",
+  );
 }
 
 export async function updateMivhanRegistrationResult(formData: FormData) {
@@ -210,4 +351,14 @@ export async function updateMivhanRegistrationResult(formData: FormData) {
 
   revalidatePath("/admin/talmoudo-beyado");
   revalidatePath("/client");
+}
+
+export async function updateMivhanRegistrationResultState(
+  _state: TalmoudoActionState,
+  formData: FormData,
+) {
+  return actionResult(
+    () => updateMivhanRegistrationResult(formData),
+    "Resultat enregistre.",
+  );
 }

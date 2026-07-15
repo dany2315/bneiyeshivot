@@ -27,29 +27,47 @@ function buildDafOptions(lastDaf: number) {
     ]);
 }
 
-function rangeLabel(value: string) {
+function dafValueToIndex(value: string) {
   const match = value.match(/^(\d+)([ab])$/);
 
-  if (!match) return value;
+  if (!match) return -1;
 
-  return dafLabel(Number(match[1]), match[2] as "a" | "b");
+  return Number(match[1]) * 2 + (match[2] === "b" ? 1 : 0);
 }
 
 function serializeRanges(ranges: DafRange[]) {
   return ranges
     .filter((range) => range.from && range.to)
-    .map((range) => `${rangeLabel(range.from)} עד ${rangeLabel(range.to)}`)
+    .map((range) => `${range.from}-${range.to}`)
     .join("; ");
 }
 
+function parseInitialRanges(value?: string | null): DafRange[] {
+  const ranges = (value ?? "")
+    .split(";")
+    .map((range) => range.trim())
+    .filter(Boolean)
+    .map((range) => {
+      const [from, to] = range.split("-").map((item) => item.trim());
+      return { from: from ?? "", to: to ?? "" };
+    })
+    .filter((range) => range.from && range.to);
+
+  return ranges.length > 0 ? ranges : [{ from: "", to: "" }];
+}
+
 export function DapimRangeFields({
+  defaultValue,
   lastDaf = 200,
   name = "dapim",
 }: {
+  defaultValue?: string | null;
   lastDaf?: number;
   name?: string;
 }) {
-  const [ranges, setRanges] = useState<DafRange[]>([{ from: "", to: "" }]);
+  const [ranges, setRanges] = useState<DafRange[]>(() =>
+    parseInitialRanges(defaultValue),
+  );
   const dafOptions = useMemo(() => buildDafOptions(lastDaf), [lastDaf]);
   const serializedRanges = useMemo(() => serializeRanges(ranges), [ranges]);
 
@@ -62,7 +80,9 @@ export function DapimRangeFields({
   }
 
   function addRange() {
-    setRanges((current) => [...current, { from: "", to: "" }]);
+    setRanges((current) =>
+      current.length >= 2 ? current : [...current, { from: "", to: "" }],
+    );
   }
 
   function removeRange(index: number) {
@@ -117,7 +137,14 @@ export function DapimRangeFields({
               >
                 <NativeSelectOption value="">Selectionner</NativeSelectOption>
                 {dafOptions.map((daf) => (
-                  <NativeSelectOption key={`to-${index}-${daf.value}`} value={daf.value}>
+                  <NativeSelectOption
+                    disabled={
+                      Boolean(range.from) &&
+                      dafValueToIndex(daf.value) < dafValueToIndex(range.from)
+                    }
+                    key={`to-${index}-${daf.value}`}
+                    value={daf.value}
+                  >
                     {daf.label}
                   </NativeSelectOption>
                 ))}
@@ -138,9 +165,16 @@ export function DapimRangeFields({
         ))}
       </div>
       <FieldDescription>
-        Ajoutez autant de plages que necessaire pour couvrir vos 8 dapim.
+        Choisissez 1 ou 2 plages maximum. Le total doit couvrir exactement 8
+        dapim.
       </FieldDescription>
-      <Button className="w-fit" onClick={addRange} type="button" variant="secondary">
+      <Button
+        className="w-fit"
+        disabled={ranges.length >= 2}
+        onClick={addRange}
+        type="button"
+        variant="secondary"
+      >
         <Plus />
         Ajouter une plage de dapim
       </Button>

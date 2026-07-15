@@ -2,18 +2,23 @@
 
 import { useMemo, useState } from "react";
 import { DapimRangeFields } from "@/components/dapim-range-fields";
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { masechtotBavli } from "@/lib/shas";
 
-export function TalmoudoLimoudFields() {
-  const [selectedMasechet, setSelectedMasechet] = useState("");
+export function TalmoudoLimoudFields({
+  defaultDapim,
+  defaultMasechet = "",
+}: {
+  defaultDapim?: string | null;
+  defaultMasechet?: string | null;
+}) {
+  const [selectedMasechet, setSelectedMasechet] = useState(
+    defaultMasechet ?? "",
+  );
   const lastDaf = useMemo(
     () =>
       masechtotBavli.find((masechet) => masechet.name === selectedMasechet)
@@ -42,7 +47,11 @@ export function TalmoudoLimoudFields() {
           ))}
         </NativeSelect>
       </Field>
-      <DapimRangeFields key={selectedMasechet || "default"} lastDaf={lastDaf} />
+      <DapimRangeFields
+        defaultValue={defaultDapim}
+        key={`${selectedMasechet || "default"}-${defaultDapim ?? ""}`}
+        lastDaf={lastDaf}
+      />
     </>
   );
 }
