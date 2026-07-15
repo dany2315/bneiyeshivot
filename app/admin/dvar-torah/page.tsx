@@ -104,7 +104,7 @@ export default async function AdminDvarTorahPage() {
                 <Textarea
                   id="dvar-description"
                   name="description"
-                  placeholder="Court texte affiché sur la carte publique."
+                  placeholder="Court texte affiche sur la carte publique."
                 />
               </div>
 
@@ -189,7 +189,7 @@ export default async function AdminDvarTorahPage() {
                             {categoryLabels[file.category]}
                           </Badge>
                           <Badge variant={file.published ? "success" : "secondary"}>
-                            {file.published ? "Publi?" : "Brouillon"}
+                            {file.published ? "Publie" : "Brouillon"}
                           </Badge>
                         </div>
                         <p className="mt-1 line-clamp-2 text-base leading-7 text-[var(--muted)]">
@@ -223,7 +223,7 @@ export default async function AdminDvarTorahPage() {
                           value={file.published ? "" : "on"}
                         />
                         <Button type="submit" variant="secondary">
-                          {file.published ? "Mettre en brouillon" : "Publi?r"}
+                          {file.published ? "Mettre en brouillon" : "Publier"}
                         </Button>
                       </form>
                       <form action={deleteDvarTorahFile}>

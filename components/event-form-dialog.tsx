@@ -63,9 +63,9 @@ function toDatetimeLocal(iso: string) {
 }
 
 function formatPreviewDate(value: string) {
-  if (!value) return "Date ? définir";
+  if (!value) return "Date a definir";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date ? définir";
+  if (Number.isNaN(date.getTime())) return "Date a definir";
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "full",
     timeStyle: "short",
@@ -95,7 +95,7 @@ async function uploadOne(file: File): Promise<string> {
     message?: string;
   } | null;
   if (!response.ok || !data?.ok || !data.keys?.[0]) {
-    throw new Error(data?.message ?? "Upload échoué.");
+    throw new Error(data?.message ?? "Upload echoue.");
   }
   return data.keys[0];
 }
@@ -189,7 +189,7 @@ export function EventFormDialog({
         setError(
           submitError instanceof Error
             ? submitError.message
-            : "La publication a échoué. Réessayez.",
+            : "La publication a echoue. Reessayez.",
         );
         setProgress(0);
       } finally {
@@ -225,10 +225,10 @@ export function EventFormDialog({
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit" ? "Modifier l'événement" : "Créer un événement"}
+            {mode === "edit" ? "Modifier l'evenement" : "Creer un evenement"}
           </DialogTitle>
           <DialogDescription>
-            La prévisualisation a droite montre la card et la page telles
+            La previsualisation a droite montre la card et la page telles
             qu&apos;elles apparaitront sur le site.
           </DialogDescription>
         </DialogHeader>
@@ -244,7 +244,7 @@ export function EventFormDialog({
                 <input name="eventId" type="hidden" value={event.id} />
               )}
 
-              <Field label="Titre de l'événement" required>
+              <Field label="Titre de l'evenement" required>
                 <Input
                   name="title"
                   onChange={(e) => setTitle(e.target.value)}
@@ -258,7 +258,7 @@ export function EventFormDialog({
                 <Textarea
                   name="description"
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Une phrase de présentation affichée sur la card."
+                  placeholder="Une phrase de presentation affichee sur la card."
                   required
                   value={description}
                 />
@@ -266,8 +266,8 @@ export function EventFormDialog({
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Field
-                  hint="Date et heure de l'événement."
-                  label="Date de l'événement"
+                  hint="Date et heure de l'evenement."
+                  label="Date de l'evenement"
                   required
                 >
                   <Input
@@ -282,7 +282,7 @@ export function EventFormDialog({
                   <Input
                     name="location"
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Jérusalem"
+                    placeholder="Jerusalem"
                     value={location}
                   />
                 </Field>
@@ -310,8 +310,8 @@ export function EventFormDialog({
               </label>
 
               <Field
-                hint="Texte affiché sur la card (À venir) et sur la page souvenirs (passé)."
-                label="Texte de l'événement"
+                hint="Texte affiche sur la card (a venir) et sur la page souvenirs (passe)."
+                label="Texte de l'evenement"
               >
                 <Textarea
                   name="body"
@@ -334,7 +334,7 @@ export function EventFormDialog({
               {eventIsPast ? (
                 <>
                   <Field
-                    hint="Sélectionnez plusieurs images d'un coup. Chaque photo peut être supprimee."
+                    hint="Selectionnez plusieurs images d'un coup. Chaque photo peut etre supprimee."
                     label="Galerie photos"
                   >
                     <GalleryManager
@@ -346,7 +346,7 @@ export function EventFormDialog({
                   </Field>
 
                   <Field
-                    hint="Collez un lien (YouTube...). Une preview s'affiché au-dessus."
+                    hint="Collez un lien (YouTube...). Une preview s'affiche au-dessus."
                     label="Videos"
                   >
                     <VideoManager
@@ -357,9 +357,9 @@ export function EventFormDialog({
                 </>
               ) : (
                 <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                  Pour un événement À venir, seule l&apos;image principale est
+                  Pour un evenement a venir, seule l&apos;image principale est
                   utilisee (affichee sur la card). La galerie photos et les
-                  videos pourront être ajoutées une fois l&apos;événement passé.
+                  videos pourront etre ajoutees une fois l&apos;evenement passe.
                 </p>
               )}
 
@@ -373,7 +373,7 @@ export function EventFormDialog({
                 <div className="grid gap-1.5">
                   <Progress value={progress} />
                   <span className="text-sm text-[var(--muted)]">
-                    Publication de l&apos;événement... {Math.round(progress)}%
+                    Publication de l&apos;evenement... {Math.round(progress)}%
                   </span>
                 </div>
               )}
@@ -396,7 +396,7 @@ export function EventFormDialog({
                 ) : mode === "edit" ? (
                   "Enregistrer les modifications"
                 ) : (
-                  "Créer l'événement"
+                  "Creer l'evenement"
                 )}
               </Button>
             </fieldset>
@@ -425,7 +425,7 @@ export function EventFormDialog({
                   )}
                   <div className="absolute left-4 right-4 top-4 flex flex-wrap gap-2">
                     <Badge variant={eventIsPast ? "warning" : "info"}>
-                      {eventIsPast ? "Passé" : "À venir"}
+                      {eventIsPast ? "Passe" : "A venir"}
                     </Badge>
                     {requiresRegistration && !eventIsPast && (
                       <Badge variant="success">Inscription</Badge>
@@ -434,10 +434,10 @@ export function EventFormDialog({
                 </div>
                 <div className="grid gap-3 p-5">
                   <strong className="text-lg text-[var(--primary)]">
-                    {title || "Titre de l'événement"}
+                    {title || "Titre de l'evenement"}
                   </strong>
                   <p className="text-sm text-[var(--muted)]">
-                    {description || "Description courte de l'événement."}
+                    {description || "Description courte de l'evenement."}
                   </p>
                   <div className="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
                     <span className="inline-flex items-center gap-1">
@@ -446,7 +446,7 @@ export function EventFormDialog({
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <MapPin className="size-4" />
-                      {location || "Lieu à confirmer"}
+                      {location || "Lieu a confirmer"}
                     </span>
                   </div>
                   {!eventIsPast && requiresRegistration && (
@@ -476,10 +476,10 @@ export function EventFormDialog({
                   <div className="absolute inset-0 bg-gradient-to-t from-[#061e35] via-[#061e35]/55 to-transparent" />
                   <div className="relative z-10 text-white">
                     <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em]">
-                      {eventIsPast ? "Passé" : "À venir"}
+                      {eventIsPast ? "Passe" : "A venir"}
                     </span>
                     <p className="mt-2 text-xl font-bold">
-                      {title || "Titre de l'événement"}
+                      {title || "Titre de l'evenement"}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-white/80">
                       <span className="inline-flex items-center gap-1">
@@ -501,7 +501,7 @@ export function EventFormDialog({
                   <p className="whitespace-pre-line text-sm leading-6 text-[var(--primary)]">
                     {body ||
                       description ||
-                      "Le texte de l'événement apparaitra ici."}
+                      "Le texte de l'evenement apparaitra ici."}
                   </p>
                   {galleryUrls.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
@@ -604,9 +604,9 @@ function CoverImageField({
               {status === "uploading"
                 ? "Upload en cours..."
                 : status === "error"
-                  ? "Échec, cliquez pour réessayer"
+                  ? "Echec, cliquez pour reessayer"
                   : preview
-                    ? "Image préte"
+                    ? "Image prete"
                     : "Ajouter l'image principale"}
             </AttachmentTitle>
             <AttachmentDescription>Cliquez pour choisir</AttachmentDescription>
@@ -738,7 +738,7 @@ function GalleryManager({
                     {slot.status === "uploading"
                       ? "Upload..."
                       : slot.status === "error"
-                        ? "Échec"
+                        ? "Echec"
                         : "Photo"}
                   </AttachmentTitle>
                 </AttachmentContent>

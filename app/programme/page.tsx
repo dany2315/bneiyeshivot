@@ -39,14 +39,12 @@ export default function ProgrammePage() {
           <div className="programme-hero-overlay" />
           <div className="container programme-hero-content programme-hero-grid">
             <div className="programme-hero-copy">
-              <span className="eyebrow">NOS PROGRAMMES</span>
-              <h1>Une génération. Une vision. Une communauté.</h1>
+              <span className="eyebrow">Nos programmes</span>
+              <h1>Faire grandir la jeunesse francophone dans la Torah</h1>
               <p>
-                Les plus grandes réalisations commencent toujours par une
-                vision. Chez Bnei Yeshivot, cette vision est de permettre à
-                chaque jeune francophone de trouver bien plus qu&apos;un simple
-                programme : un véritable cadre de vie, de Torah et
-                d&apos;accompagnement.
+                Tout au long de l&apos;annee, Bnei Yeshivot propose des cadres
+                d&apos;etude, des rencontres, des Chabbatot et un accompagnement
+                adapte aux jeunes francophones en Israel.
               </p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
@@ -64,7 +62,7 @@ export default function ProgrammePage() {
                   <BookOpen className="size-5" />
                 </span>
                 <div>
-                  <strong>Étude</strong>
+                  <strong>Etude</strong>
                   <small>Beth Hamidrach, Talmoudo Beyado</small>
                 </div>
               </div>
@@ -93,45 +91,36 @@ export default function ProgrammePage() {
         <section className="section">
           <div className="container split">
             <div>
-              <span className="eyebrow">Notre vision</span>
-              <h2>Chaque jeune mérite bien plus qu&apos;une simple activité.</h2>
+              <span className="eyebrow">Introduction</span>
+              <h2>Une communaute qui accompagne chaque etape</h2>
               <p>
-                Il mérite un cadre d&apos;étude solide, des repères, des Rabbanim,
-                une communauté engagée et un accompagnement qui lui permette de
-                grandir durablement dans la Torah et de construire son avenir
-                avec sérénité.
+                Arriver en Israel est une grande etape dans la vie d&apos;un jeune.
+                Au-dela des demarches administratives, il est essentiel de
+                trouver un cadre, une communaute et des moments qui permettent
+                de grandir dans la Torah.
               </p>
               <p>
-                C&apos;est cette vision qui guide Bnei Yeshivot depuis sa création.
-                Aujourd&apos;hui, grâce à un réseau de Kehilot, de Yéchivot, de
-                Rabbanim et de partenaires en France et en Israël, nous
-                développons des programmes qui accompagnent les Bahourim, les
-                Avrékhim et les familles à chaque étape de leur parcours.
-              </p>
-              <p>
-                Du Beth Hamidrach aux Yéchivot Ben Hazmanim, des Chabbatot aux
-                Mivhanim de Talmoudo Beyado, des actions de solidarité à la
-                préparation du futur foyer, chaque initiative répond à un besoin
-                concret et s&apos;inscrit dans une même ambition : faire grandir une
-                génération profondément attachée à la Torah et construire
-                l&apos;avenir de la communauté francophone.
+                C&apos;est pourquoi Bnei Yeshivot developpe differents programmes
+                pour accompagner les jeunes avant leur arrivee, pendant leur
+                sejour et dans leur construction personnelle.
               </p>
             </div>
             <Card className="program-highlight-card">
               <CardHeader>
-                <CardTitle>Une vision concrète</CardTitle>
+                <CardTitle>Etude, rencontres et accompagnement</CardTitle>
                 <CardDescription>
-                  Un cadre de vie, de Torah et d&apos;accompagnement pour aider
-                  chaque jeune à grandir durablement.
+                  Des cadres penses pour que chaque jeune puisse trouver sa
+                  place, avancer dans son limoud et rester relie a une
+                  communaute vivante.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="about-check-list">
                   {[
-                    "Cadres d'étude solides",
-                    "Repères et Rabbanim",
-                    "Communauté engagée",
-                    "Accompagnement durable",
+                    "Des cadres d'etude reguliers",
+                    "Des rencontres avec des Rabbanim",
+                    "Des Chabbatot et moments de rassemblement",
+                    "Un accompagnement dans les etapes importantes",
                   ].map((item) => (
                     <li key={item}>
                       <CheckCircle2 className="size-4" />
@@ -149,13 +138,14 @@ export default function ProgrammePage() {
             <div className="section-header">
               <div>
                 <span className="eyebrow">Nos grands programmes</span>
-                <h2>Des cadres pour étudier, grandir et construire</h2>
+                <h2>Des cadres pour etudier, grandir et construire</h2>
               </div>
               <p>
-                Chaque programme répond à un besoin concret du parcours d&apos;un
-                jeune francophone : approfondir son étude, être entouré de
-                Rabbanim, vivre des expériences marquantes, développer des liens
-                durables et trouver sa place au sein d&apos;une communauté engagée.
+                Chaque programme repond a un besoin concret du parcours
+                d&apos;un jeune francophone : approfondir son etude, etre entoure
+                de Rabbanim, vivre des experiences marquantes, developper des
+                liens durables et trouver sa place au sein d&apos;une communaute
+                engagee.
               </p>
             </div>
 
@@ -245,8 +235,8 @@ export default function ProgrammePage() {
         <section className="section about-final-cta">
           <div className="container about-final-cta-inner">
             <div>
-              <span className="eyebrow">Rejoignez une communauté</span>
-              <h2>Que vous soyez déjà en Israël ou en preparation de votre arrivée, Bnei Yeshivot est la pour vous accompagner.</h2>
+              <span className="eyebrow">Rejoignez une communaute</span>
+              <h2>Que vous soyez deja en Israel ou en preparation de votre arrivee, Bnei Yeshivot est la pour vous accompagner.</h2>
             </div>
             <div className="hero-actions">
               <Button asChild variant="accent" size="lg">

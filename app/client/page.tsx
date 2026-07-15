@@ -43,13 +43,13 @@ const requestStatusLabels: Record<ServiceRequestStatus, string> = {
 };
 
 const requestTypeLabels: Record<ServiceRequestType, string> = {
-  VISA_STUDENT: "Visa étudiant",
+  VISA_STUDENT: "Visa etudiant",
   KOUPAT_HOLIM: "Koupat Holim",
   GENERAL_CONTACT: "Contact",
 };
 
 const registrationLabels: Record<EventRegistrationStatus, string> = {
-  SUBMITTED: "Demande reçue",
+  SUBMITTED: "Demande recue",
   CONFIRMED: "Confirmee",
   WAITLISTED: "Liste d'attente",
   CANCELED: "Annulee",
@@ -151,7 +151,7 @@ export default async function ClientPage() {
                 className="bahour-tabs-list"
               >
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
-                <TabsTrigger value="events">Événements</TabsTrigger>
+                <TabsTrigger value="events">Evenements</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
               </TabsList>
 
@@ -173,7 +173,7 @@ export default async function ClientPage() {
                           <FileText className="size-5 text-[var(--accent)]" />
                           <CardTitle>{requestTypeLabels[request.type]}</CardTitle>
                           <CardDescription>
-                            Cr??e le{" "}
+                            Creee le{" "}
                             {request.createdAt.toLocaleDateString("fr-FR")}
                           </CardDescription>
                         </CardHeader>
@@ -205,7 +205,7 @@ export default async function ClientPage() {
                 {registrations.length === 0 ? (
                   <Alert>
                     <CalendarCheck />
-                    <AlertTitle>Aucune inscription événement</AlertTitle>
+                    <AlertTitle>Aucune inscription evenement</AlertTitle>
                     <AlertDescription>
                       Les inscriptions aux evenements apparaitront ici.
                     </AlertDescription>
@@ -227,7 +227,7 @@ export default async function ClientPage() {
                           </StatusBadge>
                           <Button asChild variant="secondary">
                             <Link href={`/evenements/${registration.event.slug}`}>
-                              Voir l&apos;événement
+                              Voir l&apos;evenement
                             </Link>
                           </Button>
                         </CardContent>

@@ -22,7 +22,7 @@ type RegionMap = {
 const regions: RegionMap[] = [
   {
     name: "Ile-de-France",
-    subtitle: "Paris et région parisienne",
+    subtitle: "Paris et region parisienne",
     map: "/maps/regions/ile-de-france.svg",
     cities: [
       { name: "Le Raincy", area: "Seine-Saint-Denis", x: 50.83, y: 32.46 },
@@ -74,7 +74,7 @@ export function BenHazmanimFranceMap() {
         <div className="section-header">
           <div>
             <span className="eyebrow">France</span>
-            <h2>Les régions ou les programmes ont pris vie</h2>
+            <h2>Les regions ou les programmes ont pris vie</h2>
           </div>
           <p>
             Chaque region affiche ses propres points de programme, pour voir
@@ -148,7 +148,7 @@ export function BenHazmanimFranceMap() {
                       separator=" "
                     />
                   </strong>
-                  <span>heures étudiées cette année</span>
+                  <span>heures etudiees cette annee</span>
                 </CardContent>
               </Card>
 

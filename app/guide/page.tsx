@@ -14,7 +14,7 @@ export default function GuidePage() {
         <section className="page-hero">
           <div className="container">
             <span className="eyebrow">Guide PDF</span>
-            <h1>Tout préparer avant de venir étudier en Israël</h1>
+            <h1>Tout preparer avant de venir etudier en Israel</h1>
             <p>
               Un guide pratique pour retrouver les premiers reperes :
               administratif, assurance, visa, installation et contacts utiles.
@@ -34,9 +34,9 @@ export default function GuidePage() {
               <CardContent>
                 <ul className="grid gap-3 text-base leading-7 text-white/82">
                   {[
-                    "Documents a préparer avant l'arrivée.",
-                    "Démarches visa et assurance maladie.",
-                    "Checklist installation : téléphone, banque, transport.",
+                    "Documents a preparer avant l'arrivee.",
+                    "Demarches visa et assurance maladie.",
+                    "Checklist installation : telephone, banque, transport.",
                     "Contacts utiles et premiers reflexes.",
                   ].map((item) => (
                     <li className="flex gap-3" key={item}>

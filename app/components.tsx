@@ -20,7 +20,7 @@ export function SiteHeader() {
           />
           <span className="brand-text">
             <strong>Bnei Yeshivot</strong>
-            <small>France - Israël</small>
+            <small>France - Israel</small>
           </span>
         </Link>
         <SiteNavLinks />
@@ -63,7 +63,7 @@ export function SiteFooter() {
           <h4>Contact</h4>
           <span>WhatsApp</span>
           <span>Email</span>
-          <span>Jérusalem / France</span>
+          <span>Jerusalem / France</span>
         </div>
       </div>
     </footer>

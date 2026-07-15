@@ -23,7 +23,7 @@ export function OtpEmail({ otp }: OtpEmailProps) {
         <Container style={container}>
           <Section style={brandSection}>
             <Text style={brand}>Bnei Yeshivot</Text>
-            <Text style={subBrand}>France - Israël</Text>
+            <Text style={subBrand}>France - Israel</Text>
           </Section>
 
           <Heading style={heading}>Code de connexion</Heading>

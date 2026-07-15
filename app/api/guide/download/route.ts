@@ -10,17 +10,17 @@ function escapePdfText(value: string) {
 function createGuidePdf(name: string) {
   const lines = [
     "Guide Bnei Yeshivot",
-    name ? `Préparé pour ${name}` : "Guide pratique",
+    name ? `Prepare pour ${name}` : "Guide pratique",
     "",
-    "Bienvenue en Israël.",
-    "Ce guide regroupe les premiers repères pour préparer votre arrivée :",
+    "Bienvenue en Israel.",
+    "Ce guide regroupe les premiers reperes pour preparer votre arrivee :",
     "- Documents administratifs",
     "- Assurance maladie",
-    "- Visa étudiant",
-    "- Installation, banque, téléphone et transport",
+    "- Visa etudiant",
+    "- Installation, banque, telephone et transport",
     "- Contacts utiles Bnei Yeshivot",
     "",
-    "Version compl?te a enrichir depuis l'interface admin.",
+    "Version complete a enrichir depuis l'interface admin.",
   ];
 
   const text = lines

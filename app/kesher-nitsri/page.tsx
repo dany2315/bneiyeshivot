@@ -20,30 +20,30 @@ import {
 export const metadata = {
   title: "Kesher Nitsri",
   description:
-    "Kesher Nitsri, la communauté engagée qui soutient les actions de Bnei Yeshivot.",
+    "Kesher Nitsri, la communaute engagee qui soutient les actions de Bnei Yeshivot.",
 };
 
 const actions = [
   {
     title: "Soutien aux familles lors des fetes",
     description:
-      "Organisation de distributions de colis alimentaires et de produits nécessaires pour les Yamim Tovim.",
+      "Organisation de distributions de colis alimentaires et de produits necessaires pour les Yamim Tovim.",
     Icon: Gift,
   },
   {
     title: "Distribution de bons d'achat",
     description:
-      "Une aide concrète pour permettre aux familles de répondre a leurs besoins selon leur situation.",
+      "Une aide concrete pour permettre aux familles de repondre a leurs besoins selon leur situation.",
     Icon: ShoppingBasket,
   },
   {
     title: "Fournitures scolaires",
     description:
-      "Des distributions de matériel scolaire pour accompagner les familles avant la rentree.",
+      "Des distributions de materiel scolaire pour accompagner les familles avant la rentree.",
     Icon: School,
   },
   {
-    title: "Actions de solidarité",
+    title: "Actions de solidarite",
     description:
       "Un soutien aux familles francophones selon les besoins et les possibilites de l'association.",
     Icon: Heart,
@@ -51,11 +51,11 @@ const actions = [
 ];
 
 const benefits = [
-  "Informations en avant-première sur les actions et projets",
+  "Informations en avant-premiere sur les actions et projets",
   "Acces prioritaire lorsque le nombre de places est limite",
-  "Priorite lors de certaines operations de solidarité",
-  "Invitations à des rencontres, conferences et événements reserves aux membres",
-  "Lien privilegie avec l'équipe et les projets développés toute l'année",
+  "Priorite lors de certaines operations de solidarite",
+  "Invitations a des rencontres, conferences et evenements reserves aux membres",
+  "Lien privilegie avec l'equipe et les projets developpes toute l'annee",
 ];
 
 export default function KesherNitsriPage() {
@@ -65,7 +65,7 @@ export default function KesherNitsriPage() {
         <section className="page-hero">
           <div className="container">
             <span className="eyebrow">Kesher Nitsri</span>
-            <h1>Une communauté engagée au service de la communauté francophone en Israël</h1>
+            <h1>Une communaute engagee au service de la communaute francophone en Israel</h1>
             <p>
               Kesher Nitsri rassemble les personnes qui souhaitent soutenir
               durablement les actions de Bnei Yeshivot et participer a construire
@@ -87,7 +87,7 @@ export default function KesherNitsriPage() {
           <div className="container split">
             <div>
               <span className="eyebrow">Pourquoi rejoindre ?</span>
-              <h2>Votre engagement permet de développer des actions concrètes</h2>
+              <h2>Votre engagement permet de developper des actions concretes</h2>
               <p>
                 En rejoignant Kesher Nitsri, vous ne faites pas seulement un don :
                 vous devenez partenaire de projets qui accompagnent les jeunes,
@@ -116,7 +116,7 @@ export default function KesherNitsriPage() {
               <h2>Les actions soutenues</h2>
               <p>
                 Kesher Nitsri rend possibles des actions de solidarite menees
-                tout au long de l&apos;année.
+                tout au long de l&apos;annee.
               </p>
             </div>
             <div className="grid grid-4">
@@ -145,7 +145,7 @@ export default function KesherNitsriPage() {
                 <CardTitle>Un lien privilegie avec les actions</CardTitle>
                 <CardDescription>
                   Les membres integrent une communaute engagee et suivent les
-                  projets développés par Bnei Yeshivot au fil de l&apos;année.
+                  projets developpes par Bnei Yeshivot au fil de l&apos;annee.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -161,7 +161,7 @@ export default function KesherNitsriPage() {
             </Card>
             <div>
               <span className="eyebrow">Ensemble</span>
-              <h2>Construisons une communauté forte</h2>
+              <h2>Construisons une communaute forte</h2>
               <p>
                 Chaque membre de Kesher Nitsri participe a une chaine de
                 solidarite qui permet a Bnei Yeshivot de continuer a accompagner

@@ -148,13 +148,13 @@ export async function updateEvent(formData: FormData) {
   const id = readString(formData, "eventId");
 
   if (!id) {
-    throw new Error("Événement introuvable.");
+    throw new Error("Evenement introuvable.");
   }
 
   const existing = await prisma.event.findUnique({ where: { id } });
 
   if (!existing) {
-    throw new Error("Événement introuvable.");
+    throw new Error("Evenement introuvable.");
   }
 
   const title = readString(formData, "title");
@@ -172,7 +172,7 @@ export async function updateEvent(formData: FormData) {
     throw new Error("Titre, description et date obligatoires.");
   }
 
-  // Un événement passe devient visible publiquement une fois que l'admin
+  // Un evenement passe devient visible publiquement une fois que l'admin
   // l'a modifie (texte, photos, videos) via ce formulaire.
   const startDate = new Date(startsAt);
   const pastPublished = startDate < new Date();
@@ -243,7 +243,7 @@ export async function deleteEvent(formData: FormData) {
   const id = readString(formData, "eventId");
 
   if (!id) {
-    throw new Error("Événement introuvable.");
+    throw new Error("Evenement introuvable.");
   }
 
   const existing = await prisma.event.findUnique({
@@ -252,7 +252,7 @@ export async function deleteEvent(formData: FormData) {
   });
 
   if (!existing) {
-    throw new Error("Événement introuvable.");
+    throw new Error("Evenement introuvable.");
   }
 
   const content =
@@ -271,7 +271,7 @@ export async function deleteEvent(formData: FormData) {
     ...toStringArray(content.pastPhotos),
   ];
 
-  // Les inscriptions liees doivent partir avant l'événement (contrainte FK).
+  // Les inscriptions liees doivent partir avant l'evenement (contrainte FK).
   await prisma.$transaction([
     prisma.eventRegistration.deleteMany({ where: { eventId: id } }),
     prisma.event.delete({ where: { id } }),
@@ -302,7 +302,7 @@ export async function addEventPastMedia(formData: FormData) {
     .filter((file): file is File => file instanceof File);
 
   if (!eventId || (photoUrls.length === 0 && photoFiles.length === 0)) {
-    throw new Error("Événement ou photos manquants.");
+    throw new Error("Evenement ou photos manquants.");
   }
 
   const event = await prisma.event.findUnique({

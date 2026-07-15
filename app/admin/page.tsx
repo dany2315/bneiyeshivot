@@ -28,7 +28,7 @@ export default async function AdminPage() {
 
       <Card className="max-w-3xl">
         <CardHeader>
-          <CardTitle>Dashboard en cours de développement</CardTitle>
+          <CardTitle>Dashboard en cours de developpement</CardTitle>
           <CardDescription>
             Les KPI, resumes de donnees et actions rapides seront construits
             apres les pages de gestion dediees.

@@ -55,11 +55,11 @@ export function DocumentAttachmentCard({
           <AttachmentContent>
             <AttachmentTitle>{fileName || title}</AttachmentTitle>
             <AttachmentDescription>
-              {fileName ? "Fichier sélectionné." : "Cliquez pour ajouter la pièce."}
+              {fileName ? "Fichier selectionne." : "Cliquez pour ajouter la piece."}
             </AttachmentDescription>
           </AttachmentContent>
           <Badge variant={fileName || status === "received" ? "success" : "warning"}>
-            {fileName || status === "received" ? "Prét" : "À ajouter"}
+            {fileName || status === "received" ? "Pret" : "A ajouter"}
           </Badge>
           {fileName && (
             <AttachmentActions>
