@@ -4,6 +4,7 @@ import { type FormEvent, useState } from "react";
 import { UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { signOutRequest } from "@/components/auth-sign-out";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -247,14 +248,13 @@ export function OtpLoginCard({
               value={email}
             />
             {mode === "register" && (
-              <Input
+              <PhoneInputGroup
                 autoComplete="tel"
+                defaultValue={phone}
+                id="register-phone"
                 name="phone"
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="Numero de telephone"
+                onValueChange={setPhone}
                 required
-                type="tel"
-                value={phone}
               />
             )}
             <Button disabled={state.status === "loading"} type="submit">

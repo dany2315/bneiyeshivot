@@ -49,7 +49,7 @@ export function SiteFooter() {
           <Link href="/demandes/visa">Visa etudiant</Link>
           <Link href="/demandes/koupat-holim">Koupat Holim</Link>
           <Link href="/dvar-torah">Dvar Torah</Link>
-          <a href="https://israel-entry.piba.gov.il/">ETA-IL officiel</a>
+          <a href="https://israel-entry.piba.gov.il/apply-for-an-eta-il-1">ETA-IL officiel</a>
         </div>
         <div>
           <h4>Plateforme</h4>

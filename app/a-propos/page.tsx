@@ -33,25 +33,25 @@ const missionPillars = [
   {
     title: "Accompagner",
     description:
-      "Nous aidons les etudiants dans toutes leurs demarches administratives et pratiques.",
+      "Nous accompagnons les jeunes francophones dans leurs demarches, leur integration en Israel et les grandes etapes de leur parcours.",
     Icon: HandHeart,
   },
   {
     title: "Former",
     description:
-      "Nous organisons des programmes de Torah tout au long de l'annee.",
+      "Nous construisons des cadres d'etude, de progression et de motivation autour de la Torah.",
     Icon: GraduationCap,
   },
   {
     title: "Rassembler",
     description:
-      "Nous creons une veritable communaute francophone grace a nos Chabbatot, evenements et activites.",
+      "Nous faisons vivre une communaute de Bahourim, Avrekhim, Rabbanim, familles et benevoles engages.",
     Icon: Users,
   },
   {
     title: "Construire",
     description:
-      "Nous accompagnons les jeunes de leur arrivee en Israel jusqu'a la construction de leur foyer.",
+      "Nous aidons chaque jeune a trouver sa place, depuis son arrivee jusqu'a la construction de son avenir.",
     Icon: Building2,
   },
 ];
@@ -94,16 +94,16 @@ const values: Array<{
 ];
 
 const timeline = [
-  "Creation de Bnei Yeshivot",
-  "Developpement des services",
-  "Lancement de Ben Hazmanim",
+  "Torat Yaacov au Raincy",
+  "Developpement de Bnei Alia",
+  "Reseau Ben Hazmanim en France",
+  "Beth Hamidrach Leil Shishi",
   "Creation de Talmoudo Beyado",
-  "Organisation des grands Chabbatot",
-  "Developpement des services administratifs",
-  "Creation des guides d'installation",
-  "Lancement de la boutique literie",
-  "Developpement de Bayit Neeman",
-  "Et les prochains projets",
+  "Binian Adei Ad",
+  "Grand Maamad HaSiyoum",
+  "Voyage de Rav Yehoshoua Eihenstein",
+  "Rassemblement du 21 mars 2024",
+  "Maison Bnei Yeshivot a Beit Vagan",
 ];
 
 const team = [
@@ -166,10 +166,10 @@ export default function AboutPage() {
             <h1>Qui sommes-nous ?</h1>
             <p>
               Bnei Yeshivot est une association dediee a l&apos;accompagnement des
-              jeunes francophones qui viennent etudier en Israel. Notre mission
-              est de leur offrir un cadre spirituel, humain et administratif
-              afin qu&apos;ils puissent se consacrer pleinement a leur developpement
-              dans la Torah.
+              jeunes francophones dans leur parcours de Torah, leur integration
+              en Israel et les grandes etapes de leur construction personnelle.
+              Une vision nee du terrain, devenue un mouvement au service de
+              toute une generation.
             </p>
           </div>
         </section>
@@ -180,32 +180,33 @@ export default function AboutPage() {
               <span className="eyebrow">Notre histoire</span>
               <h2>Une reponse a un vrai besoin</h2>
               <p>
-                Chaque annee, des centaines de jeunes francophones quittent la
-                France, la Belgique, la Suisse ou d&apos;autres pays pour venir
-                etudier dans les Yechivot en Israel.
+                L&apos;histoire commence au Raincy, avec la premiere Yechiva Ben
+                Hazmanim Torat Yaacov, fondee pour l&apos;elevation de l&apos;ame de
+                Rabbi Yaacov Toledano Zatsal.
               </p>
               <p>
-                Ils arrivent souvent seuls, sans connaitre les demarches
-                administratives, sans reseau sur place et avec de nombreuses
-                questions.
+                Quelques jeunes se retrouvaient pendant les vacances autour de
+                l&apos;etude de la Torah. Tres vite, un besoin reel est apparu :
+                offrir un cadre solide, motivant et adapte a une jeunesse qui
+                voulait continuer a progresser.
               </p>
             </div>
             <Card className="about-question-card">
               <CardHeader>
-                <CardTitle>Les premieres questions</CardTitle>
+                <CardTitle>De Torat Yaacov a Bnei Alia</CardTitle>
                 <CardDescription>
-                  Visa, assurance maladie, literie, informations fiables et
-                  soutien en cas de difficulte.
+                  L&apos;initiative du Raincy est devenue un reseau de Yechivot Ben
+                  Hazmanim dans plusieurs villes de France.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="about-check-list">
                   {[
-                    "Comment obtenir un visa ?",
-                    "Comment s'inscrire a une caisse d'assurance maladie ?",
-                    "Ou acheter une literie ?",
-                    "Comment trouver les bonnes informations ?",
-                    "Vers qui se tourner en cas de difficulte ?",
+                    "Sdarim d'etude pendant les vacances",
+                    "Encadrement par des Rabbanim et responsables",
+                    "Atmosphere de Yechiva meme hors periode scolaire",
+                    "Centaines de jeunes touches par le reseau",
+                    "Une dynamique reconnue et encouragee",
                   ].map((item) => (
                     <li key={item}>
                       <CheckCircle2 className="size-4" />
@@ -218,7 +219,8 @@ export default function AboutPage() {
           </div>
           <div className="container">
             <div className="about-conviction">
-              Aucun etudiant ne devrait vivre son arrivee en Israel seul.
+              Lorsqu&apos;un jeune choisit de consacrer sa vie a la Torah, il doit
+              trouver autour de lui un environnement capable de l&apos;accompagner.
             </div>
           </div>
         </section>
@@ -228,11 +230,11 @@ export default function AboutPage() {
             <div className="about-mission-panel">
               <div className="about-mission-copy">
                 <span className="eyebrow">Notre mission</span>
-                <h2>Creer autour du Bahour un cadre solide, clair et vivant.</h2>
+                <h2>Construire une maison autour de la Torah et de la jeunesse.</h2>
                 <p>
-                  L&apos;objectif est simple : retirer le poids des demarches et
-                  renforcer le lien humain, pour que chaque jeune puisse avancer
-                  dans son etude, son installation et son parcours personnel.
+                  Les projets naissent du terrain : besoins des jeunes, des
+                  parents, des familles et des responsables de Yechivot. Bnei
+                  Yeshivot transforme ces besoins en cadres concrets.
                 </p>
               </div>
               <div className="about-mission-stack">
@@ -283,10 +285,11 @@ export default function AboutPage() {
             <div className="about-impact-layout">
               <div>
                 <span className="eyebrow">Notre impact</span>
-                <h2>Des projets qui deviennent des reperes concrets.</h2>
+                <h2>Des initiatives devenues des reperes pour une generation.</h2>
                 <p>
-                  Chaque etape ajoute un service, une reponse ou un cadre plus
-                  stable pour les jeunes francophones en Israel.
+                  Ben Hazmanim, Beth Hamidrach Leil Shishi, Talmoudo Beyado,
+                  Binian Adei Ad et les grands rassemblements ont structure un
+                  mouvement vivant autour de la Torah.
                 </p>
               </div>
               <div className="about-impact-meter">
@@ -339,6 +342,50 @@ export default function AboutPage() {
         </section>
 
         <section className="section band">
+          <div className="container about-story">
+            <div>
+              <span className="eyebrow">Le mot du fondateur</span>
+              <h2>Une presence nee des besoins reels du terrain.</h2>
+              <p>
+                Bnei Yeshivot est nee d&apos;une rencontre avec les besoins reels
+                des jeunes francophones. Depuis le debut, notre volonte est
+                d&apos;etre presents, d&apos;ecouter la communaute et de construire des
+                solutions concretes.
+              </p>
+              <p>
+                Ce qui a commence avec quelques jeunes est devenu, avec l&apos;aide
+                d&apos;Hachem, un mouvement reunissant jeunes, Avrekhim, Rabbanim et
+                acteurs engages autour d&apos;une meme mission.
+              </p>
+            </div>
+            <Card className="about-question-card">
+              <CardHeader>
+                <CardTitle>17 Rehov HaPisga</CardTitle>
+                <CardDescription>
+                  Beit Vagan, Jerusalem : une maison pour les jeunes
+                  francophones et leurs familles.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="about-check-list">
+                  {[
+                    "Accueil des jeunes et des familles",
+                    "Beth Hamidrach Leil Shishi",
+                    "Ecoute, conseil et orientation",
+                    "Demandes administratives et accompagnement",
+                  ].map((item) => (
+                    <li key={item}>
+                      <CheckCircle2 className="size-4" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="section">
           <div className="container">
             <div className="section-header">
               <h2>Nos partenaires</h2>

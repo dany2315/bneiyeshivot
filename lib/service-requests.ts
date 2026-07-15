@@ -42,6 +42,7 @@ function toPayload(input: ServiceRequestInput): Prisma.JsonObject {
     lastName: input.lastName,
     email: input.email,
     phone: input.phone,
+    parentPhone: input.parentPhone,
     birthDate: input.birthDate,
     nationality: input.nationality,
     passportNumber: input.passportNumber,
