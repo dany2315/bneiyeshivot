@@ -83,3 +83,34 @@ export function requestConfirmationEmail(params: {
     `,
   };
 }
+
+export function talmoudoResultEmail(params: {
+  firstName?: string;
+  sessionTitle: string;
+  grade: number;
+  rewardAmount?: string;
+  rewardPaid: boolean;
+}) {
+  const greeting = params.firstName ? `Bonjour ${params.firstName},` : "Bonjour,";
+  const rewardLine = params.rewardAmount
+    ? params.rewardPaid
+      ? `Une recompense de <strong>${params.rewardAmount}</strong> a ete indiquee comme remise.`
+      : `Une recompense de <strong>${params.rewardAmount}</strong> est prevue.`
+    : "Aucune recompense n'a ete indiquee pour ce mivhan.";
+
+  return {
+    subject: `Bnei Yeshivot - Resultat Talmoudo Beyado - ${params.sessionTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6;">
+        <h2 style="color:#061e39;">Resultat Talmoudo Beyado</h2>
+        <p>${greeting}</p>
+        <p>
+          Votre resultat pour <strong>${params.sessionTitle}</strong> a ete mis a jour.
+        </p>
+        <p><strong>Note :</strong> ${params.grade} / 100</p>
+        <p>${rewardLine}</p>
+        <p style="margin-top:24px;">L'equipe Bnei Yeshivot</p>
+      </div>
+    `,
+  };
+}

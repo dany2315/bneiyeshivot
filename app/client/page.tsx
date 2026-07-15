@@ -8,6 +8,8 @@ import { PageShell, StatusBadge } from "../components";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/event-content";
+import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
+import { TalmoudoRegistrationForm } from "@/components/talmoudo-registration-form";
 import {
   Alert,
   AlertDescription,
@@ -67,9 +69,19 @@ function registrationTone(status: EventRegistrationStatus) {
   return "blue";
 }
 
+function formatReward(amountCents: number | null, currency: string) {
+  if (amountCents === null) return "0";
+
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency,
+  }).format(amountCents / 100);
+}
+
 export default async function ClientPage() {
   const user = await requireBahourUser();
-  const [requests, registrations] = await Promise.all([
+  const [requests, registrations, mivhanRegistrations, mivhanSessions] =
+    await Promise.all([
     prisma.serviceRequest.findMany({
       where: { userId: user.id },
       include: {
@@ -86,6 +98,17 @@ export default async function ClientPage() {
       include: { event: true },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.mivhanRegistration.findMany({
+      where: { userId: user.id },
+      include: { session: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.mivhanSession.findMany({
+      where: {
+        date: { gte: new Date() },
+      },
+      orderBy: { date: "asc" },
+    }),
   ]);
 
   const inReviewCount = requests.filter(
@@ -94,6 +117,29 @@ export default async function ClientPage() {
   const missingDocsCount = requests.filter(
     (item) => item.status === "MISSING_DOCUMENTS",
   ).length;
+  const gradedMivhanim = mivhanRegistrations.filter(
+    (item) => item.grade !== null,
+  );
+  const averageGrade =
+    gradedMivhanim.length > 0
+      ? Math.round(
+          gradedMivhanim.reduce((total, item) => total + (item.grade ?? 0), 0) /
+            gradedMivhanim.length,
+        )
+      : null;
+  const totalRewardCents = mivhanRegistrations.reduce(
+    (total, item) =>
+      item.rewardCurrency === "ILS"
+        ? total + (item.rewardAmountCents ?? 0)
+        : total,
+    0,
+  );
+  const openMivhanSessions = mivhanSessions.filter(isMivhanRegistrationOpen);
+  const talmoudoSessionOptions = openMivhanSessions.map((session) => ({
+    id: session.id,
+    title: session.title,
+    dateLabel: session.date.toLocaleDateString("fr-FR"),
+  }));
 
   return (
     <PageShell>
@@ -133,6 +179,11 @@ export default async function ClientPage() {
                 {registrations.length > 0 && (
                   <StatusBadge tone="green">
                     {registrations.length} inscription(s)
+                  </StatusBadge>
+                )}
+                {mivhanRegistrations.length > 0 && (
+                  <StatusBadge tone="blue">
+                    {mivhanRegistrations.length} mivhanim
                   </StatusBadge>
                 )}
                 {inReviewCount === 0 &&
@@ -238,13 +289,96 @@ export default async function ClientPage() {
               </TabsContent>
 
               <TabsContent value="mivhanim" className="grid gap-5">
-                <Alert>
-                  <Trophy />
-                  <AlertTitle>Mivhanim</AlertTitle>
-                  <AlertDescription>
-                    Les notes de mivhan seront rattachees a ce meme espace.
-                  </AlertDescription>
-                </Alert>
+                <div className="grid grid-3">
+                  <Card>
+                    <CardHeader>
+                      <Trophy className="size-5 text-[var(--accent)]" />
+                      <CardTitle>{mivhanRegistrations.length}</CardTitle>
+                      <CardDescription>Mivhanim Talmoudo Beyado</CardDescription>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <Trophy className="size-5 text-[var(--accent)]" />
+                      <CardTitle>
+                        {averageGrade === null ? "-" : `${averageGrade} / 100`}
+                      </CardTitle>
+                      <CardDescription>Moyenne des notes</CardDescription>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <Trophy className="size-5 text-[var(--accent)]" />
+                      <CardTitle>{formatReward(totalRewardCents, "ILS")}</CardTitle>
+                      <CardDescription>Recompenses recues</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+
+                <TalmoudoRegistrationForm
+                  compact
+                  initialUser={user}
+                  sessions={talmoudoSessionOptions}
+                />
+
+                {mivhanRegistrations.length === 0 ? (
+                  <Alert>
+                    <Trophy />
+                    <AlertTitle>Aucun mivhan pour le moment</AlertTitle>
+                    <AlertDescription>
+                      Vos inscriptions, notes et recompenses Talmoudo Beyado
+                      apparaitront ici.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="grid grid-3">
+                    {mivhanRegistrations.map((registration) => (
+                      <Card key={registration.id}>
+                        <CardHeader>
+                          <Trophy className="size-5 text-[var(--accent)]" />
+                          <CardTitle>{registration.session.title}</CardTitle>
+                          <CardDescription>
+                            {formatDateTime(registration.session.date)}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-3">
+                          <StatusBadge
+                            tone={registration.grade === null ? "blue" : "green"}
+                          >
+                            {registration.grade === null
+                              ? "Inscrit"
+                              : `${registration.grade} / 100`}
+                          </StatusBadge>
+                          <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
+                            <strong className="text-[var(--primary)]">
+                              {registration.massehet ?? "Massehet"}
+                            </strong>
+                            <p className="text-sm text-[var(--muted)]">
+                              {registration.dafStart && registration.dafEnd
+                                ? `Du daf ${registration.dafStart} au daf ${registration.dafEnd}`
+                                : "Dapim a confirmer"}
+                            </p>
+                          </div>
+                          <div className="grid gap-1 text-sm text-[var(--muted)]">
+                            <span>
+                              Recompense :{" "}
+                              {formatReward(
+                                registration.rewardAmountCents,
+                                registration.rewardCurrency,
+                              )}
+                            </span>
+                            <span>
+                              Statut :{" "}
+                              {registration.rewardPaid
+                                ? "recompense donnee"
+                                : "en attente"}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>

@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 import { PageShell } from "../../components";
 import benHazmanimGallery from "@/public/programmes/ben-azmanim/gallery.json";
 import { getProgram, programmes } from "../programmes";
+import { getCurrentUser } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
+import { TalmoudoRegistrationForm } from "@/components/talmoudo-registration-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BenHazmanimFranceMap } from "@/components/ben-hazmanim-france-map";
@@ -60,13 +64,6 @@ type ProgramDetail = {
   formFields?: string[];
   secondaryHref?: string;
   secondaryCta?: string;
-};
-
-type VisualGalleryAlbum = {
-  title: string;
-  description: string;
-  photos: string[];
-  videoUrl?: string;
 };
 
 const benHazmanimShortUrl =
@@ -294,6 +291,7 @@ const programDetails: Record<string, ProgramDetail> = {
       title: "Transformer l'etude en un objectif concret",
       paragraphs: [
         "Beaucoup de Bahourim etudient avec serieux, mais il est parfois difficile de garder un rythme regulier, de fixer des objectifs et de mesurer ses progres.",
+        "Talmoudo Beyado donne un cadre clair : chaque Bahour choisit huit dapim dans la massehet qu'il etudie a la yeshiva, les revise, passe un mivhan mensuel, puis retrouve son suivi personnel dans son espace.",
       ],
       bullets: [
         "Fixer des objectifs d'etude",
@@ -306,6 +304,14 @@ const programDetails: Record<string, ProgramDetail> = {
     featureTitle: "Comment fonctionne le programme ?",
     featureDescription:
       "Un parcours base sur l'etude, la revision, les mivhanim et un suivi motivant.",
+    flow: [
+      "L'admin fixe la date du prochain mivhan mensuel",
+      "Le Bahour s'inscrit avec sa massehet et huit dapim",
+      "Les inscriptions ferment automatiquement avant le mivhan",
+      "Le Bahour passe le mivhan sur les dapim choisis",
+      "L'equipe renseigne la note et la recompense",
+      "Le resultat arrive par email et dans l'espace Bahour",
+    ],
     features: [
       {
         title: "Etude quotidienne",
@@ -530,6 +536,8 @@ export function generateStaticParams() {
   }));
 }
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: ProgramDetailPageProps) {
   const { slug } = await params;
   const program = getProgram(slug);
@@ -672,6 +680,23 @@ export default async function ProgramDetailPage({
   }
 
   const primaryCta = detail.primaryCta || ctaLabel;
+  const [currentUser, openMivhanSessions] =
+    slug === "talmoudo-beyado"
+      ? await Promise.all([
+          getCurrentUser(),
+          prisma.mivhanSession.findMany({
+            where: { date: { gte: new Date() } },
+            orderBy: { date: "asc" },
+          }),
+        ])
+      : [null, []];
+  const talmoudoSessionOptions = openMivhanSessions
+    .filter(isMivhanRegistrationOpen)
+    .map((session) => ({
+      id: session.id,
+      title: session.title,
+      dateLabel: session.date.toLocaleDateString("fr-FR"),
+    }));
 
   return (
     <PageShell>
@@ -690,7 +715,13 @@ export default async function ProgramDetailPage({
               <p>{detail.heroText || description}</p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
-                  <Link href="/contact">
+                  <Link
+                    href={
+                      slug === "talmoudo-beyado"
+                        ? "#inscription-talmoudo"
+                        : "/contact"
+                    }
+                  >
                     <MessageCircle className="size-5" />
                     {primaryCta}
                   </Link>
@@ -820,6 +851,28 @@ export default async function ProgramDetailPage({
                   </div>
                 ))}
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {slug === "talmoudo-beyado" ? (
+          <section className="section band" id="inscription-talmoudo">
+            <div className="container">
+              <div className="section-header">
+                <div>
+                  <span className="eyebrow">Inscription</span>
+                  <h2>Choisir sa massehet et ses huit dapim</h2>
+                </div>
+                <p>
+                  L&apos;inscription se rattache au mivhan ouvert par
+                  l&apos;administration. Un Bahour connecte n&apos;a plus qu&apos;a
+                  renseigner son limoud, sauf informations de profil manquantes.
+                </p>
+              </div>
+              <TalmoudoRegistrationForm
+                initialUser={currentUser}
+                sessions={talmoudoSessionOptions}
+              />
             </div>
           </section>
         ) : null}
@@ -957,7 +1010,15 @@ export default async function ProgramDetailPage({
             </div>
             <div className="hero-actions">
               <Button asChild variant="accent" size="lg">
-                <Link href="/contact">{primaryCta}</Link>
+                <Link
+                  href={
+                    slug === "talmoudo-beyado"
+                      ? "#inscription-talmoudo"
+                      : "/contact"
+                  }
+                >
+                  {primaryCta}
+                </Link>
               </Button>
               {detail.secondaryHref && detail.secondaryCta ? (
                 <Button asChild variant="secondary" size="lg">

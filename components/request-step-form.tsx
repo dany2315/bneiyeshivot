@@ -343,6 +343,7 @@ export type RequestFormInitialUser = {
   lastName?: string | null;
   email?: string | null;
   phone?: string | null;
+  parentPhone?: string | null;
 };
 
 export function RequestStepForm({
@@ -644,6 +645,7 @@ export function RequestStepForm({
               </FieldLabel>
               <PhoneInputGroup
                 autoComplete="tel"
+                defaultValue={initialUser?.parentPhone ?? ""}
                 id={`${type}-parent-phone`}
                 name="parentPhone"
                 required
