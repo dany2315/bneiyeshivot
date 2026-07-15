@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Demande visa etudiant",
+  title: "Demande visa étudiant",
 };
 
 export default async function VisaRequestPage() {
@@ -22,7 +22,7 @@ export default async function VisaRequestPage() {
       <main>
         <section className="page-hero">
           <div className="container">
-            <span className="eyebrow">Visa etudiant</span>
+            <span className="eyebrow">Visa étudiant</span>
             <h1>Demande visa</h1>
             <p>
               Formulaire dedie pour deposer une demande de visa etudiant avec
@@ -41,7 +41,7 @@ export default async function VisaRequestPage() {
                   <CardTitle>Suivi du dossier</CardTitle>
                   <CardDescription>
                     Apres depot, le Bahour pourra suivre le statut, ajouter des
-                    documents et lire les messages de l&apos;equipe.
+                    documents et lire les messages de l&apos;équipe.
                   </CardDescription>
                 </CardHeader>
               </Card>

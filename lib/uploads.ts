@@ -100,7 +100,7 @@ export async function deleteFileFromS3(key: string) {
       new DeleteObjectCommand({ Bucket: bucket, Key: key }),
     );
   } catch (error) {
-    console.error("[s3] suppression echouee", key, error);
+    console.error("[s3] suppression échouée", key, error);
   }
 }
 

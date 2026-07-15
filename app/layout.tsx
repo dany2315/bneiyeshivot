@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Bnei Yeshivot",
   },
   description:
-    "Bnei Yeshivot accompagne les jeunes francophones en Israel : demandes, dons, evenements et Espace Bahour.",
+    "Bnei Yeshivot accompagne les jeunes francophones en Israël : demandes, dons, événements et Espace Bahour.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

@@ -56,11 +56,11 @@ import {
 import { CalendarDays, Trash2, Users } from "lucide-react";
 
 export const metadata = {
-  title: "Admin evenements",
+  title: "Admin événements",
 };
 
 const registrationLabels: Record<EventRegistrationStatus, string> = {
-  SUBMITTED: "Demande recue",
+  SUBMITTED: "Demande reçue",
   CONFIRMED: "Confirmee",
   WAITLISTED: "Liste d'attente",
   CANCELED: "Annulee",
@@ -91,7 +91,7 @@ export default async function AdminEventsPage() {
       <div className="admin-header">
         <div>
           <span className="eyebrow">Back-office</span>
-          <h1>Evenements</h1>
+          <h1>Événements</h1>
         </div>
         <EventFormDialog action={createEvent} mode="create" />
       </div>
@@ -116,7 +116,7 @@ export default async function AdminEventsPage() {
                   )}
                   <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-2">
                     <StatusBadge tone={isPast ? "gold" : "blue"}>
-                      {isPast ? "Passe" : "A venir"}
+                      {isPast ? "Passé" : "À venir"}
                     </StatusBadge>
                     {isPast &&
                       (content.pastPublished ? (
@@ -130,7 +130,7 @@ export default async function AdminEventsPage() {
                   <CardTitle>{event.title}</CardTitle>
                   <CardDescription>
                     {formatDateTime(event.startsAt)} -{" "}
-                    {event.location || "Lieu a confirmer"}
+                    {event.location || "Lieu à confirmer"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-3">
@@ -146,7 +146,7 @@ export default async function AdminEventsPage() {
                   </p>
                   {isPast && !content.pastPublished && (
                     <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                      Cet evenement passe n&apos;est pas encore visible sur le
+                      Cet événement passe n&apos;est pas encore visible sur le
                       site. Modifiez-le (texte, photos, videos) pour le publier.
                     </p>
                   )}

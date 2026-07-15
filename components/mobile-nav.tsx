@@ -71,7 +71,7 @@ export function MobileNav() {
       await signOutRequest();
     } catch {
       setSigningOut(false);
-      toast.error("Impossible de se deconnecter pour le moment.");
+      toast.error("Impossible de se déconnecter pour le moment.");
       return;
     }
 
@@ -111,7 +111,7 @@ export function MobileNav() {
               <SheetTitle className="text-xl font-bold text-[var(--primary)]">
                 Bnei Yeshivot
               </SheetTitle>
-              <SheetDescription>France - Israel</SheetDescription>
+              <SheetDescription>France - Israël</SheetDescription>
             </div>
           </div>
         </SheetHeader>
@@ -187,7 +187,7 @@ export function MobileNav() {
                 onClick={signOut}
               >
                 <LogOut className="size-4" />
-                {signingOut ? "Deconnexion..." : "Se deconnecter"}
+                {signingOut ? "Déconnexion..." : "Se déconnecter"}
               </Button>
             </div>
           ) : (

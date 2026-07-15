@@ -124,7 +124,7 @@ export function AdminSidebarClient({
       await signOutRequest();
     } catch {
       setSigningOut(false);
-      toast.error("Impossible de se deconnecter pour le moment.");
+      toast.error("Impossible de se déconnecter pour le moment.");
       return;
     }
 
@@ -205,7 +205,7 @@ export function AdminSidebarClient({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Deconnexion"
+                aria-label="Déconnexion"
                 disabled={signingOut}
                 onClick={handleSignOut}
               >
