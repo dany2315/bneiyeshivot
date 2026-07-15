@@ -50,7 +50,7 @@ const homeServices = [
   {
     title: "Assurance maladie",
     description:
-      "Nous accompagnons gratuitement les etudiants dans leurs demarches aupres des caisses d'assurance maladie israeliennes.",
+      "Nous accompagnons gratuitement les étudiants dans leurs démarches auprès des caisses d'assurance maladie israéliennes.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
     learnMoreHref: "/services/assurance-maladie",
@@ -58,9 +58,9 @@ const homeServices = [
       "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Visa etudiant",
+    title: "Visa étudiant",
     description:
-      "Nous vous accompagnons dans toutes les demarches pour obtenir ou renouveler votre visa etudiant.",
+      "Nous vous accompagnons dans toutes les démarches pour obtenir ou renouveler votre visa étudiant.",
     action: "Deposer un dossier",
     href: "/demandes/visa",
     learnMoreHref: "/services/visa-etudiant",
@@ -70,7 +70,7 @@ const homeServices = [
   {
     title: "ETA-IL",
     description:
-      "Nous vous aidons a effectuer votre demande d'autorisation d'entree en Israel.",
+      "Nous vous aidons à effectuer votre demande d'autorisation d'entree en Israël.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     learnMoreHref: "/services/eta-il",
@@ -78,10 +78,10 @@ const homeServices = [
       "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Installation en Israel",
+    title: "Installation en Israël",
     description:
-      "Toutes les informations essentielles avant votre arrivee : checklist, telephone, banque, assurance, transport et administratif.",
-    action: "Je prepare mon arrivee",
+      "Toutes les informations essentielles avant votre arrivée : checklist, téléphone, banque, assurance, transport et administratif.",
+    action: "Je prépare mon arrivée",
     href: "/services",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
@@ -89,7 +89,7 @@ const homeServices = [
   {
     title: "Boutique Literie",
     description:
-      "Commandez votre pack complet avant votre arrivee en Israel : oreiller, couette, draps, housse et protege-matelas selon les packs.",
+      "Commandez votre pack complet avant votre arrivée en Israël : oreiller, couette, draps, housse et protege-matelas selon les packs.",
     action: "Voir la boutique",
     href: "/boutique",
     image:
@@ -98,8 +98,8 @@ const homeServices = [
   {
     title: "Guide PDF",
     description:
-      "Tout ce qu'il faut savoir avant de venir etudier en Israel dans un guide complet telechargeable.",
-    action: "Telecharger gratuitement",
+      "Tout ce qu'il faut savoir avant de venir étudier en Israël dans un guide complet téléchargeable.",
+    action: "Télécharger gratuitement",
     href: "/guide",
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
@@ -132,8 +132,8 @@ const galleryAlbums = [
     ],
   },
   {
-    title: "Evenements",
-    description: "Soirees, rassemblements et rendez-vous communautaires.",
+    title: "Événements",
+    description: "Soirées, rassemblements et rendez-vous communautaires.",
     photos: [
       "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
@@ -145,7 +145,7 @@ const galleryAlbums = [
   },
   {
     title: "Voyages",
-    description: "Sorties, decouvertes et temps forts en Israel.",
+    description: "Sorties, découvertes et temps forts en Israël.",
     photos: [
       "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1549989476-69a92fa57c36?auto=format&fit=crop&w=900&q=80",
@@ -157,7 +157,7 @@ const galleryAlbums = [
   },
   {
     title: "Cours",
-    description: "Etude, ateliers et accompagnement personnel.",
+    description: "Étude, ateliers et accompagnement personnel.",
     photos: [
       "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80",
@@ -186,28 +186,28 @@ const testimonials = [
     name: "Rav D.",
     role: "Rav accompagnateur",
     quote:
-      "Bnei Yeshivot donne aux jeunes un cadre clair, chaleureux et serieux pour avancer en Israel.",
+      "Bnei Yeshivot donne aux jeunes un cadre clair, chaleureux et sérieux pour avancer en Israël.",
     tag: "Rabbanim",
   },
   {
     name: "Yaakov B.",
     role: "Bahour",
     quote:
-      "J'ai pu gerer mes demarches et rejoindre les programmes sans me perdre dans l'administratif.",
+      "J'ai pu gerer mes démarches et rejoindre les programmes sans me perdre dans l'administratif.",
     tag: "Bahourim",
   },
   {
     name: "Famille C.",
     role: "Parents",
     quote:
-      "Le suivi nous a rassures avant le depart et pendant l'installation de notre fils.",
+      "Le suivi nous a rassurés avant le départ et pendant l'installation de notre fils.",
     tag: "Parents",
   },
   {
     name: "Ariel M.",
     role: "Ancien participant",
     quote:
-      "Les Chabbatot, les cours et le lien avec l'equipe m'ont marque durablement.",
+      "Les Chabbatot, les cours et le lien avec l'équipe m'ont marqué durablement.",
     tag: "Anciens",
   },
 ];
@@ -233,7 +233,7 @@ export default async function Home() {
                 className="hero-logo"
                 priority
               />
-              <span className="eyebrow">France - Israel</span>
+              <span className="eyebrow">France - Israël</span>
               <h1>Bnei Yeshivot</h1>
               <p>
                 La plateforme de reference pour accompagner les etudiants,
@@ -258,7 +258,7 @@ export default async function Home() {
               </CardHeader>
               <ul className="journey-list">
                 <li>
-                  <span>Visa etudiant</span>
+                  <span>Visa étudiant</span>
                   <Badge variant="warning">Formulaire</Badge>
                 </li>
                 <li>
@@ -277,10 +277,10 @@ export default async function Home() {
             </Card>
             <Card className="hero-video-card hero-video-card-mobile">
               <CardContent className="p-2">
-                <div className="home-video-player hero-video-player overflow-hidden" aria-label="Video de presentation">
+                <div className="home-video-player hero-video-player overflow-hidden" aria-label="Video de présentation">
                   <iframe
                     src={homeVideoUrl}
-                    title="Video de presentation Bnei Yeshivot"
+                    title="Video de présentation Bnei Yeshivot"
                     className="absolute inset-0 h-full w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerPolicy="strict-origin-when-cross-origin"
@@ -296,18 +296,18 @@ export default async function Home() {
           <div className="container">
             <div className="home-video-frame">
               <div className="home-video-copy">
-                <span className="eyebrow">Video de presentation</span>
+                <span className="eyebrow">Video de présentation</span>
                 <h2>Decouvrir Bnei Yeshivot en quelques minutes</h2>
                 <p>
-                  Une presentation claire de l&apos;accompagnement Bnei Yeshivot,
+                  Une présentation claire de l&apos;accompagnement Bnei Yeshivot,
                   des services et de la vision portee pour les jeunes
                   francophones en Israel.
                 </p>
               </div>
-              <div className="home-video-player overflow-hidden" aria-label="Video de presentation">
+              <div className="home-video-player overflow-hidden" aria-label="Video de présentation">
                 <iframe
                   src={homeVideoUrl}
-                  title="Video de presentation Bnei Yeshivot"
+                  title="Video de présentation Bnei Yeshivot"
                   className="absolute inset-0 h-full w-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
@@ -325,7 +325,7 @@ export default async function Home() {
               <p>
                 Chaque chiffre represente une action concrete menee aupres des
                 jeunes francophones : accueil, demarches, installation et
-                programmes pendant l&apos;annee.
+                programmes pendant l&apos;année.
               </p>
             </div>
             <div className="grid grid-4">
@@ -341,7 +341,7 @@ export default async function Home() {
             <div className="section-header">
               <h2>Nos services</h2>
               <p>
-                Avant l&apos;arrivee comme pendant l&apos;annee, notre equipe vous
+                Avant l&apos;arrivée comme pendant l&apos;année, notre équipe vous
                 accompagne dans les demarches qui comptent pour vous installer
                 sereinement et garder un lien clair avec Bnei Yeshivot.
               </p>
@@ -510,7 +510,7 @@ export default async function Home() {
           <div className="container">
             <div className="section-header">
               <div>
-                <h2>Les prochains evenements</h2>
+                <h2>Les prochains événements</h2>
               </div>
               <Button asChild variant="secondary">
                 <Link href="/evenements">Voir tout</Link>
@@ -551,7 +551,7 @@ export default async function Home() {
                     <CardContent className="grid gap-4">
                       <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
                         <MapPin className="size-4" />
-                        {event.location || "Lieu a confirmer"}
+                        {event.location || "Lieu à confirmer"}
                       </span>
                       <Button asChild variant={event.requiresRegistration ? "accent" : "secondary"}>
                         <Link href={event.requiresRegistration ? "/evenements" : "/contact"}>
@@ -626,7 +626,7 @@ export default async function Home() {
           <div className="container donation-home-inner">
             <div>
               <span className="eyebrow">Kesher Nitsri</span>
-              <h2>Une communaute engagee</h2>
+              <h2>Une communauté engagée</h2>
               <p>
                 Ensemble, faisons grandir la solidarite francophone en Israel.
                 Kesher Nitsri est la communaute des personnes qui souhaitent
@@ -658,8 +658,8 @@ export default async function Home() {
               <CardHeader>
                 <CardTitle>Soutenir les jeunes, les Avrekhim et les familles</CardTitle>
                 <CardDescription>
-                  Grace a l&apos;engagement de ses membres, Bnei Yeshivot developpe
-                  des actions concretes tout au long de l&apos;annee.
+                  Grace a l&apos;engagement de ses membres, Bnei Yeshivot développe
+                  des actions concrètes tout au long de l&apos;année.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -690,7 +690,7 @@ export default async function Home() {
                   "Aides administratives",
                   "Shabbatot",
                   "Kits d'installation",
-                  "Etudiants en difficulte",
+                  "Étudiants en difficulte",
                 ].map((item) => (
                   <li key={item}>
                     <CheckCircle2 className="size-4" />

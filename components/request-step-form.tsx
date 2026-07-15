@@ -39,9 +39,9 @@ import {
 import { countries } from "countries-list";
 
 const steps = [
-  { label: "Identite", detail: "Coordonnees" },
+  { label: "Identité", detail: "Coordonnées" },
   { label: "Dossier", detail: "Informations" },
-  { label: "Documents", detail: "Pieces" },
+  { label: "Documents", detail: "Pièces" },
   { label: "Validation", detail: "Envoi" },
 ];
 
@@ -204,11 +204,11 @@ type PresignedUpload = {
 };
 
 const documentLabels: Record<string, string> = {
-  passportFile: "Photo du passeport non israelien",
+  passportFile: "Photo du passeport non israélien",
   formFile: "Formulaire rempli",
   birthCertificateFile: "Acte de naissance",
-  studentCertificateFile: "Certificat d'etudiant ou Massa",
-  identityFile: "Document d'identite / visa",
+  studentCertificateFile: "Certificat d'étudiant ou Massa",
+  identityFile: "Document d'identité / visa",
 };
 
 function putFileToS3(
@@ -253,7 +253,7 @@ async function createRequestPayload(
 
   const result = (await response.json().catch(() => ({
     ok: false,
-    message: "Le serveur n'a pas retourne une reponse lisible.",
+    message: "Le serveur n'a pas retourné une réponse lisible.",
   }))) as RequestSubmitResult;
 
   if (!response.ok || !result.ok) {
@@ -299,7 +299,7 @@ function NationalityCombobox({ id, name }: { id: string; name: string }) {
               {selected.label}
             </>
           ) : (
-            "Selectionner la nationalite"
+            "Selectionner la nationalité"
           )}
         </span>
       </button>
@@ -310,7 +310,7 @@ function NationalityCombobox({ id, name }: { id: string; name: string }) {
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher une nationalite..."
+            placeholder="Rechercher une nationalité..."
           />
           <div className="grid max-h-[280px] gap-0.5 overflow-y-auto pr-1" role="listbox">
             {filteredOptions.map((option) => (
@@ -366,7 +366,7 @@ export function RequestStepForm({
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
-  const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
+  const title = type === "visa" ? "Visa étudiant" : "Koupat Holim";
   const isSubmitting = submitState.status === "loading";
 
   function validateStep(stepIndex: number) {
@@ -397,7 +397,7 @@ export function RequestStepForm({
         !hasText("birthDate") ||
         !hasText("nationality")
       ) {
-        return missing("Completez les informations d'identite avant de continuer.");
+        return missing("Completez les informations d'identité avant de continuer.");
       }
     }
 
@@ -414,12 +414,12 @@ export function RequestStepForm({
         (isVisa && !hasFile("birthCertificateFile")) ||
         !hasFile("studentCertificateFile")
       ) {
-        return missing("Ajoutez toutes les pieces demandees avant de continuer.");
+        return missing("Ajoutez toutes les pièces demandées avant de continuer.");
       }
     }
 
     if (stepIndex === 3 && !acceptedTerms) {
-      return missing("Vous devez accepter les conditions generales avant l'envoi.");
+      return missing("Vous devez accepter les conditions générales avant l'envoi.");
     }
 
     setStepError("");
@@ -499,7 +499,7 @@ export function RequestStepForm({
       });
       const presignResult = (await presignResponse.json().catch(() => ({
         ok: false,
-        message: "Impossible de preparer l'upload des documents.",
+        message: "Impossible de préparer l'upload des documents.",
       }))) as {
         ok: boolean;
         message?: string;
@@ -511,7 +511,7 @@ export function RequestStepForm({
           ok: false,
           message:
             presignResult.message ??
-            "Impossible de preparer l'upload des documents.",
+            "Impossible de préparer l'upload des documents.",
         };
       }
 
@@ -551,7 +551,7 @@ export function RequestStepForm({
         message:
           result.issues?.[0]?.message ??
           result.message ??
-          "Impossible d'envoyer la demande. Reessayez.",
+          "Impossible d'envoyer la demande. Réessayez.",
       });
       setSendProgress(0);
     }
@@ -563,8 +563,8 @@ export function RequestStepForm({
         <CardTitle>{title}</CardTitle>
         <CardDescription>
           {isVisa
-            ? "Formulaire de demande de visa etudiant avec les informations et pieces demandees."
-            : "Formulaire de demande koupat holim avec les informations et pieces demandees."}
+            ? "Formulaire de demande de visa étudiant avec les informations et pièces demandées."
+            : "Formulaire de demande koupat holim avec les informations et pièces demandées."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -599,7 +599,7 @@ export function RequestStepForm({
         <div className={step === 0 ? "block" : "hidden"} data-step="0">
           <FieldGroup className="form-grid">
             <Field>
-              <FieldLabel htmlFor={`${type}-first-name`}>Prenom</FieldLabel>
+              <FieldLabel htmlFor={`${type}-first-name`}>Prénom</FieldLabel>
               <Input
                 defaultValue={initialUser?.firstName ?? ""}
                 id={`${type}-first-name`}
@@ -630,7 +630,7 @@ export function RequestStepForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={`${type}-phone`}>Telephone</FieldLabel>
+              <FieldLabel htmlFor={`${type}-phone`}>Téléphone</FieldLabel>
               <PhoneInputGroup
                 defaultValue={initialUser?.phone ?? ""}
                 id={`${type}-phone`}
@@ -705,7 +705,7 @@ export function RequestStepForm({
                       <Input
                         id="koupat-passport-number"
                         name="passportNumber"
-                        placeholder="Numero du passeport"
+                        placeholder="Numéro du passeport"
                         required
                       />
                     </>
@@ -719,7 +719,7 @@ export function RequestStepForm({
                     <Input
                       id="visa-passport-number"
                       name="passportNumber"
-                      placeholder="Numero du passeport"
+                      placeholder="Numéro du passeport"
                       required
                     />
                   </Field>
@@ -736,7 +736,7 @@ export function RequestStepForm({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="france">France</SelectItem>
-                    <SelectItem value="israel">Israel</SelectItem>
+                    <SelectItem value="israel">Israël</SelectItem>
                     <SelectItem value="autre">Autre pays</SelectItem>
                   </SelectContent>
                 </Select>
@@ -773,7 +773,7 @@ export function RequestStepForm({
             {!isVisa && !isKoupat && (
               <Field>
                 <FieldLabel htmlFor={`${type}-arrival`}>
-                  Date d&apos;arrivee prevue
+                  Date d&apos;arrivée prevue
                 </FieldLabel>
                 <div className="relative">
                   <Calendar className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
@@ -793,7 +793,7 @@ export function RequestStepForm({
                 <DocumentAttachmentCard
                   name="passportFile"
                   required
-                  title="Photo du passeport non israelien"
+                  title="Photo du passeport non israélien"
                   status="missing"
                   disabled={isSubmitting}
                 />
@@ -820,18 +820,18 @@ export function RequestStepForm({
                 <DocumentAttachmentCard
                   name="studentCertificateFile"
                   required
-                  title="Certificat d'etudiant ou Massa"
+                  title="Certificat d'étudiant ou Massa"
                   status="missing"
                   disabled={isSubmitting}
                 />
               </>
             ) : (
               <>
-                <DocumentAttachmentCard disabled={isSubmitting} name="passportFile" required title="Passeport" status="missing" />
+                <DocumentAttachmentCard disabled={isSubmitting} name="passportFile" required title="Passéport" status="missing" />
                 <DocumentAttachmentCard
                   name="identityFile"
                   required
-                  title="Document d'identite / visa"
+                  title="Document d'identité / visa"
                   status="missing"
                   disabled={isSubmitting}
                 />
@@ -864,7 +864,7 @@ export function RequestStepForm({
                 />
                 <div className="grid gap-1">
                   <FieldLabel htmlFor={`${type}-terms`}>
-                    J&apos;accepte les conditions generales des demandes{" "}
+                    J&apos;accepte les conditions générales des demandes{" "}
                     {isVisa ? "de visa" : "de koupat holim"}
                   </FieldLabel>
                   <FieldDescription>

@@ -13,7 +13,7 @@ const demoFiles = [
     title: "Chabbat Berechit",
     category: "Chabbat" as const,
     description:
-      "Un feuillet clair pour ouvrir l'annee avec des idees courtes, partageables et faciles a transmettre a table.",
+      "Un feuillet clair pour ouvrir l'année avec des idées courtes, partageables et faciles ? transmettre a table.",
     slug: "chabbat-berechit",
     date: "Chabbat",
   },
@@ -21,7 +21,7 @@ const demoFiles = [
     title: "Hanouka - La lumiere qui reste",
     category: "Fete" as const,
     description:
-      "Un support de lecture pour Hanouka avec points de reflexion, messages courts et questions pour animer l'echange.",
+      "Un support de lecture pour Hanouka avec points de réflexion, messages courts et questions pour animer l'échange.",
     slug: "hanouka-lumiere",
     date: "Fete",
   },
@@ -29,8 +29,8 @@ const demoFiles = [
     title: "Pessah - Sortir avec clarte",
     category: "Fete" as const,
     description:
-      "Un feuillet pour preparer Pessah, mettre en avant le sens de la liberte et accompagner les jeunes dans la lecture.",
-    slug: "pessah-liberte",
+      "Un feuillet pour préparer Pessah, mettre en avant le sens de la liberté et accompagner les jeunes dans la lecture.",
+    slug: "pessah-liberté",
     date: "Fete",
   },
 ];
@@ -47,7 +47,7 @@ export default async function DvarTorahPage() {
           category: file.category === "CHABBAT" ? ("Chabbat" as const) : ("Fete" as const),
           description:
             file.description ||
-            "Feuillet Bnei Yeshivot a ouvrir, telecharger ou partager.",
+            "Feuillet Bnei Yeshivot ? ouvrir, télécharger ou partager.",
           slug: file.slug,
           date: file.createdAt.toLocaleDateString("fr-FR"),
         }))
@@ -59,7 +59,7 @@ export default async function DvarTorahPage() {
         <section className="page-hero">
           <div className="container">
             <span className="eyebrow">Dvar Torah</span>
-            <h1>Feuillets a telecharger, ouvrir ou partager</h1>
+            <h1>Feuillets a télécharger, ouvrir ou partager</h1>
             <p>
               Retrouvez les feuillets mis a disposition par Bnei Yeshivot pour
               les Chabbatot et les fetes. Les prochains fichiers seront ajoutes

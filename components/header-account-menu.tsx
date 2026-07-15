@@ -40,7 +40,7 @@ export function HeaderAccountMenu({ user }: HeaderAccountMenuProps) {
       await signOutRequest();
     } catch {
       setLoading(false);
-      toast.error("Impossible de se deconnecter pour le moment.");
+      toast.error("Impossible de se déconnecter pour le moment.");
       return;
     }
 
@@ -95,7 +95,7 @@ export function HeaderAccountMenu({ user }: HeaderAccountMenuProps) {
             className="gap-2 px-3 py-2 text-sm font-bold"
           >
             <LogOut className="size-4" />
-            {loading ? "Deconnexion..." : "Se deconnecter"}
+            {loading ? "Déconnexion..." : "Se déconnecter"}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

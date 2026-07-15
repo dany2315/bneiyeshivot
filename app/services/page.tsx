@@ -19,7 +19,7 @@ const pageServices = [
   {
     title: "Assurance maladie",
     description:
-      "Nous accompagnons gratuitement les etudiants dans leurs demarches aupres des caisses d'assurance maladie israeliennes.",
+      "Nous accompagnons gratuitement les étudiants dans leurs démarches auprès des caisses d'assurance maladie israéliennes.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
     learnMoreHref: "/services/assurance-maladie",
@@ -27,9 +27,9 @@ const pageServices = [
       "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Visa etudiant",
+    title: "Visa étudiant",
     description:
-      "Nous vous accompagnons dans toutes les demarches pour obtenir ou renouveler votre visa etudiant.",
+      "Nous vous accompagnons dans toutes les démarches pour obtenir ou renouveler votre visa étudiant.",
     action: "Deposer un dossier",
     href: "/demandes/visa",
     learnMoreHref: "/services/visa-etudiant",
@@ -39,7 +39,7 @@ const pageServices = [
   {
     title: "ETA-IL",
     description:
-      "Nous vous aidons a effectuer votre demande d'autorisation d'entree en Israel.",
+      "Nous vous aidons à effectuer votre demande d'autorisation d'entree en Israël.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     learnMoreHref: "/services/eta-il",
@@ -47,10 +47,10 @@ const pageServices = [
       "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Installation en Israel",
+    title: "Installation en Israël",
     description:
-      "Toutes les informations essentielles avant votre arrivee : checklist, telephone, banque, assurance, transport et administratif.",
-    action: "Je prepare mon arrivee",
+      "Toutes les informations essentielles avant votre arrivée : checklist, téléphone, banque, assurance, transport et administratif.",
+    action: "Je prépare mon arrivée",
     href: "/services",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
@@ -58,7 +58,7 @@ const pageServices = [
   {
     title: "Boutique Literie",
     description:
-      "Commandez votre pack complet avant votre arrivee en Israel : oreiller, couette, draps, housse et protege-matelas selon les packs.",
+      "Commandez votre pack complet avant votre arrivée en Israël : oreiller, couette, draps, housse et protege-matelas selon les packs.",
     action: "Voir la boutique",
     href: "/boutique",
     image:
@@ -67,8 +67,8 @@ const pageServices = [
   {
     title: "Guide PDF",
     description:
-      "Tout ce qu'il faut savoir avant de venir etudier en Israel dans un guide complet telechargeable.",
-    action: "Telecharger gratuitement",
+      "Tout ce qu'il faut savoir avant de venir étudier en Israël dans un guide complet téléchargeable.",
+    action: "Télécharger gratuitement",
     href: "/guide",
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
@@ -143,7 +143,7 @@ export default function ServicesPage() {
               <h2>Un dossier clair pour chaque demande</h2>
               <p>
                 Chaque demande administrative pourra etre suivie par le Bahour :
-                statut, documents manquants, messages de l&apos;equipe et actions
+                statut, documents manquants, messages de l&apos;équipe et actions
                 a completer.
               </p>
             </div>

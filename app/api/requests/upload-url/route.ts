@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         message:
           error instanceof Error
             ? error.message
-            : "Impossible de preparer l'upload des documents.",
+            : "Impossible de préparer l'upload des documents.",
       },
       { status: 400 },
     );

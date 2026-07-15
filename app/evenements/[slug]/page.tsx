@@ -35,7 +35,7 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  // Les evenements a venir n'ont pas de page dediee : tout est sur la card.
+  // Les événements À venir n'ont pas de page dédiée : tout est sur la card.
   if (event.startsAt >= new Date()) {
     redirect("/evenements");
   }
@@ -96,10 +96,10 @@ export default async function EventDetailPage({
           <div className="container grid gap-6 lg:grid-cols-[1fr_360px]">
             <Card>
               <CardHeader>
-                <CardTitle>Presentation</CardTitle>
+                <CardTitle>Présentation</CardTitle>
                 <CardDescription>
                   {formatDateTime(event.startsAt)} -{" "}
-                  {event.location || "Lieu a confirmer"}
+                  {event.location || "Lieu à confirmer"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-5">
@@ -124,7 +124,7 @@ export default async function EventDetailPage({
                 <CardHeader>
                   <CardTitle>Informations</CardTitle>
                   <CardDescription>
-                    {event.location || "Lieu a confirmer"}
+                    {event.location || "Lieu à confirmer"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-2 text-base text-[var(--muted)]">
@@ -153,10 +153,10 @@ export default async function EventDetailPage({
           <section className="section band">
             <div className="container">
               <div className="section-header">
-                <h2>Galerie apres evenement</h2>
+                <h2>Galerie après événement</h2>
                 <p>
-                  Photos ajoutees par l&apos;equipe pour raconter
-                  l&apos;evenement.
+                  Photos ajoutées par l&apos;équipe pour raconter
+                  l&apos;événement.
                 </p>
               </div>
               <Dialog>

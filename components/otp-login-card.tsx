@@ -156,7 +156,7 @@ export function OtpLoginCard({
     setStep("otp");
     setState({
       status: "success",
-      message: "Code envoye. Verifie ta boite email.",
+      message: "Code envoyé. Verifie ta boite email.",
     });
   }
 
@@ -186,7 +186,7 @@ export function OtpLoginCard({
       } | null;
       setState({
         status: "error",
-        message: result?.message ?? "Code invalide ou expire.",
+        message: result?.message ?? "Code invalide ou expiré.",
       });
       return;
     }
@@ -224,7 +224,7 @@ export function OtpLoginCard({
                   autoComplete="given-name"
                   name="firstName"
                   onChange={(event) => setFirstName(event.target.value)}
-                  placeholder="Prenom"
+                  placeholder="Prénom"
                   required
                   value={firstName}
                 />

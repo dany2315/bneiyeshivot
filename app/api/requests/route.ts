@@ -61,12 +61,12 @@ export async function POST(request: Request) {
     const fullName = `${firstName} ${lastName}`.trim() || email || "Sans nom";
     const typeLabel =
       kind === "visa"
-        ? "visa etudiant"
+        ? "visa étudiant"
         : kind === "koupat"
           ? "koupat holim"
           : "demande";
 
-    // Confirmation au demandeur (on n'echoue pas la demande si l'email ne part pas).
+    // Confirmation au demandeur (on n'échoué pas la demande si l'email ne part pas).
     if (email) {
       await sendEmail({
         to: email,
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Notification a l'equipe, avec lien direct vers la demande dans l'admin.
+    // Notification à l'équipe, avec lien direct vers la demande dans l'admin.
     const adminEmail =
       process.env.ADMIN_NOTIFICATION_EMAIL || "contact@bneiyeshivot.com";
     const adminPath =
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        message: "Impossible de creer la demande pour le moment.",
+        message: "Impossible de créer la demande pour le moment.",
       },
       { status: 500 },
     );

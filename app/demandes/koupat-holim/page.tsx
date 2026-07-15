@@ -25,7 +25,7 @@ export default async function KoupatHolimRequestPage() {
             <span className="eyebrow">Koupat Holim</span>
             <h1>Demande koupat holim</h1>
             <p>
-              Formulaire dedie pour l&apos;accompagnement koupat holim :
+              Formulaire dédié pour l&apos;accompagnement koupat holim :
               informations personnelles, passeport non israelien, formulaire
               rempli et certificat etudiant ou Massa.
             </p>

@@ -12,9 +12,9 @@ export default function AdminVisaPage({
 }) {
   return (
     <AdminServiceRequestsPage
-      description="Gestion des demandes de visa etudiant : statut, suivi public, note interne et relances."
+      description="Gestion des demandes de visa étudiant : statut, suivi public, note interne et relances."
       searchParams={searchParams}
-      title="Demandes visa etudiant"
+      title="Demandes visa étudiant"
       type={ServiceRequestType.VISA_STUDENT}
     />
   );

@@ -20,7 +20,7 @@ export default function StorePage() {
       <main>
         <section className="page-hero">
           <div className="container">
-            <span className="eyebrow">Installation en Israel</span>
+            <span className="eyebrow">Installation en Israël</span>
             <h1>Boutique literie</h1>
             <p>
               Premiere base pour vendre des packs d&apos;installation sans
