@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PageShell } from "../../components";
 import { getProgram, programmes } from "../programmes";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { BenHazmanimFranceMap } from "@/components/ben-hazmanim-france-map";
 import {
   Card,
@@ -12,6 +13,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -39,6 +49,7 @@ type ProgramDetail = {
     title: string;
     description: string;
   }>;
+  rabbis?: string[];
   practical?: Array<{
     label: string;
     value: string;
@@ -50,105 +61,146 @@ type ProgramDetail = {
   secondaryCta?: string;
 };
 
+type VisualGalleryAlbum = {
+  title: string;
+  description: string;
+  photos: string[];
+  videoUrl?: string;
+};
+
+const benHazmanimShortUrl =
+  "https://www.youtube-nocookie.com/embed/kuM2P0GIs8o?rel=0&modestbranding=1&playsinline=1";
+
+const benHazmanimGalleryAlbums: VisualGalleryAlbum[] = [
+  {
+    title: "Photos",
+    description: "Moments d'etude, ambiance et rassemblements Ben Hazmanim.",
+    photos: [
+      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1506869640319-fe1a24fd76dc?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Videos",
+    description: "Courts formats, prises de parole et souvenirs du programme.",
+    videoUrl: benHazmanimShortUrl,
+    photos: [
+      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+  {
+    title: "Communautes",
+    description: "Les villes, Kehilot et groupes qui portent le reseau.",
+    photos: [
+      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=900&q=80",
+    ],
+  },
+];
+
 const programDetails: Record<string, ProgramDetail> = {
   "beth-hamidrach": {
     heroText:
-      "Chaque jeudi soir, Bnei Yeshivot accueille les jeunes francophones autour d'un programme qui associe etude de la Torah, Vaad, sujets pratiques et moment de convivialite.",
+      "Le rendez-vous hebdomadaire de Torah des jeunes francophones en Israel. Chaque jeudi soir a Bayit Vagan, pres d'une centaine de Bahourim et d'etudiants se retrouvent autour du Limoud, d'un Vaad, de themes pratiques et de moments de partage.",
     primaryCta: "Je m'inscris au Beth Hamidrach",
     intro: {
-      eyebrow: "Notre vision",
-      title: "Faire vivre une Torah concrete au quotidien",
+      eyebrow: "Beth Hamidrach Leil Shishi",
+      title: "Bien plus qu'un Beth Hamidrach, construire une communaute de Torah",
       paragraphs: [
-        "Arriver en Israel represente une etape importante dans la vie d'un jeune.",
-        "Au-dela de l'etude quotidienne en Yechiva, il est essentiel de pouvoir retrouver un cadre, une communaute et des moments permettant de renforcer son lien avec la Torah.",
+        "Etudier la Torah ne se resume pas a assister a un cours. C'est evoluer dans un environnement qui inspire, encourage et permet a chacun de progresser.",
+        "Le Beth Hamidrach Leil Shishi a ete cree pour offrir aux jeunes francophones en Israel un cadre regulier ou ils peuvent approfondir leur Limoud, echanger avec des Rabbanim, decouvrir des domaines essentiels de la Halakha et tisser des liens durables avec d'autres Bahourim partageant les memes aspirations.",
+        "Chaque rencontre est pensee pour renforcer l'attachement a la Torah, transmettre des enseignements de qualite et faire du Beth Hamidrach un veritable point de rassemblement pour la jeunesse francophone.",
       ],
       bullets: [
-        "Offrir un rendez-vous regulier aux jeunes francophones",
-        "Creer un espace d'etude et de reflexion",
-        "Permettre des echanges avec des Rabbanim et des intervenants",
-        "Approfondir des sujets essentiels de la vie juive",
-        "Construire une veritable communaute",
+        "Bayit Vagan - Jerusalem",
+        "Pres de 100 participants chaque semaine",
+        "Rabbanim invites",
+        "Un nouveau theme chaque semaine",
       ],
     },
-    featureTitle: "Le programme du moment",
+    featureTitle: "Une soiree construite autour de la Torah",
     featureDescription:
-      "Chaque semaine, un nouveau sujet est aborde a travers des sources, un Vaad, une partie pratique et un repas convivial.",
+      "Chaque jeudi soir s'articule autour de temps forts clairs, dans l'ambiance authentique d'un Beth Hamidrach.",
     features: [
       {
-        title: "Etude approfondie",
+        title: "Seder Limoud",
         description:
-          "Decouverte des sources, comprehension des notions fondamentales et etude des textes.",
+          "Une etude approfondie dans une ambiance de Limoud serieuse et vivante.",
       },
       {
         title: "Vaad",
         description:
-          "Un moment de reflexion, d'explication et d'echange autour du theme etudie.",
+          "Des enseignements dispenses par des Rabbanim et intervenants autour de themes fondamentaux de la Torah et de la vie juive.",
       },
       {
-        title: "Partie pratique",
+        title: "Themes pratiques",
         description:
-          "Des demonstrations et mises en situation pour comprendre l'application concrete de la Halakha.",
+          "Chaque semaine, un nouveau sujet est developpe afin d'aborder la Halakha de maniere concrete.",
       },
       {
-        title: "Repas et convivialite",
+        title: "Kumzitz et partage",
         description:
-          "Un moment de partage dans une ambiance chaleureuse entre jeunes francophones.",
+          "La soiree se conclut dans une ambiance chaleureuse autour d'un Kumzitz, d'une collation et d'echanges entre les participants.",
       },
-    ],
-    flow: [
-      "Etude autour du theme de la semaine",
-      "Vaad avec un intervenant",
-      "Demonstration ou partie pratique",
-      "Repas et moment d'echange entre jeunes",
     ],
     audience: [
-      "Bahourim francophones etudiant en Israel",
-      "Jeunes inscrits dans des Yechivot",
-      "Etudiants souhaitant renforcer leurs connaissances en Torah",
-      "Jeunes qui recherchent un cadre regulier et une communaute",
+      "Bahourim des Yechivot",
+      "Etudiants francophones en Israel",
+      "Jeunes souhaitant approfondir leur Limoud",
+      "Toute personne recherchant un cadre regulier de Torah et de progression",
     ],
     values: [
       {
-        title: "Torah",
-        description: "Mettre l'etude et la comprehension de la Torah au centre.",
+        title: "Limoud",
+        description: "Approfondir l'etude chaque semaine avec un cadre regulier.",
       },
       {
-        title: "Fraternite",
+        title: "Communaute",
         description:
-          "Creer des liens forts entre jeunes francophones venus etudier en Israel.",
+          "Creer des liens durables entre jeunes francophones partageant les memes aspirations.",
       },
       {
-        title: "Progression",
-        description: "Permettre a chacun d'avancer dans son parcours personnel.",
+        title: "Rabbanim",
+        description: "Recevoir une Torah transmise par des Rabbanim et intervenants de qualite.",
       },
       {
-        title: "Application",
+        title: "Halakha pratique",
         description:
-          "Comprendre comment les enseignements de la Torah s'integrent dans la vie quotidienne.",
+          "Relier les enseignements a des sujets concrets de la vie juive.",
       },
+    ],
+    rabbis: [
+      "Rabbanim invites",
+      "Intervenants de Torah",
+      "Rabbanim de Yechivot",
+      "Responsables communautaires",
+      "Maggidei Shiour",
     ],
     practical: [
-      { label: "Lieu", value: "17 Rehov HaPisga, Bayit Vagan - Jerusalem" },
+      { label: "Lieu", value: "Bayit Vagan - Jerusalem" },
+      { label: "Rencontres", value: "Rencontres exceptionnelles a Bnei Brak" },
       { label: "Jour", value: "Chaque jeudi soir" },
-      { label: "Horaire", value: "A completer" },
+      { label: "Participants", value: "Pres de 100 jeunes chaque semaine" },
     ],
     gallery: [
-      "Soirees d'etude",
-      "Vaadim",
-      "Demonstrations pratiques",
-      "Repas",
-      "Participants",
-    ],
-    testimonials: ["Bahourim participants", "Rabbanim", "Intervenants"],
-    formFields: [
-      "Nom",
-      "Prenom",
-      "Age",
-      "Telephone",
-      "Email",
-      "Yechiva",
-      "Ville d'origine",
-      "Message eventuel",
+      "Seder Limoud",
+      "Vaad",
+      "Themes pratiques",
+      "Kumzitz",
+      "Moments de partage",
     ],
   },
   "ben-hazmanim": {
@@ -535,6 +587,109 @@ export async function generateMetadata({ params }: ProgramDetailPageProps) {
   };
 }
 
+function ProgramVisualGallery({ albums }: { albums: VisualGalleryAlbum[] }) {
+  return (
+    <section className="section band">
+      <div className="container">
+        <div className="section-header">
+          <div>
+            <span className="eyebrow">Galerie</span>
+            <h2>Images et videos du reseau</h2>
+          </div>
+          <p>
+            Une galerie pour retrouver les moments forts, les lieux et
+            l&apos;ambiance des programmes Ben Hazmanim.
+          </p>
+        </div>
+        <div className="gallery-grid">
+          {albums.map((album, index) => (
+            <Dialog key={album.title}>
+              <DialogTrigger
+                render={<button className="gallery-card-trigger" type="button" />}
+              >
+                <Card className="gallery-card">
+                  <div className="gallery-card-mosaic">
+                    {album.photos.slice(0, 5).map((photo, photoIndex) => (
+                      <div
+                        className={
+                          photoIndex === 0
+                            ? "gallery-mosaic-cell gallery-mosaic-main"
+                            : "gallery-mosaic-cell"
+                        }
+                        key={photo}
+                      >
+                        <Image
+                          alt=""
+                          fill
+                          sizes="(max-width: 980px) 50vw, 20vw"
+                          src={photo}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <CardHeader>
+                    <Badge variant={index % 2 === 0 ? "info" : "warning"}>
+                      {album.videoUrl ? "Video" : `${album.photos.length} photos`}
+                    </Badge>
+                    <CardTitle>{album.title}</CardTitle>
+                    <CardDescription>{album.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </DialogTrigger>
+              <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                <DialogClose
+                  render={
+                    <Button
+                      className="gallery-dialog-close"
+                      size="sm"
+                      variant="secondary"
+                    />
+                  }
+                >
+                  Fermer
+                </DialogClose>
+                <DialogHeader className="gallery-dialog-header">
+                  <DialogTitle>{album.title}</DialogTitle>
+                  <DialogDescription>{album.description}</DialogDescription>
+                </DialogHeader>
+                {album.videoUrl ? (
+                  <div className="gallery-dialog-video">
+                    <iframe
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      src={album.videoUrl}
+                      title={`${album.title} Ben Hazmanim`}
+                    />
+                  </div>
+                ) : null}
+                <div className="gallery-dialog-grid">
+                  {album.photos.map((photo, photoIndex) => (
+                    <div
+                      className={
+                        photoIndex === 0
+                          ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                          : "gallery-dialog-photo"
+                      }
+                      key={photo}
+                    >
+                      <Image
+                        alt=""
+                        fill
+                        sizes="(max-width: 980px) 100vw, 33vw"
+                        src={photo}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default async function ProgramDetailPage({
   params,
 }: ProgramDetailPageProps) {
@@ -658,7 +813,40 @@ export default async function ProgramDetailPage({
           </div>
         </section>
 
+        {detail.rabbis?.length ? (
+          <section className="section">
+            <div className="container">
+              <div className="section-header">
+                <div>
+                  <span className="eyebrow">Rabbanim</span>
+                  <h2>Des Rabbanim de renom</h2>
+                </div>
+                <p>
+                  Le Beth Hamidrach Bnei Yeshivot accueille tout au long de
+                  l&apos;annee des Rabbanim et intervenants reconnus qui viennent
+                  transmettre leur Torah et partager leur experience.
+                </p>
+              </div>
+              <div className="program-rabbi-rail" aria-label="Rabbanim invites">
+                <div className="program-rabbi-track">
+                  {[...detail.rabbis, ...detail.rabbis].map((rabbi, index) => (
+                    <div className="program-rabbi-card" key={`${rabbi}-${index}`}>
+                      <span>{rabbi.slice(0, 1)}</span>
+                      <strong>{rabbi}</strong>
+                      <small>Beth Hamidrach Leil Shishi</small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {slug === "ben-hazmanim" ? <BenHazmanimFranceMap /> : null}
+
+        {slug === "ben-hazmanim" ? (
+          <ProgramVisualGallery albums={benHazmanimGalleryAlbums} />
+        ) : null}
 
         {detail.flow?.length ? (
           <section className="section">
@@ -745,7 +933,7 @@ export default async function ProgramDetailPage({
           <section className="section">
             <div className="container">
               <div className="program-detail-resource-grid">
-                {detail.gallery?.length ? (
+                {detail.gallery?.length && slug !== "ben-hazmanim" ? (
                   <Card className="program-detail-resource-card">
                     <CardHeader>
                       <CardTitle>Galerie</CardTitle>

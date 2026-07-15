@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -189,6 +190,17 @@ export default async function EventDetailPage({
                   </Card>
                 </DialogTrigger>
                 <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                  <DialogClose
+                    render={
+                      <Button
+                        className="gallery-dialog-close"
+                        size="sm"
+                        variant="secondary"
+                      />
+                    }
+                  >
+                    Fermer
+                  </DialogClose>
                   <DialogHeader className="gallery-dialog-header">
                     <DialogTitle>{event.title}</DialogTitle>
                     <DialogDescription>
