@@ -1507,6 +1507,103 @@ a.card:hover,
   margin-top: 42px;
 }
 
+.about-longform-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.about-longform-card {
+  min-height: 260px;
+  background:
+    radial-gradient(circle at top right, rgba(242, 99, 0, 0.09), transparent 12rem),
+    #fff;
+}
+
+.about-longform-card [data-slot="card-description"] {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.about-event-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.about-founder-name {
+  margin: 0 0 16px;
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.about-vision-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 28px;
+  align-items: center;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(246, 170, 28, 0.18), transparent 18rem),
+    linear-gradient(135deg, var(--primary), #0b3b63);
+  color: #fff;
+  padding: 34px;
+  box-shadow: 0 28px 80px rgba(6, 40, 70, 0.18);
+}
+
+.about-vision-panel .eyebrow {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffd4b4;
+}
+
+.about-vision-panel h2 {
+  margin: 16px 0;
+  color: #fff;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(34px, 4vw, 56px);
+  line-height: 1;
+}
+
+.about-vision-panel p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.about-vision-list {
+  display: grid;
+  gap: 10px;
+}
+
+.about-vision-list div {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.09);
+  padding: 12px;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 760;
+}
+
+.about-vision-list svg {
+  margin-top: 2px;
+  flex: 0 0 auto;
+  color: #ffd4b4;
+}
+
+.about-vision-signature {
+  grid-column: 1 / -1;
+  color: #fff;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(28px, 4vw, 50px);
+  line-height: 1;
+}
+
 .about-value-number {
   color: var(--accent);
   font-size: 12px;
@@ -3101,6 +3198,7 @@ a.card:hover,
   .about-story,
   .about-mission-panel,
   .about-impact-layout,
+  .about-vision-panel,
   .admin-layout,
   .portal-summary,
   .module-grid,
@@ -3130,6 +3228,7 @@ a.card:hover,
   .program-detail-two-column,
   .program-detail-resource-grid,
   .about-values-grid,
+  .about-longform-grid,
   .about-impact-grid,
   .about-partner-cards,
   .about-partner-list,

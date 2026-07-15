@@ -106,6 +106,72 @@ const timeline = [
   "Maison Bnei Yeshivot a Beit Vagan",
 ];
 
+const storyChapters = [
+  {
+    title: "Une histoire nee d'un besoin reel",
+    text:
+      "L'histoire de Bnei Yeshivot commence au Raincy, avec la premiere Yechiva Ben Hazmanim Torat Yaacov. A l'origine, quelques jeunes se retrouvaient pendant les vacances autour de l'etude de la Torah, avec la volonte de creer un vrai cadre de Yechiva meme hors periode scolaire.",
+  },
+  {
+    title: "De Torat Yaacov a Bnei Alia",
+    text:
+      "L'experience du Raincy s'est developpee dans plusieurs villes de France pour devenir Bnei Alia, un reseau de Yechivot Ben Hazmanim. Ce cadre permet a de nombreux Bahourim de retrouver des Sdarim d'etude, un encadrement et une ambiance de Torah pendant les periodes de vacances.",
+  },
+  {
+    title: "Beth Hamidrach Leil Shishi",
+    text:
+      "Avec le developpement des programmes, un nouveau besoin est apparu : creer un lieu permanent ou les jeunes francophones peuvent se retrouver toute l'annee autour de l'etude, des cours, des Vaadim, des sujets pratiques et de moments de cohesion.",
+  },
+  {
+    title: "Talmoudo Beyado",
+    text:
+      "Face au besoin exprime par les parents et les responsables de Yechivot, Bnei Yeshivot a cree Talmoudo Beyado : un programme d'objectifs, d'examens mensuels et de suivi pour renforcer l'assiduite, la motivation et l'excellence dans le Limoud.",
+  },
+  {
+    title: "Binian Adei Ad",
+    text:
+      "Parce que l'accompagnement ne s'arrete pas aux annees de Yechiva, Bnei Yeshivot a developpe Binian Adei Ad, un projet dedie a l'accompagnement dans la construction du foyer et les demarches de Chidoukhim, avec des personnes de confiance.",
+  },
+  {
+    title: "Une maison a Beit Vagan",
+    text:
+      "Aujourd'hui, les locaux du 17 Rehov HaPisga a Beit Vagan sont devenus une maison pour les jeunes francophones : accueil des jeunes et des familles, Beth Hamidrach Leil Shishi, demandes d'accompagnement, ecoute, conseil et orientation.",
+  },
+];
+
+const landmarkEvents = [
+  {
+    title: "Le Grand Maamad HaSiyoum",
+    description:
+      "Un rassemblement de 500 jeunes Bahourim autour d'un Siyoum sur la Massekhet etudiee dans leurs Yechivot, signe fort de Kavod HaTorah et d'investissement dans l'etude.",
+  },
+  {
+    title: "Le voyage de Rav Yehoshoua Eihenstein Shlita",
+    description:
+      "Un voyage historique en France pour visiter institutions et communautes, transmettre des enseignements autour du Hinouh et reunir Rabbanim, Roshei Yechivot et centaines de Bahourim.",
+  },
+  {
+    title: "Le 21 mars 2024 a Beit Vagan",
+    description:
+      "Un rassemblement historique de 500 jeunes Bahourim francophones etudiant en Israel, marque par la presence de grands Rabbanim et Roshei Yechivot, et devenu un tournant pour le mouvement.",
+  },
+];
+
+const communityForces = [
+  "Des dizaines d'Avrekhim impliques dans les differents cadres",
+  "Des dizaines de Bahourim engages dans les projets",
+  "Des Rabbanim qui accompagnent et soutiennent les initiatives",
+  "Une equipe de responsables et de benevoles mobilises quotidiennement",
+  "Des familles, donateurs et partenaires qui permettent de developper de nouveaux projets",
+];
+
+const futureVision = [
+  "Developper des structures fortes pour les prochaines generations",
+  "Accompagner chaque jeune francophone dans son parcours de Torah",
+  "Faciliter l'integration en Israel avec des reperes clairs",
+  "Soutenir la construction personnelle, familiale et spirituelle",
+];
+
 const team = [
   {
     name: "Meir Guetta",
@@ -282,6 +348,31 @@ export default function AboutPage() {
 
         <section className="section band">
           <div className="container">
+            <div className="section-header">
+              <h2>Notre histoire en detail</h2>
+              <p>
+                Une vision nee du terrain, construite et developpee au fil des
+                besoins reels de la jeunesse francophone.
+              </p>
+            </div>
+            <div className="about-longform-grid">
+              {storyChapters.map((chapter, index) => (
+                <Card className="about-longform-card" key={chapter.title}>
+                  <CardHeader>
+                    <span className="about-value-number">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <CardTitle>{chapter.title}</CardTitle>
+                    <CardDescription>{chapter.text}</CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section band">
+          <div className="container">
             <div className="about-impact-layout">
               <div>
                 <span className="eyebrow">Notre impact</span>
@@ -305,6 +396,59 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container about-story">
+            <div>
+              <span className="eyebrow">Evenements marquants</span>
+              <h2>Des moments qui ont rassemble une generation.</h2>
+              <p>
+                Au fil de son developpement, Bnei Yeshivot a organise des
+                rassemblements majeurs qui ont donne une expression visible a
+                la force de la jeunesse francophone autour de la Torah.
+              </p>
+            </div>
+            <div className="about-event-stack">
+              {landmarkEvents.map((event) => (
+                <Card className="about-question-card" key={event.title}>
+                  <CardHeader>
+                    <CardTitle>{event.title}</CardTitle>
+                    <CardDescription>{event.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section band">
+          <div className="container about-story">
+            <div>
+              <span className="eyebrow">Un mouvement humain</span>
+              <h2>Une communaute engagee qui porte les projets.</h2>
+              <p>
+                Le developpement de Bnei Yeshivot repose sur une force humaine :
+                jeunes, Avrekhim, Rabbanim, familles, donateurs, partenaires et
+                benevoles qui croient dans la mission.
+              </p>
+            </div>
+            <Card className="about-question-card">
+              <CardHeader>
+                <CardTitle>Ce qui rend le mouvement possible</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="about-check-list">
+                  {communityForces.map((item) => (
+                    <li key={item}>
+                      <CheckCircle2 className="size-4" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
@@ -346,6 +490,9 @@ export default function AboutPage() {
             <div>
               <span className="eyebrow">Le mot du fondateur</span>
               <h2>Une presence nee des besoins reels du terrain.</h2>
+              <p className="about-founder-name">
+                Meir Guetta - Fondateur et President de Bnei Yeshivot
+              </p>
               <p>
                 Bnei Yeshivot est nee d&apos;une rencontre avec les besoins reels
                 des jeunes francophones. Depuis le debut, notre volonte est
@@ -382,6 +529,32 @@ export default function AboutPage() {
                 </ul>
               </CardContent>
             </Card>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container about-vision-panel">
+            <div>
+              <span className="eyebrow">Notre vision pour demain</span>
+              <h2>Continuer a ecrire l&apos;histoire avec la prochaine generation.</h2>
+              <p>
+                Ce qui est ne d&apos;une petite initiative est devenu une dynamique
+                majeure au service de milliers de jeunes et de familles. Notre
+                ambition est de continuer a construire les cadres necessaires
+                pour accompagner chaque jeune francophone.
+              </p>
+            </div>
+            <div className="about-vision-list">
+              {futureVision.map((item) => (
+                <div key={item}>
+                  <CheckCircle2 className="size-4" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <strong className="about-vision-signature">
+              Une generation. Une mission. Une vision.
+            </strong>
           </div>
         </section>
 
