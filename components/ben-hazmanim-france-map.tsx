@@ -7,15 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const cities = [
-  { name: "Le Raincy", region: "Seine-Saint-Denis", x: 53, y: 28 },
-  { name: "Epinay", region: "Seine-Saint-Denis", x: 49, y: 27 },
-  { name: "Paris 19eme", region: "Paris", x: 51, y: 30 },
-  { name: "Sarcelles", region: "Val-d'Oise", x: 48, y: 25 },
-  { name: "Neuilly", region: "Hauts-de-Seine", x: 49, y: 31 },
-  { name: "Bonneuil", region: "Val-de-Marne", x: 54, y: 33 },
-  { name: "Clichy", region: "Hauts-de-Seine", x: 48, y: 29 },
-  { name: "Marseille", region: "Bouches-du-Rhone", x: 67, y: 84 },
-  { name: "Aix-les-Bains", region: "Savoie", x: 74, y: 64 },
+  { name: "Le Raincy", region: "Seine-Saint-Denis", x: 54, y: 31 },
+  { name: "Epinay", region: "Seine-Saint-Denis", x: 50, y: 30 },
+  { name: "Paris 19eme", region: "Paris", x: 52, y: 33 },
+  { name: "Sarcelles", region: "Val-d'Oise", x: 49, y: 28 },
+  { name: "Neuilly", region: "Hauts-de-Seine", x: 49, y: 34 },
+  { name: "Bonneuil", region: "Val-de-Marne", x: 55, y: 36 },
+  { name: "Clichy", region: "Hauts-de-Seine", x: 48, y: 32 },
+  { name: "Marseille", region: "Bouches-du-Rhone", x: 65, y: 82 },
+  { name: "Aix-les-Bains", region: "Savoie", x: 72, y: 65 },
   { name: "Strasbourg", region: "Alsace", x: 82, y: 34 },
 ];
 
@@ -55,18 +55,25 @@ export function BenHazmanimFranceMap() {
               <div className="ben-map-shell" aria-label="Carte des programmes en France">
                 <svg
                   className="ben-france-svg"
-                  viewBox="0 0 420 480"
+                  viewBox="0 0 520 560"
                   role="img"
-                  aria-label="Carte stylisee de la France"
+                  aria-label="Carte de France"
                 >
                   <path
-                    d="M207 25 319 56 386 142 361 263 317 360 207 446 91 392 39 284 53 143 113 61Z"
+                    d="M256 34C230 37 212 50 196 68C166 61 139 77 126 101C96 108 73 133 62 166C45 182 42 210 55 235C38 269 50 307 78 327C76 354 91 381 116 393C124 426 153 446 186 442C205 468 244 477 274 462C305 480 344 468 361 437C392 431 414 403 414 371C445 352 454 313 435 284C453 252 445 211 416 191C412 159 388 135 357 129C345 96 313 77 281 83C277 57 273 41 256 34Z"
                     className="ben-france-shape"
                   />
                   <path
-                    d="M113 61 158 117 208 106 260 137 319 56M53 143 142 181 207 163 278 197 386 142M39 284 124 268 202 298 285 268 361 263M91 392 174 352 247 376 317 360"
+                    d="M126 101C158 128 187 145 222 151C258 158 292 147 357 129M62 166C117 196 173 214 236 206C304 198 355 204 416 191M78 327C139 295 192 292 244 314C300 337 358 332 435 284M116 393C171 374 225 372 274 398C309 417 342 423 361 437"
                     className="ben-france-lines"
                   />
+                  <path
+                    d="M399 438C418 450 423 474 411 497C395 489 387 468 399 438Z"
+                    className="ben-france-corsica"
+                  />
+                  <text className="ben-france-label" x="78" y="72">
+                    France
+                  </text>
                 </svg>
 
                 {cities.map((city, index) => (

@@ -2344,10 +2344,23 @@ a.card:hover,
   stroke-width: 3;
 }
 
+.ben-france-corsica {
+  fill: rgba(255, 255, 255, 0.86);
+  stroke: rgba(6, 40, 70, 0.18);
+  stroke-width: 3;
+}
+
 .ben-france-lines {
   fill: none;
   stroke: rgba(6, 40, 70, 0.1);
   stroke-width: 2;
+}
+
+.ben-france-label {
+  fill: rgba(6, 40, 70, 0.22);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 34px;
+  font-weight: 800;
 }
 
 .ben-map-point {
