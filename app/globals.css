@@ -2316,6 +2316,11 @@ a.card:hover,
   gap: 16px;
 }
 
+.ben-region-main {
+  display: grid;
+  gap: 16px;
+}
+
 .ben-region-card {
   overflow: hidden;
   border-color: rgba(223, 231, 240, 0.94);
@@ -2611,12 +2616,12 @@ a.card:hover,
 
 .ben-map-stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
 .ben-map-stat-main {
-  grid-column: 1 / -1;
+  grid-column: span 1;
 }
 
 .ben-map-stat [data-slot="card-content"] {
@@ -3214,6 +3219,10 @@ a.card:hover,
 
   .ben-map-stats {
     grid-template-columns: 1fr;
+  }
+
+  .ben-map-stat-main {
+    grid-column: span 1;
   }
 
   .program-list-card[data-featured="true"] .program-card-media {

@@ -87,82 +87,57 @@ export function BenHazmanimFranceMap() {
         </div>
 
         <div className="ben-region-layout">
-          <div className="ben-region-grid">
-            {regions.map((region) => (
-              <Card
-                className={cn(
-                  "ben-region-card",
-                  region.name === activeCity.region && "ben-region-card-active",
-                )}
-                key={region.name}
-              >
-                <CardContent>
-                  <div className="ben-region-card-header">
-                    <strong>{region.name}</strong>
-                    <span>{region.subtitle}</span>
-                  </div>
-
-                  <div className="ben-region-map" aria-label={`Carte ${region.name}`}>
-                    <Image
-                      alt=""
-                      className="ben-region-map-img"
-                      fill
-                      priority={region.name === "Ile-de-France"}
-                      sizes="(max-width: 980px) 100vw, 32vw"
-                      src={region.map}
-                      unoptimized
-                    />
-
-                    {region.cities.map((city, index) => (
-                      <button
-                        className={cn(
-                          "ben-map-point",
-                          city.name === activeCity.name && "ben-map-point-active",
-                        )}
-                        key={city.name}
-                        onClick={() => setActiveCity({ ...city, region: region.name })}
-                        style={{
-                          "--point-x": `${city.x}%`,
-                          "--point-y": `${city.y}%`,
-                          "--point-delay": `${index * 90}ms`,
-                        } as CSSProperties}
-                        type="button"
-                        aria-label={`Voir ${city.name}`}
-                      >
-                        <span />
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="ben-map-insight">
-            <Card className="ben-map-active-card">
-              <CardContent>
-                <span className="icon-box">
-                  <MapPin className="size-5" />
-                </span>
-                <small>Point selectionne</small>
-                <strong>{activeCity.name}</strong>
-                <p>
-                  Programme organise en {activeCity.region}, dans la zone{" "}
-                  {activeCity.area}. Ce point fait partie des {allCities.length}
-                  implantations du reseau.
-                </p>
-                <p className="ben-map-formula">
-                  Calcul en heures-personnes : 30 participants x 30 jours x 3
-                  heures = 2 700 heures etudiees cette annee.
-                </p>
-                <div
-                  className="ben-map-progress"
-                  style={{ "--active-index": selectedIndex + 1 } as CSSProperties}
+          <div className="ben-region-main">
+            <div className="ben-region-grid">
+              {regions.map((region) => (
+                <Card
+                  className={cn(
+                    "ben-region-card",
+                    region.name === activeCity.region && "ben-region-card-active",
+                  )}
+                  key={region.name}
                 >
-                  <span />
-                </div>
-              </CardContent>
-            </Card>
+                  <CardContent>
+                    <div className="ben-region-card-header">
+                      <strong>{region.name}</strong>
+                      <span>{region.subtitle}</span>
+                    </div>
+
+                    <div className="ben-region-map" aria-label={`Carte ${region.name}`}>
+                      <Image
+                        alt=""
+                        className="ben-region-map-img"
+                        fill
+                        priority={region.name === "Ile-de-France"}
+                        sizes="(max-width: 980px) 100vw, 32vw"
+                        src={region.map}
+                        unoptimized
+                      />
+
+                      {region.cities.map((city, index) => (
+                        <button
+                          className={cn(
+                            "ben-map-point",
+                            city.name === activeCity.name && "ben-map-point-active",
+                          )}
+                          key={city.name}
+                          onClick={() => setActiveCity({ ...city, region: region.name })}
+                          style={{
+                            "--point-x": `${city.x}%`,
+                            "--point-y": `${city.y}%`,
+                            "--point-delay": `${index * 90}ms`,
+                          } as CSSProperties}
+                          type="button"
+                          aria-label={`Voir ${city.name}`}
+                        >
+                          <span />
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             <div className="ben-map-stats">
               <Card className="ben-map-stat ben-map-stat-main">
@@ -218,6 +193,33 @@ export function BenHazmanimFranceMap() {
             <p className="ben-map-source">
               Cartes regionales: france-geojson, donnees ouvertes IGN/INSEE.
             </p>
+          </div>
+
+          <div className="ben-map-insight">
+            <Card className="ben-map-active-card">
+              <CardContent>
+                <span className="icon-box">
+                  <MapPin className="size-5" />
+                </span>
+                <small>Point selectionne</small>
+                <strong>{activeCity.name}</strong>
+                <p>
+                  Programme organise en {activeCity.region}, dans la zone{" "}
+                  {activeCity.area}. Ce point fait partie des {allCities.length}
+                  implantations du reseau.
+                </p>
+                <p className="ben-map-formula">
+                  Calcul en heures-personnes : 30 participants x 30 jours x 3
+                  heures = 2 700 heures etudiees cette annee.
+                </p>
+                <div
+                  className="ben-map-progress"
+                  style={{ "--active-index": selectedIndex + 1 } as CSSProperties}
+                >
+                  <span />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
