@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -31,6 +32,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   MessageCircle,
+  XIcon,
 } from "lucide-react";
 
 type ProgramDetail = {
@@ -603,31 +605,45 @@ function ProgramVisualGallery() {
                 </CardHeader>
               </Card>
             </DialogTrigger>
-            <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+            <DialogContent
+              showCloseButton={false}
+              className="gallery-dialog-content max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl"
+            >
               <DialogHeader className="gallery-dialog-header">
-                <DialogTitle>Galerie photos</DialogTitle>
-                <DialogDescription>
-                  Moments d&apos;etude, rencontres et ambiance du programme.
-                </DialogDescription>
+                <div className="grid gap-2">
+                  <DialogTitle>Galerie photos</DialogTitle>
+                  <DialogDescription>
+                    Moments d&apos;etude, rencontres et ambiance du programme.
+                  </DialogDescription>
+                </div>
+                <DialogClose
+                  render={
+                    <Button aria-label="Fermer" variant="ghost" size="icon-sm" />
+                  }
+                >
+                  <XIcon className="size-4" />
+                </DialogClose>
               </DialogHeader>
-              <div className="gallery-dialog-grid">
-                {benHazmanimPhotos.map((photo, photoIndex) => (
-                  <div
-                    className={
-                      photoIndex === 0
-                        ? "gallery-dialog-photo gallery-dialog-photo-featured"
-                        : "gallery-dialog-photo"
-                    }
-                    key={photo}
-                  >
-                    <Image
-                      alt=""
-                      fill
-                      sizes="(max-width: 980px) 100vw, 33vw"
-                      src={photo}
-                    />
-                  </div>
-                ))}
+              <div className="gallery-dialog-scroll">
+                <div className="gallery-dialog-grid">
+                  {benHazmanimPhotos.map((photo, photoIndex) => (
+                    <div
+                      className={
+                        photoIndex === 0
+                          ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                          : "gallery-dialog-photo"
+                      }
+                      key={photo}
+                    >
+                      <Image
+                        alt=""
+                        fill
+                        sizes="(max-width: 980px) 100vw, 33vw"
+                        src={photo}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </DialogContent>
           </Dialog>

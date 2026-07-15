@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -12,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TalmoudoRegistrationForm } from "@/components/talmoudo-registration-form";
-import { CalendarDays, CheckCircle2, MapPin, Send } from "lucide-react";
+import { CalendarDays, CheckCircle2, MapPin, Send, XIcon } from "lucide-react";
 
 type TalmoudoSessionOption = {
   disabled?: boolean;
@@ -88,13 +89,25 @@ export function TalmoudoProgramSignupCta({
               <Send />
               Je m&apos;inscris au mivhan
             </DialogTrigger>
-            <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl">
-              <DialogHeader className="sticky top-0 z-20 border-b border-[var(--border)] bg-popover p-4 pr-12">
-                <DialogTitle>{session.title}</DialogTitle>
-                <DialogDescription>
-                  Mivhan du {session.dateLabel}
-                  {session.location ? ` a ${session.location}` : ""}.
-                </DialogDescription>
+            <DialogContent
+              showCloseButton={false}
+              className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl"
+            >
+              <DialogHeader className="sticky top-0 z-20 grid grid-cols-[1fr_auto] items-start gap-3 border-b border-[var(--border)] bg-popover p-4">
+                <div className="grid gap-2">
+                  <DialogTitle>{session.title}</DialogTitle>
+                  <DialogDescription>
+                    Mivhan du {session.dateLabel}
+                    {session.location ? ` a ${session.location}` : ""}.
+                  </DialogDescription>
+                </div>
+                <DialogClose
+                  render={
+                    <Button aria-label="Fermer" variant="ghost" size="icon-sm" />
+                  }
+                >
+                  <XIcon className="size-4" />
+                </DialogClose>
               </DialogHeader>
               <div className="max-h-[calc(92vh-96px)] overflow-y-auto p-4">
                 <TalmoudoRegistrationForm

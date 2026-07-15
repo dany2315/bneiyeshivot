@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -38,6 +39,7 @@ import {
   Film,
   Gift,
   Heart,
+  XIcon,
   MapPin,
   School,
   ShoppingBasket,
@@ -478,12 +480,29 @@ export default async function Home() {
                       </CardHeader>
                     </Card>
                   </DialogTrigger>
-                  <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                  <DialogContent
+                    showCloseButton={false}
+                    className="gallery-dialog-content max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl"
+                  >
                     <DialogHeader className="gallery-dialog-header">
-                      <DialogTitle>{album.title}</DialogTitle>
-                      <DialogDescription>{album.description}</DialogDescription>
+                      <div className="grid gap-2">
+                        <DialogTitle>{album.title}</DialogTitle>
+                        <DialogDescription>{album.description}</DialogDescription>
+                      </div>
+                      <DialogClose
+                        render={
+                          <Button
+                            aria-label="Fermer"
+                            variant="ghost"
+                            size="icon-sm"
+                          />
+                        }
+                      >
+                        <XIcon className="size-4" />
+                      </DialogClose>
                     </DialogHeader>
-                    <div className="gallery-dialog-grid">
+                    <div className="gallery-dialog-scroll">
+                      <div className="gallery-dialog-grid">
                       {album.photos.map((photo, photoIndex) => (
                         <div
                           className={
@@ -501,6 +520,7 @@ export default async function Home() {
                           />
                         </div>
                       ))}
+                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>

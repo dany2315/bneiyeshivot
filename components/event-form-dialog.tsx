@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -222,18 +223,31 @@ export function EventFormDialog({
           )
         }
       />
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
-        <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Modifier l'evenement" : "Creer un evenement"}
-          </DialogTitle>
-          <DialogDescription>
-            La previsualisation a droite montre la card et la page telles
-            qu&apos;elles apparaitront sur le site.
-          </DialogDescription>
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl"
+      >
+        <DialogHeader className="sticky top-0 z-20 grid grid-cols-[1fr_auto] items-start gap-3 border-b border-[var(--border)] bg-popover p-4">
+          <div className="grid gap-2">
+            <DialogTitle>
+              {mode === "edit" ? "Modifier l'evenement" : "Creer un evenement"}
+            </DialogTitle>
+            <DialogDescription>
+              La previsualisation a droite montre la card et la page telles
+              qu&apos;elles apparaitront sur le site.
+            </DialogDescription>
+          </div>
+          <DialogClose
+            render={
+              <Button aria-label="Fermer" variant="ghost" size="icon-sm" />
+            }
+          >
+            <X className="size-4" />
+          </DialogClose>
         </DialogHeader>
 
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="max-h-[calc(92vh-96px)] overflow-y-auto p-4">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <fieldset
               className="m-0 grid gap-4 border-0 p-0 disabled:opacity-60"
@@ -519,6 +533,7 @@ export function EventFormDialog({
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </DialogContent>
