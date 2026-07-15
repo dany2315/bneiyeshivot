@@ -1,0 +1,48 @@
+CREATE TYPE "DonationFrequency" AS ENUM ('ONE_TIME', 'MONTHLY');
+CREATE TYPE "DonationSource" AS ENUM ('ONLINE', 'ADMIN_CASH', 'ADMIN_CHECK', 'ADMIN_BANK_TRANSFER', 'ADMIN_OTHER');
+CREATE TYPE "CerfaReceiptType" AS ENUM ('PARTICULIER', 'ENTREPRISE', 'ISF_IFI', 'AUTRE');
+
+ALTER TYPE "PaymentStatus" ADD VALUE IF NOT EXISTS 'PARTIALLY_REFUNDED';
+
+ALTER TABLE "Donation"
+  ADD COLUMN IF NOT EXISTS "source" "DonationSource" NOT NULL DEFAULT 'ONLINE',
+  ADD COLUMN IF NOT EXISTS "frequency" "DonationFrequency" NOT NULL DEFAULT 'ONE_TIME',
+  ADD COLUMN IF NOT EXISTS "refundedAmountCents" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "donorFirstName" TEXT,
+  ADD COLUMN IF NOT EXISTS "donorLastName" TEXT,
+  ADD COLUMN IF NOT EXISTS "donorPhone" TEXT,
+  ADD COLUMN IF NOT EXISTS "dedication" TEXT,
+  ADD COLUMN IF NOT EXISTS "stripeCheckoutSessionId" TEXT,
+  ADD COLUMN IF NOT EXISTS "stripePaymentIntentId" TEXT,
+  ADD COLUMN IF NOT EXISTS "stripeSubscriptionId" TEXT,
+  ADD COLUMN IF NOT EXISTS "stripeCustomerId" TEXT,
+  ADD COLUMN IF NOT EXISTS "failureReason" TEXT,
+  ADD COLUMN IF NOT EXISTS "paidAt" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "canceledAt" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "refundedAt" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "metadata" JSONB;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Donation_stripeCheckoutSessionId_key" ON "Donation"("stripeCheckoutSessionId");
+CREATE UNIQUE INDEX IF NOT EXISTS "Donation_stripePaymentIntentId_key" ON "Donation"("stripePaymentIntentId");
+CREATE INDEX IF NOT EXISTS "Donation_status_createdAt_idx" ON "Donation"("status", "createdAt");
+CREATE INDEX IF NOT EXISTS "Donation_donorEmail_idx" ON "Donation"("donorEmail");
+
+ALTER TABLE "Receipt"
+  ADD COLUMN IF NOT EXISTS "type" "CerfaReceiptType" NOT NULL DEFAULT 'PARTICULIER',
+  ADD COLUMN IF NOT EXISTS "fiscalYear" INTEGER NOT NULL DEFAULT EXTRACT(YEAR FROM NOW())::INTEGER,
+  ADD COLUMN IF NOT EXISTS "donorName" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "donorAddress" TEXT,
+  ADD COLUMN IF NOT EXISTS "donorZip" TEXT,
+  ADD COLUMN IF NOT EXISTS "donorCity" TEXT,
+  ADD COLUMN IF NOT EXISTS "donorCountry" TEXT,
+  ADD COLUMN IF NOT EXISTS "donorTaxId" TEXT,
+  ADD COLUMN IF NOT EXISTS "legalNote" TEXT,
+  ADD COLUMN IF NOT EXISTS "metadata" JSONB,
+  ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE "Receipt"
+SET "donorName" = COALESCE("Donation"."donorName", "Donation"."donorEmail")
+FROM "Donation"
+WHERE "Receipt"."donationId" = "Donation"."id"
+  AND "Receipt"."donorName" = '';

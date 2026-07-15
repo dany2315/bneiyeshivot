@@ -5,9 +5,13 @@ type SendEmailInput = {
   to: string;
   subject: string;
   html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string;
+  }>;
 };
 
-export async function sendEmail({ to, subject, html }: SendEmailInput) {
+export async function sendEmail({ to, subject, html, attachments }: SendEmailInput) {
   if (!RESEND_API_KEY || !EMAIL_FROM) {
     console.warn("[email] RESEND_API_KEY ou EMAIL_FROM manquant : email non envoye.");
     return { ok: false as const };
@@ -20,7 +24,7 @@ export async function sendEmail({ to, subject, html }: SendEmailInput) {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: EMAIL_FROM, to, subject, html }),
+      body: JSON.stringify({ from: EMAIL_FROM, to, subject, html, attachments }),
     });
 
     if (!response.ok) {
@@ -84,6 +88,47 @@ export function requestConfirmationEmail(params: {
   };
 }
 
+export function donationThankYouEmail(params: {
+  donorName?: string | null;
+  amount: string;
+  frequency: string;
+  receiptNumber?: string | null;
+  stripeReceiptUrl?: string | null;
+}) {
+  const greeting = params.donorName ? `Bonjour ${params.donorName},` : "Bonjour,";
+  const stripeReceiptLine = params.stripeReceiptUrl
+    ? `<p><a href="${params.stripeReceiptUrl}" style="color:#062846;font-weight:700;">Voir le recu Stripe</a></p>`
+    : "";
+  const cerfaLine = params.receiptNumber
+    ? `<p>Votre recu fiscal Cerfa <strong>${params.receiptNumber}</strong> est joint a cet email.</p>`
+    : "";
+
+  return {
+    subject: "Bnei Yeshivot - Merci pour votre don",
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6; background:#f5f8fb; padding:24px;">
+        <div style="max-width:620px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #dfe7f0;">
+          <div style="background:#062846;color:#fff;padding:26px 28px;">
+            <h1 style="margin:0;font-size:26px;">Merci pour votre don</h1>
+            <p style="margin:8px 0 0;color:#ffb35c;font-weight:700;">Bnei Yeshivot France - Israel</p>
+          </div>
+          <div style="padding:26px 28px;">
+            <p>${greeting}</p>
+            <p>
+              Nous avons bien recu votre don de <strong>${params.amount}</strong>
+              (${params.frequency}). Votre soutien nous aide a accompagner les jeunes
+              francophones en Israel de facon concrete.
+            </p>
+            ${cerfaLine}
+            ${stripeReceiptLine}
+            <p style="margin-top:24px;">Avec toute notre reconnaissance,</p>
+            <p><strong>L'equipe Bnei Yeshivot</strong></p>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+}
 export function talmoudoResultEmail(params: {
   firstName?: string;
   sessionTitle: string;
