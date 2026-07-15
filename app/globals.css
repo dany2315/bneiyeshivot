@@ -2321,7 +2321,7 @@ a.card:hover,
 
 .ben-map-shell {
   position: relative;
-  min-height: 620px;
+  aspect-ratio: 13 / 14;
   overflow: hidden;
   border-radius: 18px;
   background:
@@ -2330,37 +2330,12 @@ a.card:hover,
     #eef5f8;
 }
 
-.ben-france-svg {
+.ben-france-map-img {
   position: absolute;
-  inset: 6% 8%;
-  width: 84%;
-  height: 88%;
+  inset: 0;
+  padding: 18px;
+  object-fit: contain;
   filter: drop-shadow(0 28px 50px rgba(6, 40, 70, 0.14));
-}
-
-.ben-france-shape {
-  fill: rgba(255, 255, 255, 0.92);
-  stroke: rgba(6, 40, 70, 0.22);
-  stroke-width: 3;
-}
-
-.ben-france-corsica {
-  fill: rgba(255, 255, 255, 0.86);
-  stroke: rgba(6, 40, 70, 0.18);
-  stroke-width: 3;
-}
-
-.ben-france-lines {
-  fill: none;
-  stroke: rgba(6, 40, 70, 0.1);
-  stroke-width: 2;
-}
-
-.ben-france-label {
-  fill: rgba(6, 40, 70, 0.22);
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 34px;
-  font-weight: 800;
 }
 
 .ben-map-point {
@@ -2407,6 +2382,20 @@ a.card:hover,
 
 .ben-map-point-active span {
   background: var(--primary);
+}
+
+.ben-map-source {
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  margin: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: rgba(6, 40, 70, 0.58);
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 780;
+  backdrop-filter: blur(10px);
 }
 
 .ben-city-rail {
@@ -3092,7 +3081,7 @@ a.card:hover,
   }
 
   .ben-map-shell {
-    min-height: 460px;
+    aspect-ratio: 13 / 14;
   }
 
   .ben-map-stats {
