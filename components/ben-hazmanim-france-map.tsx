@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import Image from "next/image";
 import CountUp from "react-countup";
-import { CalendarDays, Clock3, MapPin, Users } from "lucide-react";
+import { CalendarDays, Clock3, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -67,10 +67,6 @@ const decadeHours = totalParticipants * daysPerYear * hoursPerDay;
 
 export function BenHazmanimFranceMap() {
   const [activeCity, setActiveCity] = useState(allCities[0]);
-  const selectedIndex = useMemo(
-    () => allCities.findIndex((city) => city.name === activeCity.name),
-    [activeCity],
-  );
 
   return (
     <section className="section ben-map-section">
@@ -193,33 +189,6 @@ export function BenHazmanimFranceMap() {
             <p className="ben-map-source">
               Cartes regionales: france-geojson, donnees ouvertes IGN/INSEE.
             </p>
-          </div>
-
-          <div className="ben-map-insight">
-            <Card className="ben-map-active-card">
-              <CardContent>
-                <span className="icon-box">
-                  <MapPin className="size-5" />
-                </span>
-                <small>Point selectionne</small>
-                <strong>{activeCity.name}</strong>
-                <p>
-                  Programme organise en {activeCity.region}, dans la zone{" "}
-                  {activeCity.area}. Ce point fait partie des {allCities.length}
-                  implantations du reseau.
-                </p>
-                <p className="ben-map-formula">
-                  Calcul en heures-personnes : 30 participants x 30 jours x 3
-                  heures = 2 700 heures etudiees cette annee.
-                </p>
-                <div
-                  className="ben-map-progress"
-                  style={{ "--active-index": selectedIndex + 1 } as CSSProperties}
-                >
-                  <span />
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

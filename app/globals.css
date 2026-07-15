@@ -2383,7 +2383,6 @@ a.card:hover,
 }
 
 .ben-map-card,
-.ben-map-active-card,
 .ben-map-stat {
   border-color: rgba(223, 231, 240, 0.94);
   background:
@@ -2554,63 +2553,6 @@ a.card:hover,
   border-color: rgba(6, 40, 70, 0.2);
   background: var(--primary);
   color: #fff;
-}
-
-.ben-map-insight {
-  display: block;
-}
-
-.ben-map-active-card [data-slot="card-content"] {
-  display: grid;
-  gap: 12px;
-  padding: 22px;
-}
-
-.ben-map-active-card small {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.ben-map-active-card strong {
-  color: var(--primary-strong);
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 38px;
-  line-height: 1;
-}
-
-.ben-map-active-card p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.ben-map-active-card .ben-map-formula {
-  border-radius: 14px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-  padding: 12px;
-  font-size: 13px;
-  font-weight: 850;
-  line-height: 1.45;
-}
-
-.ben-map-progress {
-  height: 9px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--primary-soft);
-}
-
-.ben-map-progress span {
-  display: block;
-  width: calc(var(--active-index) * 10%);
-  max-width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--primary));
-  transition: width 220ms ease;
 }
 
 .ben-map-stats {
