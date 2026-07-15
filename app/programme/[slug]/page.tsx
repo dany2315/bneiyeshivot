@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -75,20 +74,6 @@ const benHazmanimShortUrl =
 const benHazmanimPhotos = benHazmanimGallery.items
   .map((item) => fileUrl(item.key))
   .filter((src): src is string => Boolean(src));
-
-const benHazmanimGalleryAlbums: VisualGalleryAlbum[] = [
-  {
-    title: "Photos",
-    description: "Toutes les photos importees du dossier Drive Ben Hazmanim.",
-    photos: benHazmanimPhotos,
-  },
-  {
-    title: "Videos",
-    description: "Courts formats, prises de parole et souvenirs du programme.",
-    videoUrl: benHazmanimShortUrl,
-    photos: benHazmanimPhotos.slice(0, 6),
-  },
-];
 
 const programDetails: Record<string, ProgramDetail> = {
   "beth-hamidrach": {
@@ -566,103 +551,100 @@ export async function generateMetadata({ params }: ProgramDetailPageProps) {
   };
 }
 
-function ProgramVisualGallery({ albums }: { albums: VisualGalleryAlbum[] }) {
+function ProgramVisualGallery() {
   return (
     <section className="section band">
       <div className="container">
         <div className="section-header">
           <div>
             <span className="eyebrow">Galerie</span>
-            <h2>Images et videos du reseau</h2>
+            <h2>Photos et Short Ben Hazmanim</h2>
           </div>
           <p>
-            Une galerie pour retrouver les moments forts, les lieux et
-            l&apos;ambiance des programmes Ben Hazmanim.
+            Les photos importees du dossier Drive et le Short video du programme.
           </p>
         </div>
-        <div className="gallery-grid">
-          {albums.map((album, index) => (
-            <Dialog key={album.title}>
-              <DialogTrigger
-                render={<button className="gallery-card-trigger" type="button" />}
-              >
-                <Card className="gallery-card">
-                  <div className="gallery-card-mosaic">
-                    {album.photos.slice(0, 5).map((photo, photoIndex) => (
-                      <div
-                        className={
-                          photoIndex === 0
-                            ? "gallery-mosaic-cell gallery-mosaic-main"
-                            : "gallery-mosaic-cell"
-                        }
-                        key={photo}
-                      >
-                        <Image
-                          alt=""
-                          fill
-                          sizes="(max-width: 980px) 50vw, 20vw"
-                          src={photo}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <CardHeader>
-                    <Badge variant={index % 2 === 0 ? "info" : "warning"}>
-                      {album.videoUrl ? "Video" : `${album.photos.length} photos`}
-                    </Badge>
-                    <CardTitle>{album.title}</CardTitle>
-                    <CardDescription>{album.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </DialogTrigger>
-              <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
-                <DialogClose
-                  render={
-                    <Button
-                      className="gallery-dialog-close"
-                      size="sm"
-                      variant="secondary"
-                    />
-                  }
-                >
-                  Fermer
-                </DialogClose>
-                <DialogHeader className="gallery-dialog-header">
-                  <DialogTitle>{album.title}</DialogTitle>
-                  <DialogDescription>{album.description}</DialogDescription>
-                </DialogHeader>
-                {album.videoUrl ? (
-                  <div className="gallery-dialog-video">
-                    <iframe
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      src={album.videoUrl}
-                      title={`${album.title} Ben Hazmanim`}
-                    />
-                  </div>
-                ) : null}
-                <div className="gallery-dialog-grid">
-                  {album.photos.map((photo, photoIndex) => (
+
+        <div className="ben-gallery-pair">
+          <Dialog>
+            <DialogTrigger
+              render={<button className="gallery-card-trigger" type="button" />}
+            >
+              <Card className="gallery-card">
+                <div className="gallery-card-mosaic">
+                  {benHazmanimPhotos.slice(0, 5).map((photo, photoIndex) => (
                     <div
                       className={
                         photoIndex === 0
-                          ? "gallery-dialog-photo gallery-dialog-photo-featured"
-                          : "gallery-dialog-photo"
+                          ? "gallery-mosaic-cell gallery-mosaic-main"
+                          : "gallery-mosaic-cell"
                       }
                       key={photo}
                     >
                       <Image
                         alt=""
                         fill
-                        sizes="(max-width: 980px) 100vw, 33vw"
+                        sizes="(max-width: 980px) 50vw, 20vw"
                         src={photo}
                       />
                     </div>
                   ))}
                 </div>
-              </DialogContent>
-            </Dialog>
-          ))}
+                <CardHeader>
+                  <Badge variant="info">{benHazmanimPhotos.length} photos</Badge>
+                  <CardTitle>Galerie photos</CardTitle>
+                  <CardDescription>
+                    Toutes les photos importees du dossier Drive Ben Hazmanim.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+              <DialogHeader className="gallery-dialog-header">
+                <DialogTitle>Galerie photos</DialogTitle>
+                <DialogDescription>
+                  Toutes les photos importees du dossier Drive Ben Hazmanim.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="gallery-dialog-grid">
+                {benHazmanimPhotos.map((photo, photoIndex) => (
+                  <div
+                    className={
+                      photoIndex === 0
+                        ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                        : "gallery-dialog-photo"
+                    }
+                    key={photo}
+                  >
+                    <Image
+                      alt=""
+                      fill
+                      sizes="(max-width: 980px) 100vw, 33vw"
+                      src={photo}
+                    />
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Card className="ben-short-card">
+            <div className="gallery-dialog-video ben-short-video">
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                src={benHazmanimShortUrl}
+                title="Short Ben Hazmanim"
+              />
+            </div>
+            <CardHeader>
+              <Badge variant="warning">Short</Badge>
+              <CardTitle>Le Short Ben Hazmanim</CardTitle>
+              <CardDescription>
+                Le format video court du programme.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         </div>
       </div>
     </section>
@@ -824,7 +806,7 @@ export default async function ProgramDetailPage({
         {slug === "ben-hazmanim" ? <BenHazmanimFranceMap /> : null}
 
         {slug === "ben-hazmanim" ? (
-          <ProgramVisualGallery albums={benHazmanimGalleryAlbums} />
+          <ProgramVisualGallery />
         ) : null}
 
         {detail.flow?.length ? (
