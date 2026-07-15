@@ -35,6 +35,23 @@ function dafValueToIndex(value: string) {
   return Number(match[1]) * 2 + (match[2] === "b" ? 1 : 0);
 }
 
+function rangeAmudim(range: DafRange) {
+  const fromIndex = dafValueToIndex(range.from);
+  const toIndex = dafValueToIndex(range.to);
+
+  if (fromIndex < 0 || toIndex < 0 || toIndex < fromIndex) {
+    return 0;
+  }
+
+  return toIndex - fromIndex + 1;
+}
+
+function formatDapimCount(amudim: number) {
+  const dapim = amudim / 2;
+
+  return Number.isInteger(dapim) ? String(dapim) : dapim.toFixed(1);
+}
+
 function serializeRanges(ranges: DafRange[]) {
   return ranges
     .filter((range) => range.from && range.to)
@@ -70,6 +87,13 @@ export function DapimRangeFields({
   );
   const dafOptions = useMemo(() => buildDafOptions(lastDaf), [lastDaf]);
   const serializedRanges = useMemo(() => serializeRanges(ranges), [ranges]);
+  const selectedAmudim = useMemo(
+    () => ranges.reduce((total, range) => total + rangeAmudim(range), 0),
+    [ranges],
+  );
+  const remainingAmudim = 16 - selectedAmudim;
+  const isExact = remainingAmudim === 0;
+  const isOver = remainingAmudim < 0;
 
   function updateRange(index: number, key: keyof DafRange, value: string) {
     setRanges((current) =>
@@ -104,7 +128,20 @@ export function DapimRangeFields({
             key={index}
           >
             <div className="grid gap-2">
-              <FieldLabel htmlFor={`dapim-from-${index}`}>Du daf</FieldLabel>
+              <div className="flex items-center justify-between gap-3">
+                <FieldLabel htmlFor={`dapim-from-${index}`}>Du daf</FieldLabel>
+                <Button
+                  aria-label="Retirer cette plage"
+                  className="md:hidden"
+                  disabled={ranges.length === 1}
+                  onClick={() => removeRange(index)}
+                  size="icon-sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  <Trash2 />
+                </Button>
+              </div>
               <NativeSelect
                 className="w-full"
                 dir="rtl"
@@ -117,7 +154,14 @@ export function DapimRangeFields({
               >
                 <NativeSelectOption value="">Selectionner</NativeSelectOption>
                 {dafOptions.map((daf) => (
-                  <NativeSelectOption key={`from-${index}-${daf.value}`} value={daf.value}>
+                  <NativeSelectOption
+                    disabled={
+                      Boolean(range.to) &&
+                      dafValueToIndex(daf.value) > dafValueToIndex(range.to)
+                    }
+                    key={`from-${index}-${daf.value}`}
+                    value={daf.value}
+                  >
                     {daf.label}
                   </NativeSelectOption>
                 ))}
@@ -152,7 +196,7 @@ export function DapimRangeFields({
             </div>
             <Button
               aria-label="Retirer cette plage"
-              className="self-end"
+              className="hidden self-end md:inline-flex"
               disabled={ranges.length === 1}
               onClick={() => removeRange(index)}
               size="icon"
@@ -165,8 +209,12 @@ export function DapimRangeFields({
         ))}
       </div>
       <FieldDescription>
-        Choisissez 1 ou 2 plages maximum. Le total doit couvrir exactement 8
-        dapim.
+        {isExact
+          ? "Vous avez selectionne exactement 8 dapim."
+          : isOver
+            ? `Vous avez depasse de ${formatDapimCount(Math.abs(remainingAmudim))} dapim.`
+            : `Vous avez selectionne ${formatDapimCount(selectedAmudim)} dapim. Il reste ${formatDapimCount(remainingAmudim)} dapim pour arriver a 8.`}
+        {" "}Les options impossibles restent visibles mais non cliquables.
       </FieldDescription>
       <Button
         className="w-fit"
