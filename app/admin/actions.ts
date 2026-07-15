@@ -2,13 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  CerfaReceiptType,
+  DonationFrequency,
+  DonationSource,
   EventRegistrationStatus,
+  PaymentStatus,
+  ReceiptStatus,
   ServiceRequestStatus,
+  StoreReservationStatus,
   UserRole,
 } from "@prisma/client";
+import {
+  getStripe,
+  nextReceiptNumber,
+  readDonationAmount,
+  receiptStatusFromNeeded,
+} from "@/lib/donations";
+import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { deleteFilesFromS3, uploadFilesToS3 } from "@/lib/uploads";
+import { ensureDefaultStorefront, readStorePrice } from "@/lib/store";
 
 function slugify(value: string) {
   return value
@@ -369,4 +383,502 @@ export async function ensureAdminRole(email: string) {
     where: { email },
     data: { role: UserRole.ADMIN },
   });
+}
+
+export async function updateStorefront(formData: FormData) {
+  const admin = await requireAdminUser();
+  const storefront = await ensureDefaultStorefront();
+  const name = readString(formData, "name");
+  const heroTitle = readString(formData, "heroTitle");
+  const heroSubtitle = readString(formData, "heroSubtitle");
+  const description = readString(formData, "description");
+
+  if (!name || !heroTitle || !heroSubtitle || !description) {
+    throw new Error("Nom, titre, sous-titre et description obligatoires.");
+  }
+
+  await prisma.storefront.update({
+    where: { id: storefront.id },
+    data: {
+      name,
+      heroTitle,
+      heroSubtitle,
+      description,
+      pickupDetails: readString(formData, "pickupDetails") || null,
+      contactEmail: readString(formData, "contactEmail") || null,
+      contactPhone: readString(formData, "contactPhone") || null,
+      active: formData.get("active") === "on",
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "storefront.updated",
+      entity: "Storefront",
+      entityId: storefront.id,
+    },
+  });
+
+  revalidatePath("/admin/boutique");
+  revalidatePath("/boutique");
+}
+
+export async function createStoreProduct(formData: FormData) {
+  const admin = await requireAdminUser();
+  const storefront = await ensureDefaultStorefront();
+  const title = readString(formData, "title");
+  const description = readString(formData, "description");
+  const priceCents = readStorePrice(formData.get("price"));
+
+  if (!title || !description || !priceCents) {
+    throw new Error("Titre, description et prix obligatoires.");
+  }
+
+  const product = await prisma.storeProduct.create({
+    data: {
+      storefrontId: storefront.id,
+      title,
+      slug: `${slugify(title)}-${Date.now().toString(36)}`,
+      description,
+      details: readString(formData, "details") || null,
+      priceCents,
+      currency: readString(formData, "currency").toUpperCase() || "EUR",
+      imageUrl: readString(formData, "imageUrl") || null,
+      stockQuantity: readString(formData, "stockQuantity")
+        ? Number(readString(formData, "stockQuantity"))
+        : null,
+      active: formData.get("active") === "on",
+      featured: formData.get("featured") === "on",
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "store_product.created",
+      entity: "StoreProduct",
+      entityId: product.id,
+      metadata: { title: product.title },
+    },
+  });
+
+  revalidatePath("/admin/boutique");
+  revalidatePath("/boutique");
+}
+
+export async function updateStoreProduct(formData: FormData) {
+  const admin = await requireAdminUser();
+  const productId = readString(formData, "productId");
+  const title = readString(formData, "title");
+  const description = readString(formData, "description");
+  const priceCents = readStorePrice(formData.get("price"));
+
+  if (!productId || !title || !description || !priceCents) {
+    throw new Error("Produit invalide.");
+  }
+
+  await prisma.storeProduct.update({
+    where: { id: productId },
+    data: {
+      title,
+      description,
+      details: readString(formData, "details") || null,
+      priceCents,
+      currency: readString(formData, "currency").toUpperCase() || "EUR",
+      imageUrl: readString(formData, "imageUrl") || null,
+      stockQuantity: readString(formData, "stockQuantity")
+        ? Number(readString(formData, "stockQuantity"))
+        : null,
+      active: formData.get("active") === "on",
+      featured: formData.get("featured") === "on",
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "store_product.updated",
+      entity: "StoreProduct",
+      entityId: productId,
+    },
+  });
+
+  revalidatePath("/admin/boutique");
+  revalidatePath("/boutique");
+}
+
+export async function deleteStoreProduct(formData: FormData) {
+  const admin = await requireAdminUser();
+  const productId = readString(formData, "productId");
+
+  if (!productId) {
+    throw new Error("Produit introuvable.");
+  }
+
+  const itemCount = await prisma.storeReservationItem.count({
+    where: { productId },
+  });
+
+  if (itemCount > 0) {
+    await prisma.storeProduct.update({
+      where: { id: productId },
+      data: { active: false },
+    });
+  } else {
+    await prisma.storeProduct.delete({ where: { id: productId } });
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: itemCount > 0 ? "store_product.archived" : "store_product.deleted",
+      entity: "StoreProduct",
+      entityId: productId,
+    },
+  });
+
+  revalidatePath("/admin/boutique");
+  revalidatePath("/boutique");
+}
+
+export async function updateStoreReservation(formData: FormData) {
+  const admin = await requireAdminUser();
+  const reservationId = readString(formData, "reservationId");
+  const status = readString(formData, "status") as StoreReservationStatus;
+
+  if (
+    !reservationId ||
+    !Object.values(StoreReservationStatus).includes(status)
+  ) {
+    throw new Error("Reservation ou statut invalide.");
+  }
+
+  await prisma.storeReservation.update({
+    where: { id: reservationId },
+    data: {
+      status,
+      adminNote: readString(formData, "adminNote") || null,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "store_reservation.updated",
+      entity: "StoreReservation",
+      entityId: reservationId,
+      metadata: { status },
+    },
+  });
+
+  revalidatePath("/admin/boutique");
+}
+
+export async function createManualDonation(formData: FormData) {
+  const admin = await requireAdminUser();
+  const amountCents = readDonationAmount(formData.get("amount"));
+  const currency = readString(formData, "currency").toUpperCase() || "EUR";
+  const firstName = readString(formData, "firstName");
+  const lastName = readString(formData, "lastName");
+  const email = readString(formData, "email").toLowerCase();
+  const phone = readString(formData, "phone");
+  const source = readString(formData, "source") as DonationSource;
+  const receiptNeeded = formData.get("receiptNeeded") === "on";
+  const createReceipt = formData.get("createReceipt") === "on";
+
+  if (!amountCents || !email || !Object.values(DonationSource).includes(source)) {
+    throw new Error("Don manuel invalide.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  const donation = await prisma.donation.create({
+    data: {
+      userId: user?.id,
+      provider: "STRIPE",
+      source,
+      status: PaymentStatus.PAID,
+      frequency: DonationFrequency.ONE_TIME,
+      amountCents,
+      currency,
+      donorEmail: email,
+      donorFirstName: firstName || null,
+      donorLastName: lastName || null,
+      donorName: [firstName, lastName].filter(Boolean).join(" ") || email,
+      donorPhone: phone || null,
+      dedication: readString(formData, "dedication") || null,
+      receiptNeeded,
+      receiptStatus: createReceipt
+        ? ReceiptStatus.GENERATED
+        : receiptStatusFromNeeded(receiptNeeded),
+      paidAt: new Date(),
+      metadata: {
+        manual: true,
+        createdBy: admin.id,
+      },
+    },
+  });
+
+  if (createReceipt) {
+    await upsertReceiptForDonation(donation.id, formData);
+    await ensureCerfaReceiptForDonation(donation.id);
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.manual_created",
+      entity: "Donation",
+      entityId: donation.id,
+      metadata: { source, amountCents, currency },
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function upsertReceiptForDonation(
+  donationId: string,
+  formData: FormData,
+) {
+  const receiptType = readString(formData, "receiptType") as CerfaReceiptType;
+  const fiscalYear = Number(readString(formData, "fiscalYear")) || new Date().getFullYear();
+  const donorName = readString(formData, "receiptDonorName");
+
+  if (!Object.values(CerfaReceiptType).includes(receiptType)) {
+    throw new Error("Type de Cerfa invalide.");
+  }
+
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    include: { receipt: true },
+  });
+
+  if (!donation) {
+    throw new Error("Don introuvable.");
+  }
+
+  const receiptData = {
+    type: receiptType,
+    fiscalYear,
+    donorName: donorName || donation.donorName || donation.donorEmail,
+    donorAddress: readString(formData, "receiptAddress") || null,
+    donorZip: readString(formData, "receiptZip") || null,
+    donorCity: readString(formData, "receiptCity") || null,
+    donorCountry: readString(formData, "receiptCountry") || null,
+    donorTaxId: readString(formData, "receiptTaxId") || null,
+    legalNote: readString(formData, "legalNote") || null,
+    metadata: {
+      updatedFromAdmin: true,
+      paymentSource: donation.source,
+    },
+  };
+
+  if (donation.receipt) {
+    await prisma.receipt.update({
+      where: { donationId },
+      data: receiptData,
+    });
+  } else {
+    await prisma.receipt.create({
+      data: {
+        donationId,
+        number: await nextReceiptNumber(fiscalYear),
+        ...receiptData,
+      },
+    });
+  }
+
+  await prisma.donation.update({
+    where: { id: donationId },
+    data: {
+      receiptNeeded: true,
+      receiptStatus: ReceiptStatus.GENERATED,
+    },
+  });
+}
+
+export async function saveDonationReceipt(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+
+  if (!donationId) {
+    throw new Error("Don introuvable.");
+  }
+
+  await upsertReceiptForDonation(donationId, formData);
+  await ensureCerfaReceiptForDonation(donationId);
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.receipt_saved",
+      entity: "Donation",
+      entityId: donationId,
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function updateDonationStatus(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+  const status = readString(formData, "status") as PaymentStatus;
+
+  if (!donationId || !Object.values(PaymentStatus).includes(status)) {
+    throw new Error("Statut invalide.");
+  }
+
+  await prisma.donation.update({
+    where: { id: donationId },
+    data: {
+      status,
+      canceledAt: status === PaymentStatus.CANCELED ? new Date() : undefined,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.status_updated",
+      entity: "Donation",
+      entityId: donationId,
+      metadata: { status },
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function updateDonationReceiptStatus(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+  const receiptStatus = readString(formData, "receiptStatus") as ReceiptStatus;
+
+  if (!donationId || !Object.values(ReceiptStatus).includes(receiptStatus)) {
+    throw new Error("Statut de recu invalide.");
+  }
+
+  await prisma.donation.update({
+    where: { id: donationId },
+    data: {
+      receiptNeeded: receiptStatus !== ReceiptStatus.NOT_REQUESTED,
+      receiptStatus,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.receipt_status_updated",
+      entity: "Donation",
+      entityId: donationId,
+      metadata: { receiptStatus },
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function updateDonationAdminNote(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+  const adminNote = readString(formData, "adminNote");
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    select: { metadata: true },
+  });
+
+  if (!donation) {
+    throw new Error("Don introuvable.");
+  }
+
+  const currentMetadata =
+    donation.metadata &&
+    typeof donation.metadata === "object" &&
+    !Array.isArray(donation.metadata)
+      ? (donation.metadata as Record<string, unknown>)
+      : {};
+
+  await prisma.donation.update({
+    where: { id: donationId },
+    data: {
+      metadata: {
+        ...currentMetadata,
+        adminNote,
+        adminNoteUpdatedBy: admin.id,
+        adminNoteUpdatedAt: new Date().toISOString(),
+      },
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.admin_note_updated",
+      entity: "Donation",
+      entityId: donationId,
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function refundDonation(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+  const amount = readString(formData, "refundAmount");
+  const donation = await prisma.donation.findUnique({ where: { id: donationId } });
+
+  if (!donation || !donation.stripePaymentIntentId) {
+    throw new Error("Paiement Stripe introuvable pour ce don.");
+  }
+
+  const refundAmountCents = amount
+    ? readDonationAmount(amount)
+    : donation.amountCents - donation.refundedAmountCents;
+
+  if (refundAmountCents <= 0) {
+    throw new Error("Montant de remboursement invalide.");
+  }
+
+  await getStripe().refunds.create({
+    payment_intent: donation.stripePaymentIntentId,
+    amount: refundAmountCents,
+    metadata: {
+      donationId,
+      adminId: admin.id,
+    },
+  });
+
+  const totalRefunded = donation.refundedAmountCents + refundAmountCents;
+
+  await prisma.donation.update({
+    where: { id: donationId },
+    data: {
+      refundedAmountCents: totalRefunded,
+      refundedAt: new Date(),
+      status:
+        totalRefunded >= donation.amountCents
+          ? PaymentStatus.REFUNDED
+          : PaymentStatus.PARTIALLY_REFUNDED,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.refunded",
+      entity: "Donation",
+      entityId: donationId,
+      metadata: { refundAmountCents },
+    },
+  });
+
+  revalidatePath("/admin/dons");
 }

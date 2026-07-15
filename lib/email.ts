@@ -88,6 +88,63 @@ export function requestConfirmationEmail(params: {
   };
 }
 
+export function storeReservationAdminEmail(params: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  total: string;
+  items: string[];
+  link: string;
+}) {
+  return {
+    subject: `Nouvelle reservation boutique - ${params.customerName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6;">
+        <h2 style="color:#061e39;">Nouvelle reservation boutique</h2>
+        <p><strong>Client :</strong> ${params.customerName}</p>
+        <p><strong>Email :</strong> ${params.customerEmail}</p>
+        ${params.customerPhone ? `<p><strong>Telephone :</strong> ${params.customerPhone}</p>` : ""}
+        <p><strong>Total indicatif :</strong> ${params.total}</p>
+        <ul>
+          ${params.items.map((item) => `<li>${item}</li>`).join("")}
+        </ul>
+        <p style="margin-top:20px;">
+          <a href="${params.link}"
+             style="display:inline-block;background:#061e39;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">
+            Voir les reservations
+          </a>
+        </p>
+      </div>
+    `,
+  };
+}
+
+export function storeReservationConfirmationEmail(params: {
+  customerName: string;
+  total: string;
+  items: string[];
+}) {
+  return {
+    subject: "Bnei Yeshivot - Votre reservation boutique a bien ete recue",
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6;">
+        <h2 style="color:#061e39;">Reservation bien recue</h2>
+        <p>Bonjour ${params.customerName},</p>
+        <p>
+          Nous avons bien recu votre reservation boutique. Aucun paiement n'a ete
+          effectue en ligne. Notre equipe va verifier la disponibilite et vous
+          recontactera pour confirmer les details.
+        </p>
+        <p><strong>Total indicatif :</strong> ${params.total}</p>
+        <ul>
+          ${params.items.map((item) => `<li>${item}</li>`).join("")}
+        </ul>
+        <p style="margin-top:24px;">L'equipe Bnei Yeshivot</p>
+      </div>
+    `,
+  };
+}
+
 export function donationThankYouEmail(params: {
   donorName?: string | null;
   amount: string;
@@ -129,6 +186,7 @@ export function donationThankYouEmail(params: {
     `,
   };
 }
+
 export function talmoudoResultEmail(params: {
   firstName?: string;
   sessionTitle: string;

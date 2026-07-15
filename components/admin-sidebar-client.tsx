@@ -11,7 +11,6 @@ import {
   ChevronRight,
   BookOpenText,
   ClipboardList,
-  CreditCard,
   FileCheck,
   Gift,
   Home,
@@ -79,13 +78,12 @@ const adminGroups: Array<{
       ["Evenements", "/admin/evenements", CalendarDays],
       ["Dvar Torah", "/admin/dvar-torah", BookOpenText],
       ["Talmoudo Beyado", "/admin/talmoudo-beyado", Trophy],
+      ["Boutique", "/admin/boutique", ShoppingBag],
     ],
   },
   {
     label: "Paiements",
     items: [
-      ["Boutique", "/admin/boutique", ShoppingBag],
-      ["Commandes", "/admin/commandes", CreditCard],
       ["Dons", "/admin/dons", Gift],
       ["Recus", "/admin/recus", FileCheck],
     ],

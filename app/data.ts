@@ -23,7 +23,7 @@ export const services = [
   {
     title: "Boutique literie",
     description:
-      "Packs d'installation pour les etudiants qui arrivent en Israel, avec paiement et suivi commande.",
+      "Packs d'installation pour les etudiants qui arrivent en Israel, avec reservation sans paiement.",
     href: "/boutique",
     code: "STORE",
   },
@@ -54,7 +54,7 @@ export const clientItems = [
   ["Demande visa", "Documents manquants", "Ajouter les pieces demandees"],
   ["Inscription mivhan", "Confirmee", "Session de juillet"],
   ["Don", "Recu disponible", "180 EUR - Stripe"],
-  ["Commande boutique", "En preparation", "Pack literie complet"],
+  ["Reservation boutique", "En preparation", "Pack literie complet"],
 ];
 
 export const bahourRequests = [
