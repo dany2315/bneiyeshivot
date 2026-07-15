@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 type RegionMap = {
   name: string;
   subtitle: string;
-  map: string;
+  map?: string;
   cities: Array<{
     name: string;
     area: string;
@@ -26,12 +26,12 @@ const regions: RegionMap[] = [
     map: "/maps/regions/ile-de-france.svg",
     cities: [
       { name: "Le Raincy", area: "Seine-Saint-Denis", x: 50.83, y: 32.46 },
-      { name: "Epinay", area: "Seine-Saint-Denis", x: 42.48, y: 27.95 },
-      { name: "Paris 19eme", area: "Paris", x: 45.22, y: 33.77 },
+      { name: "Épinay-sur-Seine", area: "Seine-Saint-Denis", x: 42.48, y: 27.95 },
+      { name: "Paris 19", area: "Paris", x: 45.22, y: 33.77 },
       { name: "Sarcelles", area: "Val-d'Oise", x: 45.07, y: 24.56 },
-      { name: "Neuilly", area: "Hauts-de-Seine", x: 40.68, y: 33.63 },
-      { name: "Bonneuil", area: "Val-de-Marne", x: 49.42, y: 42.43 },
-      { name: "Clichy", area: "Hauts-de-Seine", x: 42.08, y: 32.03 },
+      { name: "Centre Alef", area: "Paris", x: 43.9, y: 35.7 },
+      { name: "Bonneuil-sur-Marne", area: "Val-de-Marne", x: 49.42, y: 42.43 },
+      { name: "Clichy-sous-Bois", area: "Seine-Saint-Denis", x: 53.3, y: 32.1 },
     ],
   },
   {
@@ -51,6 +51,11 @@ const regions: RegionMap[] = [
     subtitle: "Aix-les-Bains",
     map: "/maps/regions/auvergne-rhone-alpes.svg",
     cities: [{ name: "Aix-les-Bains", area: "Savoie", x: 72.78, y: 42.96 }],
+  },
+  {
+    name: "Israël",
+    subtitle: "Jérusalem",
+    cities: [{ name: "Jérusalem - Kiryat Yovel", area: "Israël", x: 52, y: 46 }],
   },
 ];
 
@@ -100,15 +105,22 @@ export function BenHazmanimFranceMap() {
                     </div>
 
                     <div className="ben-region-map" aria-label={`Carte ${region.name}`}>
-                      <Image
-                        alt=""
-                        className="ben-region-map-img"
-                        fill
-                        priority={region.name === "Ile-de-France"}
-                        sizes="(max-width: 980px) 100vw, 32vw"
-                        src={region.map}
-                        unoptimized
-                      />
+                      {region.map ? (
+                        <Image
+                          alt=""
+                          className="ben-region-map-img"
+                          fill
+                          priority={region.name === "Ile-de-France"}
+                          sizes="(max-width: 980px) 100vw, 32vw"
+                          src={region.map}
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="ben-region-map-fallback">
+                          <strong>Israël</strong>
+                          <span>Jérusalem</span>
+                        </div>
+                      )}
 
                       {region.cities.map((city, index) => (
                         <button
@@ -132,6 +144,22 @@ export function BenHazmanimFranceMap() {
                     </div>
                   </CardContent>
                 </Card>
+              ))}
+            </div>
+
+            <div className="ben-city-rail" aria-label="Lieux Ben Hazmanim">
+              {allCities.map((city) => (
+                <button
+                  className={cn(
+                    "ben-city-pill",
+                    city.name === activeCity.name && "ben-city-pill-active",
+                  )}
+                  key={`${city.region}-${city.name}`}
+                  onClick={() => setActiveCity(city)}
+                  type="button"
+                >
+                  {city.name}
+                </button>
               ))}
             </div>
 

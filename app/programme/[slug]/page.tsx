@@ -158,19 +158,21 @@ const programDetails: Record<string, ProgramDetail> = {
   },
   "ben-hazmanim": {
     heroText:
-      "Les vacances deviennent une nouvelle opportunite de progresser dans un cadre adapte, motivant et enrichissant.",
+      "Le plus grand réseau francophone de Yéchivot Ben Hazmanim en France et en Israël.",
     primaryCta: "Voir les prochains programmes",
     intro: {
       eyebrow: "Notre vision",
-      title: "Garder une dynamique de Torah pendant les vacances",
+      title: "Un véritable mouvement de Torah pendant les vacances",
       paragraphs: [
-        "Les vacances ne doivent pas representer une rupture avec la Torah, mais une opportunite de progresser autrement.",
+        "Chaque période de Ben Hazmanim représente un défi : comment permettre à des centaines de Bahourim francophones de continuer à vivre un véritable rythme de Torah, même pendant les vacances ?",
+        "Pour répondre à ce besoin, Bnei Yeshivot a développé, au fil des années, un réseau structuré de Yéchivot Ben Hazmanim qui rassemble aujourd’hui des centaines de jeunes à travers la France et Israël.",
+        "Bien plus qu’un simple programme de vacances, Ben Hazmanim est devenu un véritable mouvement de Torah, porté par des Rabbanim, des responsables de Kehilot et des équipes locales qui partagent une même ambition : permettre à chaque Bahour de continuer à grandir dans la Torah, où qu’il se trouve.",
       ],
       bullets: [
-        "Maintenir un rythme d'etude",
-        "Continuer a progresser dans un cadre motivant",
-        "Rencontrer d'autres jeunes partageant les memes valeurs",
-        "Profiter d'une ambiance de Torah et de fraternite",
+        "Un reseau structure en France et en Israel",
+        "Des centaines de Bahourim francophones",
+        "Des Rabbanim et responsables de Kehilot",
+        "Un veritable Makom Torah pendant les vacances",
       ],
     },
     featureTitle: "Un reseau de programmes en France et en Israel",
