@@ -60,10 +60,12 @@ export function PhoneInputGroup({
             aria-label="Indicatif telephone"
             className="h-9 rounded-md border-0 bg-transparent px-0 text-sm font-bold text-[var(--primary)] outline-none"
             disabled={disabled}
+            onClick={(event) => event.stopPropagation()}
             onChange={(event) => {
               setPrefix(event.target.value);
               updatePhone(event.target.value, number);
             }}
+            onPointerDown={(event) => event.stopPropagation()}
             value={prefix}
           >
             {phonePrefixes.map((item) => (

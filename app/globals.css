@@ -1526,6 +1526,67 @@ a.card:hover,
   line-height: 1.7;
 }
 
+.about-complete-story {
+  display: grid;
+  gap: 14px;
+}
+
+.about-complete-card {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  gap: 24px;
+  border: 1px solid rgba(223, 231, 240, 0.92);
+  border-radius: 20px;
+  background: #fff;
+  padding: 22px;
+  box-shadow: 0 18px 54px rgba(6, 40, 70, 0.045);
+}
+
+.about-complete-card:nth-child(even) {
+  background:
+    radial-gradient(circle at top right, rgba(242, 99, 0, 0.08), transparent 14rem),
+    #fff;
+}
+
+.about-complete-card-heading {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.about-complete-card-heading span {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.about-complete-card-heading small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.about-complete-card-heading h3 {
+  margin: 0;
+  color: var(--primary-strong);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.05;
+}
+
+.about-complete-card-body {
+  display: grid;
+  gap: 12px;
+}
+
+.about-complete-card-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.78;
+}
+
 .about-event-stack {
   display: grid;
   gap: 12px;
@@ -3196,6 +3257,7 @@ a.card:hover,
   .program-detail-intro,
   .split,
   .about-story,
+  .about-complete-card,
   .about-mission-panel,
   .about-impact-layout,
   .about-vision-panel,
