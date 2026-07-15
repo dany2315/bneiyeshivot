@@ -46,6 +46,22 @@ function rangeAmudim(range: DafRange) {
   return toIndex - fromIndex + 1;
 }
 
+function rangeAmudimWithValue(
+  range: DafRange,
+  key: keyof DafRange,
+  value: string,
+) {
+  return rangeAmudim({ ...range, [key]: value });
+}
+
+function otherRangesAmudim(ranges: DafRange[], currentIndex: number) {
+  return ranges.reduce(
+    (total, range, index) =>
+      index === currentIndex ? total : total + rangeAmudim(range),
+    0,
+  );
+}
+
 function formatDapimCount(amudim: number) {
   const dapim = amudim / 2;
 
@@ -117,6 +133,72 @@ export function DapimRangeFields({
     );
   }
 
+  function optionState({
+    index,
+    key,
+    range,
+    value,
+  }: {
+    index: number;
+    key: keyof DafRange;
+    range: DafRange;
+    value: string;
+  }) {
+    const valueIndex = dafValueToIndex(value);
+    const fromIndex = dafValueToIndex(range.from);
+    const toIndex = dafValueToIndex(range.to);
+    const otherAmudim = otherRangesAmudim(ranges, index);
+    const projectedAmudim =
+      otherAmudim + rangeAmudimWithValue(range, key, value);
+
+    if (key === "from" && toIndex >= 0 && valueIndex > toIndex) {
+      return { disabled: true, reason: "apres le daf de fin" };
+    }
+
+    if (key === "to" && fromIndex >= 0 && valueIndex < fromIndex) {
+      return { disabled: true, reason: "avant le daf de debut" };
+    }
+
+    if (
+      ((key === "from" && toIndex >= 0) || (key === "to" && fromIndex >= 0)) &&
+      projectedAmudim > 16
+    ) {
+      return { disabled: true, reason: "depasse 8 dapim" };
+    }
+
+    if (
+      ((key === "from" && toIndex >= 0) || (key === "to" && fromIndex >= 0)) &&
+      projectedAmudim === 16
+    ) {
+      return { disabled: false, reason: "arrive a 8 dapim" };
+    }
+
+    return { disabled: false, reason: "" };
+  }
+
+  function helperTextForRange(range: DafRange, index: number) {
+    const otherAmudim = otherRangesAmudim(ranges, index);
+    const availableAmudim = 16 - otherAmudim;
+    const fromIndex = dafValueToIndex(range.from);
+
+    if (availableAmudim <= 0) {
+      return "Les autres plages couvrent deja 8 dapim.";
+    }
+
+    if (fromIndex >= 0 && !range.to) {
+      const maxToIndex = fromIndex + availableAmudim - 1;
+      const maxOption = dafOptions.find(
+        (option) => dafValueToIndex(option.value) === maxToIndex,
+      );
+
+      if (maxOption) {
+        return `Pour arriver a 8 dapim, cette plage peut aller au maximum jusqu'a ${maxOption.label}.`;
+      }
+    }
+
+    return `Cette plage peut couvrir au maximum ${formatDapimCount(availableAmudim)} dapim restants.`;
+  }
+
   return (
     <Field className="md:col-span-2">
       <input name={name} type="hidden" value={serializedRanges} />
@@ -154,16 +236,26 @@ export function DapimRangeFields({
               >
                 <NativeSelectOption value="">Selectionner</NativeSelectOption>
                 {dafOptions.map((daf) => (
-                  <NativeSelectOption
-                    disabled={
-                      Boolean(range.to) &&
-                      dafValueToIndex(daf.value) > dafValueToIndex(range.to)
-                    }
-                    key={`from-${index}-${daf.value}`}
-                    value={daf.value}
-                  >
-                    {daf.label}
-                  </NativeSelectOption>
+                  (() => {
+                    const state = optionState({
+                      index,
+                      key: "from",
+                      range,
+                      value: daf.value,
+                    });
+
+                    return (
+                      <NativeSelectOption
+                        className={state.disabled ? "text-muted-foreground" : ""}
+                        disabled={state.disabled}
+                        key={`from-${index}-${daf.value}`}
+                        value={daf.value}
+                      >
+                        {daf.label}
+                        {state.reason ? ` - ${state.reason}` : ""}
+                      </NativeSelectOption>
+                    );
+                  })()
                 ))}
               </NativeSelect>
             </div>
@@ -181,16 +273,26 @@ export function DapimRangeFields({
               >
                 <NativeSelectOption value="">Selectionner</NativeSelectOption>
                 {dafOptions.map((daf) => (
-                  <NativeSelectOption
-                    disabled={
-                      Boolean(range.from) &&
-                      dafValueToIndex(daf.value) < dafValueToIndex(range.from)
-                    }
-                    key={`to-${index}-${daf.value}`}
-                    value={daf.value}
-                  >
-                    {daf.label}
-                  </NativeSelectOption>
+                  (() => {
+                    const state = optionState({
+                      index,
+                      key: "to",
+                      range,
+                      value: daf.value,
+                    });
+
+                    return (
+                      <NativeSelectOption
+                        className={state.disabled ? "text-muted-foreground" : ""}
+                        disabled={state.disabled}
+                        key={`to-${index}-${daf.value}`}
+                        value={daf.value}
+                      >
+                        {daf.label}
+                        {state.reason ? ` - ${state.reason}` : ""}
+                      </NativeSelectOption>
+                    );
+                  })()
                 ))}
               </NativeSelect>
             </div>
@@ -205,6 +307,9 @@ export function DapimRangeFields({
             >
               <Trash2 />
             </Button>
+            <p className="text-sm text-[var(--muted)] md:col-span-3">
+              {helperTextForRange(range, index)}
+            </p>
           </div>
         ))}
       </div>
