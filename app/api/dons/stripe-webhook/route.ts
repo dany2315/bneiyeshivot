@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { Prisma, ReceiptStatus, UserRole } from "@prisma/client";
+import { Prisma, ReceiptStatus } from "@prisma/client";
 import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
 import {
   formatDonationFrequency,
@@ -346,22 +346,7 @@ async function handleDonationConfirmation(donationId: string) {
 }
 
 async function adminDonationRecipients() {
-  const configured =
-    process.env.ADMIN_DONATION_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL;
-
-  if (configured) {
-    return Array.from(new Set(configured
-      .split(",")
-      .map((email) => email.trim())
-      .filter(Boolean)));
-  }
-
-  const admins = await prisma.user.findMany({
-    where: { role: { in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] } },
-    select: { email: true },
-  });
-
-  return Array.from(new Set(admins.map((admin) => admin.email).filter(Boolean)));
+  return ["contact@bneiyeshivot.com"];
 }
 
 async function sendAdminDonationEmail({
