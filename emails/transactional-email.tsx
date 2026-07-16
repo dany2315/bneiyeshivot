@@ -206,6 +206,34 @@ export function TalmoudoResultEmail(props: {
   );
 }
 
+export function TalmoudoRegistrationAdminEmail(props: {
+  adminLink: string;
+  dapim: string;
+  email: string;
+  fullName: string;
+  massehet: string;
+  phone: string;
+  sessionTitle: string;
+  yeshiva: string;
+}) {
+  return (
+    <BaseEmail
+      actionHref={props.adminLink}
+      actionLabel="Voir l'inscription"
+      preview={`Nouvelle inscription Talmoudo - ${props.fullName}`}
+      title="Nouvelle inscription Talmoudo"
+    >
+      <InfoLine label="Session" value={props.sessionTitle} />
+      <InfoLine label="Nom" value={props.fullName} />
+      <InfoLine label="Email" value={props.email} />
+      <InfoLine label="Telephone" value={props.phone} />
+      <InfoLine label="Yeshiva" value={props.yeshiva} />
+      <InfoLine label="Massehet" value={props.massehet} />
+      <InfoLine label="Dapim" value={props.dapim} />
+    </BaseEmail>
+  );
+}
+
 function InfoLine({ label, value }: { label: string; value: string }) {
   return (
     <Text style={line}>

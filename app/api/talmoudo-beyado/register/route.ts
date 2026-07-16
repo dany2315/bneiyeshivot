@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { createTalmoudoRegistration } from "@/lib/talmoudo-beyado";
 import { getCurrentUser } from "@/lib/session";
+import { sendEmail, talmoudoRegistrationAdminEmail } from "@/lib/email";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +13,7 @@ export async function POST(request: Request) {
       actorId: user?.id,
       source: "bahour",
     });
+    await sendAdminRegistrationEmail(registration.id, request.url);
 
     return NextResponse.json(
       {
@@ -41,4 +44,33 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: false, message }, { status: 400 });
   }
+}
+
+async function sendAdminRegistrationEmail(registrationId: string, requestUrl: string) {
+  const registration = await prisma.mivhanRegistration.findUnique({
+    where: { id: registrationId },
+    include: { session: true },
+  });
+
+  if (!registration) return;
+
+  const fullName = [registration.firstName, registration.lastName]
+    .filter(Boolean)
+    .join(" ");
+  const baseUrl = new URL(requestUrl).origin;
+  const email = await talmoudoRegistrationAdminEmail({
+    adminLink: `${baseUrl}/admin/talmoudo-beyado`,
+    dapim: registration.dapim ?? "-",
+    email: registration.email ?? "-",
+    fullName,
+    massehet: registration.massehet ?? "-",
+    phone: registration.phone ?? "-",
+    sessionTitle: registration.session.title,
+    yeshiva: registration.yeshiva ?? "-",
+  });
+
+  await sendEmail({
+    to: "contact@bneiyeshivot.com",
+    ...email,
+  });
 }

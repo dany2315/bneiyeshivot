@@ -6,6 +6,7 @@ import {
   RequestConfirmationEmail,
   StoreReservationAdminEmail,
   StoreReservationConfirmationEmail,
+  TalmoudoRegistrationAdminEmail,
   TalmoudoResultEmail,
 } from "@/emails/transactional-email";
 
@@ -212,6 +213,24 @@ export async function talmoudoResultEmail(params: {
 
   return {
     subject: `Bnei Yeshivot - Resultat Talmoudo Beyado - ${params.sessionTitle}`,
+    html,
+  };
+}
+
+export async function talmoudoRegistrationAdminEmail(params: {
+  adminLink: string;
+  dapim: string;
+  email: string;
+  fullName: string;
+  massehet: string;
+  phone: string;
+  sessionTitle: string;
+  yeshiva: string;
+}) {
+  const html = await render(TalmoudoRegistrationAdminEmail(params));
+
+  return {
+    subject: `Nouvelle inscription Talmoudo - ${params.fullName}`,
     html,
   };
 }
