@@ -19,14 +19,19 @@ export const metadata = {
 export default async function DonationThanksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ donation?: string }>;
+  searchParams: Promise<{ donation?: string; session_id?: string }>;
 }) {
-  const { donation: donationId } = await searchParams;
+  const { donation: donationId, session_id: sessionId } = await searchParams;
   const donation = donationId
     ? await prisma.donation.findUnique({
         where: { id: donationId },
         include: { receipt: true },
       })
+    : sessionId
+      ? await prisma.donation.findUnique({
+          where: { stripeCheckoutSessionId: sessionId },
+          include: { receipt: true },
+        })
     : null;
 
   return (

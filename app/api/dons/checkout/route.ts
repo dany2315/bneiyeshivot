@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { DonationFrequency, PaymentProvider } from "@prisma/client";
+import { DonationFrequency } from "@prisma/client";
 import {
   getBaseUrl,
   getStripe,
   readDonationAmount,
-  receiptStatusFromNeeded,
 } from "@/lib/donations";
-import { prisma } from "@/lib/prisma";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -34,6 +32,10 @@ function readRecurringMonths(formData: FormData, frequency: DonationFrequency) {
   }
 
   return months;
+}
+
+function stripeMetadataValue(value: string, maxLength = 450) {
+  return value.slice(0, maxLength);
 }
 
 export async function POST(request: Request) {
@@ -65,69 +67,39 @@ export async function POST(request: Request) {
     );
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-
-  const donation = await prisma.donation.create({
-    data: {
-      userId: user?.id,
-      provider: PaymentProvider.STRIPE,
-      status: "PENDING",
-      frequency,
-      recurringMonths,
-      amountCents,
-      currency,
-      donorEmail: email,
-      donorFirstName: firstName,
-      donorLastName: lastName,
-      donorName: `${firstName} ${lastName}`.trim(),
-      donorPhone: phone || null,
-      dedication: dedication || null,
-      receiptNeeded,
-      receiptStatus: receiptStatusFromNeeded(receiptNeeded),
-      metadata: {
-        donorType: normalizedDonorType,
-        companyName: companyName || null,
-        companyLegalForm: companyLegalForm || null,
-        receipt: {
-          type: normalizedDonorType,
-          address: "",
-          zip: "",
-          city: "",
-          country: "France",
-          taxId:
-            normalizedDonorType === "ENTREPRISE"
-              ? readString(formData, "receiptTaxId")
-              : "",
-        },
-      },
-    },
-  });
-
   const stripe = getStripe();
   const baseUrl = getBaseUrl();
+  const checkoutMetadata = {
+    amountCents: String(amountCents),
+    currency,
+    frequency,
+    recurringMonths: recurringMonths == null ? "" : String(recurringMonths),
+    receiptNeeded: String(receiptNeeded),
+    donorType: normalizedDonorType,
+    firstName: stripeMetadataValue(firstName),
+    lastName: stripeMetadataValue(lastName),
+    email: stripeMetadataValue(email),
+    phone: stripeMetadataValue(phone),
+    dedication: stripeMetadataValue(dedication),
+    companyName: stripeMetadataValue(companyName),
+    companyLegalForm: stripeMetadataValue(companyLegalForm),
+    receiptTaxId:
+      normalizedDonorType === "ENTREPRISE"
+        ? stripeMetadataValue(readString(formData, "receiptTaxId"))
+        : "",
+  };
   const session = await stripe.checkout.sessions.create({
     mode: frequency === DonationFrequency.MONTHLY ? "subscription" : "payment",
     payment_method_types: ["card"],
     billing_address_collection: "required",
     customer_email: email,
-    client_reference_id: donation.id,
-    success_url: `${baseUrl}/dons/merci?donation=${donation.id}`,
+    success_url: `${baseUrl}/dons/merci?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/dons?annule=1`,
-    metadata: {
-      donationId: donation.id,
-      receiptNeeded: String(receiptNeeded),
-      donorType: normalizedDonorType,
-    },
+    metadata: checkoutMetadata,
     subscription_data:
       frequency === DonationFrequency.MONTHLY
         ? {
-            metadata: {
-              donationId: donation.id,
-              recurringMonths: recurringMonths == null ? "" : String(recurringMonths),
-            },
+            metadata: checkoutMetadata,
           }
         : undefined,
     line_items: [
@@ -149,15 +121,6 @@ export async function POST(request: Request) {
         },
       },
     ],
-  });
-
-  await prisma.donation.update({
-    where: { id: donation.id },
-    data: {
-      stripeCheckoutSessionId: session.id,
-      stripeCustomerId:
-        typeof session.customer === "string" ? session.customer : null,
-    },
   });
 
   if (!session.url) {

@@ -1,7 +1,12 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { Prisma, ReceiptStatus } from "@prisma/client";
+import {
+  DonationFrequency,
+  PaymentProvider,
+  Prisma,
+  ReceiptStatus,
+} from "@prisma/client";
 import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
 import {
   formatDonationFrequency,
@@ -41,10 +46,148 @@ function receiptAddressFromSession(session: Stripe.Checkout.Session) {
   };
 }
 
+function readSessionMetadata(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata ?? {};
+  const firstName = String(metadata.firstName ?? "").trim();
+  const lastName = String(metadata.lastName ?? "").trim();
+  const fallbackEmail = session.customer_details?.email ?? session.customer_email ?? "";
+  const email = String(metadata.email ?? fallbackEmail).trim().toLowerCase();
+  const frequency =
+    metadata.frequency === DonationFrequency.MONTHLY
+      ? DonationFrequency.MONTHLY
+      : DonationFrequency.ONE_TIME;
+  const amountCents = Number(metadata.amountCents ?? session.amount_total ?? 0);
+  const recurringMonths = Number(metadata.recurringMonths);
+  const donorType = metadata.donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER";
+
+  return {
+    amountCents: Number.isFinite(amountCents) ? amountCents : 0,
+    companyLegalForm: String(metadata.companyLegalForm ?? "").trim(),
+    companyName: String(metadata.companyName ?? "").trim(),
+    currency: String(metadata.currency ?? session.currency ?? "EUR").toUpperCase(),
+    dedication: String(metadata.dedication ?? "").trim(),
+    donorType,
+    email,
+    firstName,
+    lastName,
+    phone: String(metadata.phone ?? "").trim(),
+    receiptNeeded: metadata.receiptNeeded !== "false",
+    receiptTaxId: String(metadata.receiptTaxId ?? "").trim(),
+    recurringMonths:
+      frequency === DonationFrequency.MONTHLY &&
+      Number.isInteger(recurringMonths) &&
+      recurringMonths >= 0
+        ? recurringMonths
+        : null,
+    frequency,
+  };
+}
+
+async function paymentIntentIdFromSession(session: Stripe.Checkout.Session) {
+  if (typeof session.payment_intent === "string") {
+    return session.payment_intent;
+  }
+
+  if (typeof session.subscription !== "string") {
+    return null;
+  }
+
+  const subscription = await getStripe().subscriptions.retrieve(session.subscription, {
+    expand: ["latest_invoice.payment_intent"],
+  });
+  const latestInvoice =
+    subscription.latest_invoice && typeof subscription.latest_invoice !== "string"
+      ? subscription.latest_invoice
+      : null;
+  const paymentIntent = (latestInvoice as { payment_intent?: string | Stripe.PaymentIntent } | null)
+    ?.payment_intent;
+
+  return typeof paymentIntent === "string" ? paymentIntent : paymentIntent?.id ?? null;
+}
+
 async function markCheckoutPaid(session: Stripe.Checkout.Session) {
   const donationId = session.metadata?.donationId || session.client_reference_id;
+  const existingBySession = await prisma.donation.findUnique({
+    where: { stripeCheckoutSessionId: session.id },
+    select: { id: true, metadata: true },
+  });
+  const paymentIntentId = await paymentIntentIdFromSession(session);
 
-  if (!donationId) return;
+  if (!donationId && existingBySession) {
+    await prisma.donation.update({
+      where: { id: existingBySession.id },
+      data: {
+        status: "PAID",
+        paidAt: new Date(),
+        stripeCustomerId:
+          typeof session.customer === "string" ? session.customer : undefined,
+        stripePaymentIntentId: paymentIntentId ?? undefined,
+        stripeSubscriptionId:
+          typeof session.subscription === "string" ? session.subscription : undefined,
+      },
+    });
+    await scheduleSubscriptionCancellation(existingBySession.id);
+    await handleDonationConfirmation(existingBySession.id);
+    return;
+  }
+
+  if (!donationId) {
+    const input = readSessionMetadata(session);
+    const user = input.email
+      ? await prisma.user.findUnique({
+          where: { email: input.email },
+          select: { id: true },
+        })
+      : null;
+    const stripeAddress = receiptAddressFromSession(session);
+    const donation = await prisma.donation.create({
+      data: {
+        userId: user?.id,
+        provider: PaymentProvider.STRIPE,
+        status: "PAID",
+        paidAt: new Date(),
+        frequency: input.frequency,
+        recurringMonths: input.recurringMonths,
+        amountCents: input.amountCents,
+        currency: input.currency,
+        donorEmail: input.email,
+        donorFirstName: input.firstName || null,
+        donorLastName: input.lastName || null,
+        donorName:
+          [input.firstName, input.lastName].filter(Boolean).join(" ") || input.email,
+        donorPhone: input.phone || null,
+        dedication: input.dedication || null,
+        receiptNeeded: input.receiptNeeded,
+        receiptStatus: input.receiptNeeded
+          ? ReceiptStatus.REQUESTED
+          : ReceiptStatus.NOT_REQUESTED,
+        stripeCheckoutSessionId: session.id,
+        stripeCustomerId:
+          typeof session.customer === "string" ? session.customer : null,
+        stripePaymentIntentId: paymentIntentId,
+        stripeSubscriptionId:
+          typeof session.subscription === "string" ? session.subscription : null,
+        metadata: {
+          donorType: input.donorType,
+          companyName: input.companyName || null,
+          companyLegalForm: input.companyLegalForm || null,
+          receipt: {
+            type: input.donorType,
+            address: stripeAddress?.address ?? "",
+            zip: stripeAddress?.zip ?? "",
+            city: stripeAddress?.city ?? "",
+            country: stripeAddress?.country ?? "France",
+            taxId: input.donorType === "ENTREPRISE" ? input.receiptTaxId : "",
+          },
+        },
+      },
+      include: { receipt: true },
+    });
+
+    await scheduleSubscriptionCancellation(donation.id);
+    await handleDonationConfirmation(donation.id);
+    return;
+  }
 
   const existingDonation = await prisma.donation.findUnique({
     where: { id: donationId },
@@ -63,9 +206,7 @@ async function markCheckoutPaid(session: Stripe.Checkout.Session) {
       stripeCustomerId:
         typeof session.customer === "string" ? session.customer : undefined,
       stripePaymentIntentId:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : undefined,
+        paymentIntentId ?? undefined,
       stripeSubscriptionId:
         typeof session.subscription === "string" ? session.subscription : undefined,
       receiptStatus:
