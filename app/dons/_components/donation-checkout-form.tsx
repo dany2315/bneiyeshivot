@@ -470,20 +470,9 @@ export function DonationCheckoutForm() {
                 </>
               )}
 
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)]/60 p-3 text-sm text-[var(--muted)] sm:col-span-2">
-                Le recu fiscal sera genere automatiquement en mode{" "}
-                <strong className="text-[var(--primary)]">
-                  {donorType === "ENTREPRISE" ? "entreprise" : "particulier"}
-                </strong>
-                .
-              </div>
               {donorType === "ENTREPRISE" && (
                 <Input name="receiptTaxId" placeholder="SIREN / SIRET" />
               )}
-              <div className="rounded-xl border border-[var(--border)] bg-white p-3 text-sm leading-6 text-[var(--muted)] sm:col-span-2">
-                L'adresse fiscale sera recuperee dans l'etape de paiement Stripe
-                pour eviter une double saisie.
-              </div>
             </div>
 
             <Label className="mt-3 grid gap-2">
