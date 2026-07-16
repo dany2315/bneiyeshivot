@@ -448,6 +448,18 @@ async function handleDonationConfirmation(donationId: string) {
 
     if (sent.ok) {
       nextMetadata.thankYouEmailSentAt = new Date().toISOString();
+      await prisma.auditLog.create({
+        data: {
+          action: "donation.thank_you_email_sent",
+          entity: "Donation",
+          entityId: refreshedDonation.id,
+          metadata: {
+            to: refreshedDonation.donorEmail,
+            receiptNumber,
+            stripeReceiptUrl,
+          },
+        },
+      });
     }
   }
 
@@ -466,6 +478,17 @@ async function handleDonationConfirmation(donationId: string) {
 
     if (adminSent) {
       nextMetadata.adminDonationEmailSentAt = new Date().toISOString();
+      await prisma.auditLog.create({
+        data: {
+          action: "donation.admin_notification_email_sent",
+          entity: "Donation",
+          entityId: refreshedDonation.id,
+          metadata: {
+            receiptNumber,
+            stripeReceiptUrl,
+          },
+        },
+      });
     }
   }
 

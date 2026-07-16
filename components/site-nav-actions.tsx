@@ -26,7 +26,10 @@ export function SiteNavActions() {
   const { user } = useAuthSession();
   const bahourUser = user && !isAdminUser(user) ? user : null;
   const isBahourActive =
-    pathname === "/client" || pathname.startsWith("/client/");
+    pathname === "/client" ||
+    pathname.startsWith("/client/") ||
+    pathname === "/donateur" ||
+    pathname.startsWith("/donateur/");
 
   return (
     <div className="nav-actions">
@@ -41,7 +44,7 @@ export function SiteNavActions() {
               "!bg-[var(--primary)] !text-white hover:!bg-[var(--primary)]"
           )}
         >
-          <Link href="/client">Espace Bahour</Link>
+          <Link href="/connexion">Mon espace</Link>
         </Button>
       )}
       <Dialog>

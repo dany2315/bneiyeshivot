@@ -177,7 +177,7 @@ export function MobileNav() {
                   />
                 }
               >
-                Espace Bahour
+                Mon espace
               </SheetClose>
               <Button
                 type="button"
@@ -195,13 +195,13 @@ export function MobileNav() {
               <div className="mobile-nav-help">
                 <strong>Besoin d&apos;aide ?</strong>
                 <span>
-                  Demande, documents, dons et suivi depuis l&apos;Espace Bahour.
+                  Demandes, documents, dons et recus depuis votre espace.
                 </span>
               </div>
               <SheetClose
                 render={
                   <Link
-                    href="/client"
+                    href="/connexion"
                     aria-current={
                       pathname === "/client" || pathname.startsWith("/client/")
                         ? "page"
@@ -216,7 +216,7 @@ export function MobileNav() {
                   />
                 }
               >
-                Espace Bahour
+                Mon espace
               </SheetClose>
             </>
           )}

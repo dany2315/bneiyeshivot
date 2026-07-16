@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
+import { countDonationsForEmail } from "@/lib/donor-access";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -28,8 +29,16 @@ export async function POST(request: Request) {
   });
   const isAdmin =
     user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
+  const donationCount = !user
+    ? await countDonationsForEmail(email)
+    : 0;
 
-  if (body.audience === "bahour" && !user && body.mode !== "register") {
+  if (
+    body.audience === "bahour" &&
+    !user &&
+    donationCount === 0 &&
+    body.mode !== "register"
+  ) {
     return NextResponse.json(
       {
         allowed: false,

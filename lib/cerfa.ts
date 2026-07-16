@@ -5,7 +5,7 @@ import type { Donation, Receipt } from "@prisma/client";
 import { CerfaReceiptType, ReceiptStatus } from "@prisma/client";
 import { nextReceiptNumber } from "@/lib/donations";
 import { prisma } from "@/lib/prisma";
-import { uploadBufferToS3 } from "@/lib/uploads";
+import { deleteFileFromS3, uploadBufferToS3 } from "@/lib/uploads";
 
 type DonationWithReceipt = Donation & {
   receipt: Receipt | null;
@@ -372,6 +372,9 @@ export async function ensureCerfaReceiptForDonation(donationId: string) {
       fileName: `${receipt.number}.pdf`,
       prefix: `donations/${donation.id}/receipts`,
     });
+    if (receipt.fileKey && receipt.fileKey !== uploaded.key) {
+      await deleteFileFromS3(receipt.fileKey);
+    }
     fileKey = uploaded.key;
   } catch (error) {
     console.warn("[cerfa] upload S3 ignore", error);

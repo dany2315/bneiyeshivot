@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   EventRegistrationStatus,
   ServiceRequestStatus,
@@ -7,7 +8,14 @@ import {
 import { PageShell, StatusBadge } from "../components";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { countDonationsForEmail, hasBahourActivity } from "@/lib/donor-access";
 import { formatDateTime } from "@/lib/event-content";
+import { fileUrl } from "@/lib/files";
+import {
+  formatDonationFrequency,
+  formatMoney,
+  paymentStatusLabels,
+} from "@/lib/donations";
 import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
 import { BahourMivhanRegistrationCard } from "@/components/bahour-mivhan-registration-card";
 import { BahourMivhanSignupCards } from "@/components/bahour-mivhan-signup-cards";
@@ -30,7 +38,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { CalendarCheck, CheckCircle2, FileText, Trophy } from "lucide-react";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  FileText,
+  Gift,
+  Trophy,
+} from "lucide-react";
 
 export const metadata = {
   title: "Espace Bahour",
@@ -70,6 +86,18 @@ function registrationTone(status: EventRegistrationStatus) {
   return "blue";
 }
 
+function metadataObject(metadata: unknown) {
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : {};
+}
+
+function metadataText(metadata: unknown, key: string) {
+  const value = metadataObject(metadata)[key];
+
+  return typeof value === "string" ? value : null;
+}
+
 function formatReward(amountCents: number | null, currency: string) {
   if (amountCents === null) return "0";
 
@@ -81,7 +109,22 @@ function formatReward(amountCents: number | null, currency: string) {
 
 export default async function ClientPage() {
   const user = await requireBahourUser();
-  const [requests, registrations, mivhanRegistrations, mivhanSessions] =
+  const [isBahour, donationCount] = await Promise.all([
+    hasBahourActivity(user),
+    countDonationsForEmail(user.email, user.id),
+  ]);
+
+  if (!isBahour && donationCount > 0) {
+    redirect("/donateur");
+  }
+
+  const [
+    requests,
+    registrations,
+    mivhanRegistrations,
+    mivhanSessions,
+    donations,
+  ] =
     await Promise.all([
     prisma.serviceRequest.findMany({
       where: { userId: user.id },
@@ -109,6 +152,22 @@ export default async function ClientPage() {
         date: { gte: new Date() },
       },
       orderBy: { date: "asc" },
+    }),
+    prisma.donation.findMany({
+      where: {
+        OR: [
+          { donorEmail: user.email },
+          { userId: user.id },
+          {
+            metadata: {
+              path: ["receiptEmail"],
+              equals: user.email,
+            },
+          },
+        ],
+      },
+      include: { receipt: true },
+      orderBy: { paidAt: "desc" },
     }),
   ]);
 
@@ -213,6 +272,9 @@ export default async function ClientPage() {
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
                 <TabsTrigger value="events">Evenements</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
+                {donations.length > 0 && (
+                  <TabsTrigger value="dons">Dons</TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="requests" className="grid gap-5">
@@ -351,6 +413,67 @@ export default async function ClientPage() {
                   </div>
                 )}
               </TabsContent>
+
+              {donations.length > 0 && (
+                <TabsContent value="dons" className="grid gap-5">
+                  <div className="grid grid-3">
+                    {donations.map((donation) => {
+                      const stripeReceiptUrl = metadataText(
+                        donation.metadata,
+                        "stripeReceiptUrl",
+                      );
+                      const cerfaUrl = fileUrl(donation.receipt?.fileKey);
+
+                      return (
+                        <Card key={donation.id}>
+                          <CardHeader>
+                            <Gift className="size-5 text-[var(--accent)]" />
+                            <CardTitle>
+                              {formatMoney(
+                                donation.amountCents,
+                                donation.currency,
+                              )}
+                            </CardTitle>
+                            <CardDescription>
+                              {formatDonationFrequency(
+                                donation.frequency,
+                                donation.recurringMonths,
+                              )}{" "}
+                              - {paymentStatusLabels[donation.status]}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="flex flex-wrap gap-2">
+                            {stripeReceiptUrl ? (
+                              <Button asChild variant="secondary">
+                                <a
+                                  href={stripeReceiptUrl}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  <ExternalLink className="size-4" />
+                                  Recu paiement
+                                </a>
+                              </Button>
+                            ) : null}
+                            {cerfaUrl ? (
+                              <Button asChild variant="secondary">
+                                <a
+                                  href={cerfaUrl}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  <Download className="size-4" />
+                                  Recu Cerfa
+                                </a>
+                              </Button>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </section>

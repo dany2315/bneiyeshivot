@@ -5,21 +5,204 @@ import {
   CerfaReceiptType,
   DonationFrequency,
   DonationSource,
+  PaymentProvider,
   PaymentStatus,
+  Prisma,
   ReceiptStatus,
 } from "@prisma/client";
 import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
 import {
+  formatDonationFrequency,
+  formatMoney,
   getStripe,
   nextReceiptNumber,
   readDonationAmount,
   receiptStatusFromNeeded,
 } from "@/lib/donations";
+import {
+  donationThankYouEmail,
+  sendEmail,
+} from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/session";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+function metadataObject(metadata: unknown) {
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : {};
+}
+
+function receiptEmailForDonation(donation: {
+  donorEmail: string;
+  metadata: unknown;
+}) {
+  const receiptEmail = metadataObject(donation.metadata).receiptEmail;
+
+  return typeof receiptEmail === "string" && receiptEmail.trim()
+    ? receiptEmail.trim().toLowerCase()
+    : donation.donorEmail;
+}
+
+function paidAtFromForm(formData: FormData, fallback = new Date()) {
+  const value = readString(formData, "paidAt");
+
+  if (!value) return fallback;
+
+  const date = new Date(`${value}T12:00:00.000Z`);
+
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
+
+function receiptMetadataFromForm(formData: FormData) {
+  const donorType = readString(formData, "donorType") === "ENTREPRISE"
+    ? "ENTREPRISE"
+    : "PARTICULIER";
+
+  return {
+    donorType,
+    companyName: donorType === "ENTREPRISE" ? readString(formData, "companyName") || null : null,
+    companyLegalForm:
+      donorType === "ENTREPRISE"
+        ? readString(formData, "companyLegalForm") || null
+        : null,
+    receiptEmail: readString(formData, "receiptEmail").toLowerCase() || null,
+    receipt: {
+      type: donorType,
+      address: readString(formData, "receiptAddress"),
+      zip: readString(formData, "receiptZip"),
+      city: readString(formData, "receiptCity"),
+      country: readString(formData, "receiptCountry") || "France",
+      taxId: donorType === "ENTREPRISE" ? readString(formData, "receiptTaxId") : "",
+    },
+  } satisfies Prisma.InputJsonObject;
+}
+
+async function sendDonationPaymentReceiptEmail(
+  donationId: string,
+  actorId: string,
+) {
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    include: { receipt: true },
+  });
+
+  if (!donation) {
+    throw new Error("Don introuvable.");
+  }
+
+  const metadata = metadataObject(donation.metadata);
+  const stripeReceiptUrl =
+    typeof metadata.stripeReceiptUrl === "string" ? metadata.stripeReceiptUrl : null;
+  const email = await donationThankYouEmail({
+    donorName: donation.donorName,
+    amount: formatMoney(donation.amountCents, donation.currency),
+    frequency: formatDonationFrequency(donation.frequency, donation.recurringMonths),
+    receiptNumber: donation.receipt?.number,
+    stripeReceiptUrl,
+  });
+  const to = receiptEmailForDonation(donation);
+  const sent = await sendEmail({
+    to,
+    subject: email.subject,
+    html: email.html,
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId,
+      action: sent.ok
+        ? "donation.payment_receipt_email_sent"
+        : "donation.payment_receipt_email_failed",
+      entity: "Donation",
+      entityId: donation.id,
+      metadata: { to },
+    },
+  });
+
+  if (sent.ok) {
+    await prisma.donation.update({
+      where: { id: donation.id },
+      data: {
+        metadata: {
+          ...metadata,
+          paymentReceiptEmailSentAt: new Date().toISOString(),
+          paymentReceiptEmailSentTo: to,
+        },
+      },
+    });
+  }
+
+  return sent.ok;
+}
+
+async function sendDonationCerfaEmail(donationId: string, actorId: string) {
+  await prisma.donation.update({
+    where: { id: donationId },
+    data: { receiptNeeded: true },
+  });
+  const cerfa = await ensureCerfaReceiptForDonation(donationId);
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    include: { receipt: true },
+  });
+
+  if (!donation) {
+    throw new Error("Don introuvable.");
+  }
+
+  if (!cerfa) {
+    throw new Error("Cerfa introuvable.");
+  }
+
+  const metadata = metadataObject(donation.metadata);
+  const email = await donationThankYouEmail({
+    donorName: donation.donorName,
+    amount: formatMoney(donation.amountCents, donation.currency),
+    frequency: formatDonationFrequency(donation.frequency, donation.recurringMonths),
+    receiptNumber: cerfa.receipt.number,
+  });
+  const to = receiptEmailForDonation(donation);
+  const sent = await sendEmail({
+    to,
+    subject: email.subject,
+    html: email.html,
+    attachments: [
+      {
+        filename: `${cerfa.receipt.number}.pdf`,
+        content: cerfa.pdf.toString("base64"),
+      },
+    ],
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId,
+      action: sent.ok ? "donation.cerfa_email_sent" : "donation.cerfa_email_failed",
+      entity: "Donation",
+      entityId: donation.id,
+      metadata: { to, receiptNumber: cerfa.receipt.number },
+    },
+  });
+
+  if (sent.ok) {
+    await prisma.donation.update({
+      where: { id: donation.id },
+      data: {
+        receiptStatus: ReceiptStatus.SENT,
+        metadata: {
+          ...metadata,
+          cerfaEmailSentAt: new Date().toISOString(),
+          cerfaEmailSentTo: to,
+        },
+      },
+    });
+  }
+
+  return sent.ok;
 }
 
 export async function createManualDonation(formData: FormData) {
@@ -31,10 +214,17 @@ export async function createManualDonation(formData: FormData) {
   const email = readString(formData, "email").toLowerCase();
   const phone = readString(formData, "phone");
   const source = readString(formData, "source") as DonationSource;
-  const receiptNeeded = formData.get("receiptNeeded") === "on";
-  const createReceipt = formData.get("createReceipt") === "on";
+  const status = readString(formData, "status") as PaymentStatus;
+  const sendPaymentReceipt = formData.get("sendPaymentReceipt") === "on";
+  const sendCerfaReceipt = formData.get("sendCerfaReceipt") === "on";
 
-  if (!amountCents || !email || !Object.values(DonationSource).includes(source)) {
+  if (
+    !amountCents ||
+    !email ||
+    !Object.values(DonationSource).includes(source) ||
+    source === DonationSource.ONLINE ||
+    !Object.values(PaymentStatus).includes(status)
+  ) {
     throw new Error("Don manuel invalide.");
   }
 
@@ -46,9 +236,9 @@ export async function createManualDonation(formData: FormData) {
   const donation = await prisma.donation.create({
     data: {
       userId: user?.id,
-      provider: "STRIPE",
+      provider: PaymentProvider.STRIPE,
       source,
-      status: PaymentStatus.PAID,
+      status,
       frequency: DonationFrequency.ONE_TIME,
       amountCents,
       currency,
@@ -58,21 +248,32 @@ export async function createManualDonation(formData: FormData) {
       donorName: [firstName, lastName].filter(Boolean).join(" ") || email,
       donorPhone: phone || null,
       dedication: readString(formData, "dedication") || null,
-      receiptNeeded,
-      receiptStatus: createReceipt
+      receiptNeeded: status === PaymentStatus.PAID,
+      receiptStatus: status === PaymentStatus.PAID
         ? ReceiptStatus.GENERATED
-        : receiptStatusFromNeeded(receiptNeeded),
-      paidAt: new Date(),
+        : receiptStatusFromNeeded(false),
+      paidAt: status === PaymentStatus.PAID ? paidAtFromForm(formData) : null,
       metadata: {
+        ...receiptMetadataFromForm(formData),
         manual: true,
+        paymentReference: readString(formData, "paymentReference") || null,
         createdBy: admin.id,
+        adminNote: readString(formData, "adminNote") || null,
       },
     },
   });
 
-  if (createReceipt) {
+  if (status === PaymentStatus.PAID) {
     await upsertReceiptForDonation(donation.id, formData);
     await ensureCerfaReceiptForDonation(donation.id);
+
+    if (sendPaymentReceipt) {
+      await sendDonationPaymentReceiptEmail(donation.id, admin.id);
+    }
+
+    if (sendCerfaReceipt) {
+      await sendDonationCerfaEmail(donation.id, admin.id);
+    }
   }
 
   await prisma.auditLog.create({
@@ -146,6 +347,11 @@ export async function upsertReceiptForDonation(
     data: {
       receiptNeeded: true,
       receiptStatus: ReceiptStatus.GENERATED,
+      metadata: {
+        ...metadataObject(donation.metadata),
+        ...receiptMetadataFromForm(formData),
+        cerfaRegeneratedAt: new Date().toISOString(),
+      },
     },
   });
 }
@@ -182,13 +388,19 @@ export async function updateDonationStatus(formData: FormData) {
     throw new Error("Statut invalide.");
   }
 
-  await prisma.donation.update({
+  const donation = await prisma.donation.update({
     where: { id: donationId },
     data: {
       status,
       canceledAt: status === PaymentStatus.CANCELED ? new Date() : undefined,
+      paidAt: status === PaymentStatus.PAID ? paidAtFromForm(formData) : undefined,
+      receiptNeeded: status === PaymentStatus.PAID ? true : undefined,
     },
   });
+
+  if (donation.source !== DonationSource.ONLINE && status === PaymentStatus.PAID) {
+    await ensureCerfaReceiptForDonation(donation.id);
+  }
 
   await prisma.auditLog.create({
     data: {
@@ -197,6 +409,127 @@ export async function updateDonationStatus(formData: FormData) {
       entity: "Donation",
       entityId: donationId,
       metadata: { status },
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function updateDonationDetails(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    include: { receipt: true },
+  });
+
+  if (!donation) {
+    throw new Error("Don introuvable.");
+  }
+
+  const firstName = readString(formData, "firstName");
+  const lastName = readString(formData, "lastName");
+  const fiscalEmail = readString(formData, "receiptEmail").toLowerCase();
+  const isManual = donation.source !== DonationSource.ONLINE;
+  const data: Prisma.DonationUpdateInput = {
+    donorFirstName: isManual ? firstName || null : donation.donorFirstName,
+    donorLastName: isManual ? lastName || null : donation.donorLastName,
+    donorName: isManual
+      ? [firstName, lastName].filter(Boolean).join(" ") || donation.donorEmail
+      : donation.donorName,
+    donorPhone: isManual ? readString(formData, "phone") || null : donation.donorPhone,
+    dedication: isManual
+      ? readString(formData, "dedication") || null
+      : donation.dedication,
+    metadata: {
+      ...metadataObject(donation.metadata),
+      ...receiptMetadataFromForm(formData),
+      receiptEmail: fiscalEmail || null,
+      adminNote: readString(formData, "adminNote") || null,
+      fiscalUpdatedAt: new Date().toISOString(),
+      fiscalUpdatedBy: admin.id,
+    },
+  };
+
+  if (isManual) {
+    const source = readString(formData, "source") as DonationSource;
+    const status = readString(formData, "status") as PaymentStatus;
+
+    if (
+      !Object.values(DonationSource).includes(source) ||
+      source === DonationSource.ONLINE ||
+      !Object.values(PaymentStatus).includes(status)
+    ) {
+      throw new Error("Modification manuelle invalide.");
+    }
+
+    data.amountCents = readDonationAmount(formData.get("amount"));
+    data.currency = readString(formData, "currency").toUpperCase() || donation.currency;
+    data.source = source;
+    data.status = status;
+    data.paidAt =
+      data.status === PaymentStatus.PAID ? paidAtFromForm(formData, donation.paidAt ?? new Date()) : null;
+  }
+
+  await prisma.donation.update({
+    where: { id: donation.id },
+    data,
+  });
+
+  await upsertReceiptForDonation(donation.id, formData);
+  await ensureCerfaReceiptForDonation(donation.id);
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: isManual
+        ? "donation.manual_updated"
+        : "donation.fiscal_details_updated",
+      entity: "Donation",
+      entityId: donation.id,
+    },
+  });
+
+  revalidatePath("/admin/dons");
+}
+
+export async function sendPaymentReceipt(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+
+  await sendDonationPaymentReceiptEmail(donationId, admin.id);
+  revalidatePath("/admin/dons");
+}
+
+export async function sendCerfaReceipt(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+
+  await sendDonationCerfaEmail(donationId, admin.id);
+  revalidatePath("/admin/dons");
+}
+
+export async function deleteManualDonation(formData: FormData) {
+  const admin = await requireAdminUser();
+  const donationId = readString(formData, "donationId");
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    include: { receipt: true },
+  });
+
+  if (!donation || donation.source === DonationSource.ONLINE) {
+    throw new Error("Seuls les dons manuels peuvent etre supprimes.");
+  }
+
+  await prisma.receipt.deleteMany({ where: { donationId: donation.id } });
+  await prisma.donation.delete({ where: { id: donation.id } });
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "donation.manual_deleted",
+      entity: "Donation",
+      entityId: donation.id,
+      metadata: { amountCents: donation.amountCents, donorEmail: donation.donorEmail },
     },
   });
 

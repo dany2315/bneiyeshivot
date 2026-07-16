@@ -202,6 +202,16 @@ export function OtpLoginCard({
       message: "Connexion reussie. Redirection...",
     });
     toast.success("Connexion reussie.");
+
+    if (redirectTo === "auto") {
+      const destinationResponse = await fetch("/api/auth/resolve-destination");
+      const destinationResult = (await destinationResponse.json().catch(() => null)) as {
+        destination?: string;
+      } | null;
+      window.location.href = destinationResult?.destination ?? "/client";
+      return;
+    }
+
     window.location.href = redirectTo;
   }
 
