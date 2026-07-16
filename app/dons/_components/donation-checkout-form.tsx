@@ -120,7 +120,7 @@ function StepHeader({
 export function DonationCheckoutForm() {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(50);
-  const [customAmount, setCustomAmount] = useState("");
+  const [customAmount, setCustomAmount] = useState("50");
   const [currency, setCurrency] = useState("EUR");
   const [frequency, setFrequency] = useState<"ONE_TIME" | "MONTHLY">("ONE_TIME");
   const [recurringMonths, setRecurringMonths] = useState("12");
@@ -277,11 +277,14 @@ export function DonationCheckoutForm() {
               {donationAmountOptions.map((amount) => (
                 <button
                   className="grid min-h-20 place-items-center rounded-xl border border-[var(--border)] bg-white font-serif text-2xl font-bold text-[var(--primary)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)] sm:min-h-24 sm:text-3xl"
-                  data-selected={customAmount === "" && selectedAmount === amount}
+                  data-selected={
+                    selectedAmount === amount &&
+                    Number(customAmount.replace(",", ".")) === amount
+                  }
                   key={amount}
                   onClick={() => {
                     setSelectedAmount(amount);
-                    setCustomAmount("");
+                    setCustomAmount(String(amount));
                   }}
                   type="button"
                 >
@@ -293,13 +296,20 @@ export function DonationCheckoutForm() {
             <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px]">
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
-                  Montant libre
+                  Montant
                 </span>
                 <InputGroup className="h-12 bg-white">
                   <InputGroupInput
                     min="1"
                     name="customAmount"
-                    onChange={(event) => setCustomAmount(event.target.value)}
+                    onChange={(event) => {
+                      setCustomAmount(event.target.value);
+                      const amount = Number(event.target.value.replace(",", "."));
+
+                      if (Number.isFinite(amount) && amount > 0) {
+                        setSelectedAmount(amount);
+                      }
+                    }}
                     placeholder="Autre montant"
                     step="0.01"
                     type="number"

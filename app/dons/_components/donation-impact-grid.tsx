@@ -6,7 +6,6 @@ import {
   UsersRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,25 +25,25 @@ const impactCards = [
     icon: BookOpenText,
     title: "Programme Leachlim",
     description:
-      "Étude hebdomadaire Houmach et Rachi sur la Paracha de la semaine : 150 participants français.",
+      "Etude hebdomadaire Houmach et Rachi sur la Paracha de la semaine : 150 participants francais.",
   },
   {
     icon: UsersRound,
     title: "Yechivot Ben Hazmanim",
     description:
-      "150 Ba'hourim, élèves, étudiants, Avrekhim à Paris et Banlieue : Tefila, étude, chiour.",
+      "150 Ba'hourim, eleves, etudiants, Avrekhim a Paris et Banlieue : Tefila, etude, chiour.",
   },
   {
     icon: CalendarDays,
     title: "Beth Hamidrach Lel Chichi",
     description:
-      "Étude le jeudi soir, à Jérusalem pour plusieurs dizaines de Avrekhim, Ba'hourim, étudiants.",
+      "Etude le jeudi soir, a Jerusalem pour plusieurs dizaines de Avrekhim, Ba'hourim, etudiants.",
   },
   {
     icon: HeartHandshake,
-    title: "Soirées Hizouk",
+    title: "Soirees Hizouk",
     description:
-      "Grandes soirées tout au long de l'année réunissant des dizaines de Ba'hourim Français en France et en Israël.",
+      "Grandes soirees tout au long de l'annee reunissant des dizaines de Ba'hourim Francais en France et en Israel.",
   },
 ];
 
@@ -52,25 +51,19 @@ export function DonationImpactGrid() {
   return (
     <section className="section border-y border-[var(--border)] bg-white" id="impact">
       <div className="container">
-        <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(320px,1fr)] lg:items-end">
+        <div className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(320px,1fr)] lg:items-end">
           <div>
             <Badge variant="info" className="mb-4 px-3 py-2">
-              GRÂCE À VOUS
+              Impact
             </Badge>
             <h2 className="font-serif text-4xl leading-none font-bold text-[var(--primary-strong)] md:text-5xl">
-              Aidez-nous à faire perdurer ce magnifique projet !
+              Concretement, votre don soutient.
             </h2>
           </div>
-          <div className="grid gap-4">
-            <p className="text-base leading-7 text-[var(--muted)]">
-              Votre participation permet de faire vivre les collelim, les
-              programmes d'étude, les Yechivot Ben Hazmanim, le Beth Hamidrach
-              et les soirées de hizouk.
-            </p>
-            <Button asChild size="lg" className="w-fit">
-              <a href="#don-form">Je participe</a>
-            </Button>
-          </div>
+          <p className="text-base leading-7 text-[var(--muted)]">
+            Des cadres de Torah, des temps d'etude et des rassemblements qui
+            continuent toute l'annee grace aux donateurs.
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
