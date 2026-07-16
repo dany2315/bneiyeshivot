@@ -247,29 +247,63 @@ export function donationAdminNotificationEmail(params: {
   stripeReceiptUrl?: string | null;
 }) {
   const donorName = params.donorName || params.donorEmail;
-  const stripeLine = params.stripeReceiptUrl
-    ? `<p><a href="${params.stripeReceiptUrl}" style="color:#062846;font-weight:700;">Voir le recu Stripe</a></p>`
+  const stripeButton = params.stripeReceiptUrl
+    ? `<a href="${params.stripeReceiptUrl}"
+          style="display:inline-block;border:1px solid #d8e1ec;color:#062846;background:#ffffff;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700;">
+          Voir le recu Stripe
+        </a>`
     : "";
 
   return {
     subject: `Nouveau don confirme - ${params.amount} - ${donorName}`,
     html: `
-      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6;">
-        <h2 style="color:#061e39;">Nouveau don confirme</h2>
-        <p><strong>Donateur :</strong> ${donorName}</p>
-        <p><strong>Email :</strong> ${params.donorEmail}</p>
-        ${params.donorPhone ? `<p><strong>Telephone :</strong> ${params.donorPhone}</p>` : ""}
-        <p><strong>Montant :</strong> ${params.amount}</p>
-        <p><strong>Frequence :</strong> ${params.frequency}</p>
-        <p><strong>Recu Cerfa :</strong> ${params.receiptNumber || "A generer"}</p>
-        <p><strong>Stripe payment intent :</strong> ${params.stripePaymentIntentId || "-"}</p>
-        ${stripeLine}
-        <p style="margin-top:20px;">
-          <a href="${params.adminLink}"
-             style="display:inline-block;background:#061e39;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">
-            Ouvrir le don dans l'admin
-          </a>
-        </p>
+      <div style="margin:0;background:#f4f7fb;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#061e39;">
+        <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #dfe7f0;border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(6,40,70,0.10);">
+          <div style="background:#062846;color:#ffffff;padding:28px 30px;">
+            <p style="margin:0 0 8px;color:#ffb35c;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;">
+              Notification admin
+            </p>
+            <h1 style="margin:0;font-size:28px;line-height:1.15;">Nouveau don confirme</h1>
+            <p style="margin:12px 0 0;color:#d8e8f8;font-size:15px;">
+              Un paiement vient d'etre confirme sur la page dons.
+            </p>
+          </div>
+
+          <div style="padding:28px 30px;">
+            <div style="border:1px solid #ffe0c5;background:#fff7ef;border-radius:18px;padding:20px;margin-bottom:18px;">
+              <span style="display:block;color:#8b4b13;font-size:13px;font-weight:800;text-transform:uppercase;">Montant</span>
+              <strong style="display:block;margin-top:6px;color:#062846;font-size:34px;line-height:1;">${params.amount}</strong>
+              <span style="display:block;margin-top:8px;color:#637186;font-size:14px;">${params.frequency}</span>
+            </div>
+
+            <div style="display:grid;gap:14px;">
+              <div style="border:1px solid #dfe7f0;border-radius:16px;padding:18px;">
+                <h2 style="margin:0 0 12px;font-size:16px;color:#062846;">Donateur</h2>
+                <p style="margin:0 0 8px;"><strong>Nom :</strong> ${donorName}</p>
+                <p style="margin:0 0 8px;"><strong>Email :</strong> ${params.donorEmail}</p>
+                ${params.donorPhone ? `<p style="margin:0;"><strong>Telephone :</strong> ${params.donorPhone}</p>` : ""}
+              </div>
+
+              <div style="border:1px solid #dfe7f0;border-radius:16px;padding:18px;">
+                <h2 style="margin:0 0 12px;font-size:16px;color:#062846;">Paiement et recu</h2>
+                <p style="margin:0 0 8px;"><strong>Recu Cerfa :</strong> ${params.receiptNumber || "A generer"}</p>
+                <p style="margin:0;"><strong>Stripe payment intent :</strong> ${params.stripePaymentIntentId || "-"}</p>
+              </div>
+            </div>
+
+            <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="${params.adminLink}"
+                 style="display:inline-block;background:#062846;color:#ffffff;padding:13px 20px;border-radius:999px;text-decoration:none;font-weight:800;">
+                Ouvrir le don dans l'admin
+              </a>
+              ${stripeButton}
+            </div>
+          </div>
+
+          <div style="border-top:1px solid #dfe7f0;padding:16px 30px;color:#637186;font-size:12px;background:#fbfcfe;">
+            Email automatique envoye par Resend depuis la plateforme Bnei Yeshivot.
+          </div>
+        </div>
       </div>
     `,
   };
