@@ -374,7 +374,7 @@ async function sendAdminDonationEmail({
     return false;
   }
 
-  const email = donationAdminNotificationEmail({
+  const email = await donationAdminNotificationEmail({
     adminLink: `${getBaseUrl()}/admin/dons?q=${encodeURIComponent(donation.id)}`,
     amount,
     donorEmail: donation.donorEmail,
