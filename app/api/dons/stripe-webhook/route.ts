@@ -283,7 +283,7 @@ async function handleDonationConfirmation(donationId: string) {
   const nextMetadata = { ...refreshedMetadata };
 
   if (!refreshedMetadata.thankYouEmailSentAt) {
-    const email = donationThankYouEmail({
+    const email = await donationThankYouEmail({
       donorName: refreshedDonation.donorName,
       amount,
       frequency,

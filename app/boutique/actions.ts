@@ -97,13 +97,15 @@ export async function createStoreReservation(formData: FormData) {
   const total = formatStorePrice(reservation.totalCents, reservation.currency);
   const adminLink = `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/admin/boutique`;
 
+  const confirmationEmail = await storeReservationConfirmationEmail({
+    customerName,
+    total,
+    items: itemLines,
+  });
+
   await sendEmail({
     to: customerEmail,
-    ...storeReservationConfirmationEmail({
-      customerName,
-      total,
-      items: itemLines,
-    }),
+    ...confirmationEmail,
   });
 
   const adminEmail =
@@ -114,16 +116,18 @@ export async function createStoreReservation(formData: FormData) {
     }))?.email;
 
   if (adminEmail) {
+    const notificationEmail = await storeReservationAdminEmail({
+      customerName,
+      customerEmail,
+      customerPhone: reservation.customerPhone,
+      total,
+      items: itemLines,
+      link: adminLink,
+    });
+
     await sendEmail({
       to: adminEmail,
-      ...storeReservationAdminEmail({
-        customerName,
-        customerEmail,
-        customerPhone: reservation.customerPhone,
-        total,
-        items: itemLines,
-        link: adminLink,
-      }),
+      ...notificationEmail,
     });
   }
 

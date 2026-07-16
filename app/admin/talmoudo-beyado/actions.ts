@@ -390,15 +390,17 @@ export async function updateMivhanRegistrationResult(formData: FormData) {
     throw new Error("Email du Bahour introuvable.");
   }
 
+  const resultEmail = await talmoudoResultEmail({
+    firstName: registration.firstName ?? undefined,
+    sessionTitle: registration.session.title,
+    grade,
+    rewardAmount: formatReward(rewardAmountCents, rewardCurrency),
+    rewardPaid,
+  });
+
   const emailResult = await sendEmail({
     to: registration.email,
-    ...talmoudoResultEmail({
-      firstName: registration.firstName ?? undefined,
-      sessionTitle: registration.session.title,
-      grade,
-      rewardAmount: formatReward(rewardAmountCents, rewardCurrency),
-      rewardPaid,
-    }),
+    ...resultEmail,
   });
 
   if (emailResult.ok) {

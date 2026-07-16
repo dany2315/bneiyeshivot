@@ -68,12 +68,14 @@ export async function POST(request: Request) {
 
     // Confirmation au demandeur (on n'echoue pas la demande si l'email ne part pas).
     if (email) {
+      const confirmationEmail = await requestConfirmationEmail({
+        firstName: firstName || undefined,
+        typeLabel,
+      });
+
       await sendEmail({
         to: email,
-        ...requestConfirmationEmail({
-          firstName: firstName || undefined,
-          typeLabel,
-        }),
+        ...confirmationEmail,
       });
     }
 
@@ -83,9 +85,17 @@ export async function POST(request: Request) {
     const adminPath =
       kind === "koupat" ? "koupat-holim" : kind === "visa" ? "visa" : "contact";
     const link = `${new URL(request.url).origin}/admin/${adminPath}#request-${serviceRequest.id}`;
+    const notificationEmail = await newRequestAdminEmail({
+      typeLabel,
+      fullName,
+      email,
+      phone,
+      link,
+    });
+
     await sendEmail({
       to: adminEmail,
-      ...newRequestAdminEmail({ typeLabel, fullName, email, phone, link }),
+      ...notificationEmail,
     });
 
     return NextResponse.json(
