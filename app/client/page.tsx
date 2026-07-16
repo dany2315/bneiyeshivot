@@ -6,16 +6,11 @@ import {
   ServiceRequestType,
 } from "@prisma/client";
 import { PageShell, StatusBadge } from "../components";
+import { DonorDonationsTable } from "@/components/donor-donations-table";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { countDonationsForEmail, hasBahourActivity } from "@/lib/donor-access";
 import { formatDateTime } from "@/lib/event-content";
-import { fileUrl } from "@/lib/files";
-import {
-  formatDonationFrequency,
-  formatMoney,
-  paymentStatusLabels,
-} from "@/lib/donations";
 import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
 import { BahourMivhanRegistrationCard } from "@/components/bahour-mivhan-registration-card";
 import { BahourMivhanSignupCards } from "@/components/bahour-mivhan-signup-cards";
@@ -41,10 +36,7 @@ import {
 import {
   CalendarCheck,
   CheckCircle2,
-  Download,
-  ExternalLink,
   FileText,
-  Gift,
   Trophy,
 } from "lucide-react";
 
@@ -86,18 +78,6 @@ function registrationTone(status: EventRegistrationStatus) {
   return "blue";
 }
 
-function metadataObject(metadata: unknown) {
-  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
-    ? (metadata as Record<string, unknown>)
-    : {};
-}
-
-function metadataText(metadata: unknown, key: string) {
-  const value = metadataObject(metadata)[key];
-
-  return typeof value === "string" ? value : null;
-}
-
 function formatReward(amountCents: number | null, currency: string) {
   if (amountCents === null) return "0";
 
@@ -107,8 +87,19 @@ function formatReward(amountCents: number | null, currency: string) {
   }).format(amountCents / 100);
 }
 
-export default async function ClientPage() {
+function readDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export default async function ClientPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ donFrom?: string; donTo?: string }>;
+}) {
   const user = await requireBahourUser();
+  const params = await searchParams;
   const [isBahour, donationCount] = await Promise.all([
     hasBahourActivity(user),
     countDonationsForEmail(user.email, user.id),
@@ -208,6 +199,24 @@ export default async function ClientPage() {
       dateLabel: formatDateTime(session.date),
       location: session.location,
     }));
+  const from = readDate(params.donFrom);
+  const to = readDate(params.donTo);
+  const donationDate =
+    from || to
+      ? {
+          gte: from ?? undefined,
+          lt: to ? new Date(to.getTime() + 24 * 60 * 60 * 1000) : undefined,
+        }
+      : undefined;
+  const filteredDonations = donationDate
+    ? donations.filter((donation) => {
+        const date = donation.paidAt ?? donation.createdAt;
+        return (
+          (!donationDate.gte || date >= donationDate.gte) &&
+          (!donationDate.lt || date < donationDate.lt)
+        );
+      })
+    : donations;
 
   return (
     <PageShell>
@@ -264,7 +273,10 @@ export default async function ClientPage() {
               </div>
             )}
 
-            <Tabs defaultValue="requests" className="bahour-tabs mt-8">
+            <Tabs
+              defaultValue={params.donFrom || params.donTo ? "dons" : "requests"}
+              className="bahour-tabs mt-8"
+            >
               <TabsList
                 aria-label="Sections Espace Bahour"
                 className="bahour-tabs-list"
@@ -416,62 +428,13 @@ export default async function ClientPage() {
 
               {donations.length > 0 && (
                 <TabsContent value="dons" className="grid gap-5">
-                  <div className="grid grid-3">
-                    {donations.map((donation) => {
-                      const stripeReceiptUrl = metadataText(
-                        donation.metadata,
-                        "stripeReceiptUrl",
-                      );
-                      const cerfaUrl = fileUrl(donation.receipt?.fileKey);
-
-                      return (
-                        <Card key={donation.id}>
-                          <CardHeader>
-                            <Gift className="size-5 text-[var(--accent)]" />
-                            <CardTitle>
-                              {formatMoney(
-                                donation.amountCents,
-                                donation.currency,
-                              )}
-                            </CardTitle>
-                            <CardDescription>
-                              {formatDonationFrequency(
-                                donation.frequency,
-                                donation.recurringMonths,
-                              )}{" "}
-                              - {paymentStatusLabels[donation.status]}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="flex flex-wrap gap-2">
-                            {stripeReceiptUrl ? (
-                              <Button asChild variant="secondary">
-                                <a
-                                  href={stripeReceiptUrl}
-                                  rel="noreferrer"
-                                  target="_blank"
-                                >
-                                  <ExternalLink className="size-4" />
-                                  Recu paiement
-                                </a>
-                              </Button>
-                            ) : null}
-                            {cerfaUrl ? (
-                              <Button asChild variant="secondary">
-                                <a
-                                  href={cerfaUrl}
-                                  rel="noreferrer"
-                                  target="_blank"
-                                >
-                                  <Download className="size-4" />
-                                  Recu Cerfa
-                                </a>
-                              </Button>
-                            ) : null}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
+                  <DonorDonationsTable
+                    actionPath="/client"
+                    donations={filteredDonations}
+                    from={params.donFrom}
+                    title="Mes dons"
+                    to={params.donTo}
+                  />
                 </TabsContent>
               )}
             </Tabs>

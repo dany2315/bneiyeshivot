@@ -195,12 +195,12 @@ export function DonationCheckoutForm() {
   return (
     <Card
       id="don-form"
-      className="overflow-hidden border-[var(--border)] bg-white/95 shadow-[0_24px_70px_rgba(6,40,70,0.08)]"
+      className="mx-auto max-w-3xl overflow-hidden border-[var(--border)] bg-white/95 shadow-[0_18px_48px_rgba(6,40,70,0.08)]"
     >
-      <CardHeader className="border-b border-[var(--border)] bg-[var(--subtle)]/70 px-4 py-4 sm:px-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <CardHeader className="border-b border-[var(--border)] bg-[var(--subtle)]/70 px-4 py-3 sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
               <BadgeEuro className="size-5" />
             </span>
             <div>
@@ -218,10 +218,10 @@ export function DonationCheckoutForm() {
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 sm:p-5">
+      <CardContent className="p-4">
         <form
           action="/api/dons/checkout"
-          className="grid gap-5"
+          className="grid gap-4"
           method="post"
           onSubmit={handleSubmit}
         >
@@ -230,7 +230,7 @@ export function DonationCheckoutForm() {
           <input name="donorType" type="hidden" value={donorType} />
           <input name="receiptNeeded" type="hidden" value="on" />
 
-          <div className="grid gap-3 rounded-2xl border border-[var(--border)] bg-white p-3 sm:p-4">
+          <div className="grid gap-3">
             <div className="relative grid grid-cols-2 gap-4">
               <span className="absolute top-5 right-[25%] left-[25%] h-0.5 bg-[var(--border)]" />
               {steps.map((step, index) => {
@@ -280,7 +280,7 @@ export function DonationCheckoutForm() {
                   <span className="font-bold">{recurringLabel ?? "Don ponctuel"}</span>
                   {donorName ? <span>pour {donorName}</span> : null}
                 </div>
-                <div className="grid gap-2 text-xs font-bold text-[var(--muted)] sm:grid-cols-3">
+                <div className="grid gap-2 text-xs font-bold text-[var(--muted)]">
                   <span className="flex items-center gap-2">
                     <CheckCircle2 className="size-4 text-[var(--success)]" />
                     Paiement securise
@@ -307,7 +307,7 @@ export function DonationCheckoutForm() {
           <section
             className={
               activeStep === 0
-                ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
+                ? "rounded-xl border border-[var(--border)] bg-white p-4"
                 : "hidden"
             }
           >
@@ -318,10 +318,10 @@ export function DonationCheckoutForm() {
               title="Montant et frequence"
             />
 
-            <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-3">
               {donationAmountOptions.map((amount) => (
                 <button
-                  className="grid min-h-20 place-items-center rounded-xl border border-[var(--border)] bg-white font-serif text-2xl font-bold text-[var(--primary)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)] sm:min-h-24 sm:text-3xl"
+                  className="grid min-h-16 place-items-center rounded-xl border border-[var(--border)] bg-white font-serif text-xl font-bold text-[var(--primary)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)] sm:min-h-20 sm:text-2xl"
                   data-selected={
                     selectedAmount === amount &&
                     Number(customAmount.replace(",", ".")) === amount
@@ -343,9 +343,9 @@ export function DonationCheckoutForm() {
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Montant
                 </span>
-                <InputGroup className="h-20 border-[var(--accent)]/45 bg-white shadow-[0_18px_44px_rgba(255,127,42,0.16)]">
+                <InputGroup className="h-16 border-[var(--accent)]/45 bg-white shadow-[0_14px_34px_rgba(255,127,42,0.14)]">
                   <InputGroupInput
-                    className="text-center text-4xl font-black text-[var(--primary)]"
+                    className="text-center text-3xl font-black text-[var(--primary)]"
                     min="1"
                     name="customAmount"
                     onChange={(event) => {
@@ -440,7 +440,7 @@ export function DonationCheckoutForm() {
           <section
             className={
               activeStep === 1
-                ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
+                ? "rounded-xl border border-[var(--border)] bg-white p-4"
                 : "hidden"
             }
           >
