@@ -15,8 +15,8 @@ function readString(formData: FormData, key: string) {
 function normalizeCurrency(value: string) {
   const currency = value.toUpperCase();
 
-  if (!["EUR", "USD", "ILS"].includes(currency)) {
-    throw new Error("Devise invalide.");
+  if (currency !== "EUR") {
+    throw new Error("Seule la devise EUR est activee pour Stripe.");
   }
 
   return currency;
@@ -110,6 +110,7 @@ export async function POST(request: Request) {
   const baseUrl = getBaseUrl();
   const session = await stripe.checkout.sessions.create({
     mode: frequency === DonationFrequency.MONTHLY ? "subscription" : "payment",
+    payment_method_types: ["card"],
     customer_email: email,
     client_reference_id: donation.id,
     success_url: `${baseUrl}/dons/merci?donation=${donation.id}`,

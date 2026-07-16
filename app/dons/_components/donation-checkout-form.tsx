@@ -121,7 +121,7 @@ export function DonationCheckoutForm() {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState("50");
-  const [currency, setCurrency] = useState("EUR");
+  const currency = "EUR";
   const [frequency, setFrequency] = useState<"ONE_TIME" | "MONTHLY">("ONE_TIME");
   const [recurringMonths, setRecurringMonths] = useState("12");
   const [donorType, setDonorType] = useState<"PARTICULIER" | "ENTREPRISE">(
@@ -143,10 +143,7 @@ export function DonationCheckoutForm() {
     return selectedAmount;
   }, [customAmount, selectedAmount]);
 
-  const providerLabel =
-    currency === "ILS"
-      ? "Stripe test pour ILS, Nedarim Plus pourra etre branche ensuite"
-      : "Stripe";
+  const providerLabel = "Stripe";
   const recurringLabel =
     frequency === "MONTHLY"
       ? recurringDurations.find((item) => item.value === recurringMonths)?.label
@@ -212,6 +209,7 @@ export function DonationCheckoutForm() {
       <CardContent className="p-4 sm:p-6">
         <form action="/api/dons/checkout" className="grid gap-5" method="post">
           <input name="amount" type="hidden" value={selectedAmount} />
+          <input name="currency" type="hidden" value="EUR" />
           <input name="donorType" type="hidden" value={donorType} />
           <input name="receiptNeeded" type="hidden" value="on" />
 
@@ -293,7 +291,7 @@ export function DonationCheckoutForm() {
               ))}
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px]">
+            <div className="mt-4 grid gap-3">
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Montant
@@ -319,22 +317,6 @@ export function DonationCheckoutForm() {
                     <InputGroupText>{currency}</InputGroupText>
                   </InputGroupAddon>
                 </InputGroup>
-              </Label>
-
-              <Label className="grid gap-2">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Devise
-                </span>
-                <NativeSelect
-                  className="w-full"
-                  name="currency"
-                  onChange={(event) => setCurrency(event.target.value)}
-                  value={currency}
-                >
-                  <NativeSelectOption value="EUR">EUR</NativeSelectOption>
-                  <NativeSelectOption value="USD">USD</NativeSelectOption>
-                  <NativeSelectOption value="ILS">ILS</NativeSelectOption>
-                </NativeSelect>
               </Label>
             </div>
 
