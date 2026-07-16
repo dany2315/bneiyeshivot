@@ -2,7 +2,8 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM;
 
 type SendEmailInput = {
-  to: string;
+  to: string | string[];
+  bcc?: string | string[];
   subject: string;
   html: string;
   attachments?: Array<{
@@ -11,32 +12,79 @@ type SendEmailInput = {
   }>;
 };
 
-export async function sendEmail({ to, subject, html, attachments }: SendEmailInput) {
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function retryDelayMs(response: Response, attempt: number) {
+  const retryAfter = response.headers.get("retry-after");
+  const retryAfterSeconds = retryAfter ? Number(retryAfter) : NaN;
+
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+    return retryAfterSeconds * 1000;
+  }
+
+  return Math.min(12000, 1500 * 2 ** attempt);
+}
+
+export async function sendEmail({ to, bcc, subject, html, attachments }: SendEmailInput) {
   if (!RESEND_API_KEY || !EMAIL_FROM) {
     console.warn("[email] RESEND_API_KEY ou EMAIL_FROM manquant : email non envoye.");
     return { ok: false as const };
   }
 
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from: EMAIL_FROM, to, subject, html, attachments }),
-    });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    let response: Response;
 
-    if (!response.ok) {
-      console.error("[email] envoi echoue", await response.text().catch(() => ""));
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ from: EMAIL_FROM, to, bcc, subject, html, attachments }),
+      });
+    } catch (error) {
+      if (attempt < 2) {
+        const delay = 1500 * 2 ** attempt;
+        console.warn(`[email] erreur reseau, nouvel essai dans ${delay}ms.`, error);
+        await sleep(delay);
+        continue;
+      }
+
+      console.error("[email] erreur reseau", error);
       return { ok: false as const };
     }
 
-    return { ok: true as const };
-  } catch (error) {
-    console.error("[email] erreur reseau", error);
-    return { ok: false as const };
+    if (response.ok) {
+      const dailyQuota = response.headers.get("x-resend-daily-quota");
+      const monthlyQuota = response.headers.get("x-resend-monthly-quota");
+
+      if (dailyQuota || monthlyQuota) {
+        console.info("[email] quotas Resend", { dailyQuota, monthlyQuota });
+      }
+
+      return { ok: true as const };
+    }
+
+    if (response.status === 429 && attempt < 2) {
+      const delay = retryDelayMs(response, attempt);
+      console.warn(`[email] rate limit Resend, nouvel essai dans ${delay}ms.`);
+      await sleep(delay);
+      continue;
+    }
+
+    try {
+      console.error("[email] envoi echoue", await response.text().catch(() => ""));
+      return { ok: false as const };
+    } catch (error) {
+      console.error("[email] erreur lecture reponse", error);
+      return { ok: false as const };
+    }
   }
+
+  return { ok: false as const };
 }
 
 export function newRequestAdminEmail(params: {
@@ -182,6 +230,46 @@ export function donationThankYouEmail(params: {
             <p><strong>L'equipe Bnei Yeshivot</strong></p>
           </div>
         </div>
+      </div>
+    `,
+  };
+}
+
+export function donationAdminNotificationEmail(params: {
+  adminLink: string;
+  amount: string;
+  donorEmail: string;
+  donorName?: string | null;
+  donorPhone?: string | null;
+  frequency: string;
+  receiptNumber?: string | null;
+  stripePaymentIntentId?: string | null;
+  stripeReceiptUrl?: string | null;
+}) {
+  const donorName = params.donorName || params.donorEmail;
+  const stripeLine = params.stripeReceiptUrl
+    ? `<p><a href="${params.stripeReceiptUrl}" style="color:#062846;font-weight:700;">Voir le recu Stripe</a></p>`
+    : "";
+
+  return {
+    subject: `Nouveau don confirme - ${params.amount} - ${donorName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #061e39; line-height: 1.6;">
+        <h2 style="color:#061e39;">Nouveau don confirme</h2>
+        <p><strong>Donateur :</strong> ${donorName}</p>
+        <p><strong>Email :</strong> ${params.donorEmail}</p>
+        ${params.donorPhone ? `<p><strong>Telephone :</strong> ${params.donorPhone}</p>` : ""}
+        <p><strong>Montant :</strong> ${params.amount}</p>
+        <p><strong>Frequence :</strong> ${params.frequency}</p>
+        <p><strong>Recu Cerfa :</strong> ${params.receiptNumber || "A generer"}</p>
+        <p><strong>Stripe payment intent :</strong> ${params.stripePaymentIntentId || "-"}</p>
+        ${stripeLine}
+        <p style="margin-top:20px;">
+          <a href="${params.adminLink}"
+             style="display:inline-block;background:#061e39;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">
+            Ouvrir le don dans l'admin
+          </a>
+        </p>
       </div>
     `,
   };

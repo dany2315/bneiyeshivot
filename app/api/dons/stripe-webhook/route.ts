@@ -1,16 +1,26 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { ReceiptStatus } from "@prisma/client";
+import { Prisma, ReceiptStatus, UserRole } from "@prisma/client";
 import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
-import { getStripe } from "@/lib/donations";
 import {
+  formatDonationFrequency,
+  formatMoney,
+  getBaseUrl,
+  getStripe,
+} from "@/lib/donations";
+import {
+  donationAdminNotificationEmail,
   donationThankYouEmail,
   sendEmail,
 } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function markCheckoutPaid(session: Stripe.Checkout.Session) {
   const donationId = session.metadata?.donationId || session.client_reference_id;
@@ -39,7 +49,44 @@ async function markCheckoutPaid(session: Stripe.Checkout.Session) {
     include: { receipt: true },
   });
 
+  await scheduleSubscriptionCancellation(donation.id);
   await handleDonationConfirmation(donation.id);
+}
+
+function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+async function scheduleSubscriptionCancellation(donationId: string) {
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    select: {
+      frequency: true,
+      recurringMonths: true,
+      stripeSubscriptionId: true,
+    },
+  });
+
+  if (
+    donation?.frequency !== "MONTHLY" ||
+    !donation.recurringMonths ||
+    donation.recurringMonths <= 0 ||
+    !donation.stripeSubscriptionId
+  ) {
+    return;
+  }
+
+  await getStripe().subscriptions.update(donation.stripeSubscriptionId, {
+    cancel_at: Math.floor(
+      addMonths(new Date(), donation.recurringMonths).getTime() / 1000,
+    ),
+    metadata: {
+      donationId,
+      recurringMonths: String(donation.recurringMonths),
+    },
+  });
 }
 
 async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
@@ -165,7 +212,7 @@ async function handleDonationConfirmation(donationId: string) {
       ? (donation.metadata as Record<string, unknown>)
       : {};
 
-  if (metadata.thankYouEmailSentAt) {
+  if (metadata.thankYouEmailSentAt && metadata.adminDonationEmailSentAt) {
     return;
   }
 
@@ -190,44 +237,146 @@ async function handleDonationConfirmation(donationId: string) {
     typeof refreshedMetadata.stripeReceiptUrl === "string"
       ? refreshedMetadata.stripeReceiptUrl
       : null;
-  const email = donationThankYouEmail({
-    donorName: refreshedDonation.donorName,
-    amount: new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: refreshedDonation.currency,
-    }).format(refreshedDonation.amountCents / 100),
-    frequency:
-      refreshedDonation.frequency === "MONTHLY" ? "don mensuel" : "don ponctuel",
-    receiptNumber: cerfa?.receipt.number ?? refreshedDonation.receipt?.number,
-    stripeReceiptUrl,
-  });
+  const amount = formatMoney(
+    refreshedDonation.amountCents,
+    refreshedDonation.currency,
+  );
+  const frequency = formatDonationFrequency(
+    refreshedDonation.frequency,
+    refreshedDonation.recurringMonths,
+  );
+  const receiptNumber = cerfa?.receipt.number ?? refreshedDonation.receipt?.number;
+  const nextMetadata = { ...refreshedMetadata };
 
-  const sent = await sendEmail({
-    to: refreshedDonation.donorEmail,
-    subject: email.subject,
-    html: email.html,
-    attachments: cerfa
-      ? [
-          {
-            filename: `${cerfa.receipt.number}.pdf`,
-            content: cerfa.pdf.toString("base64"),
-          },
-        ]
-      : undefined,
-  });
+  if (!refreshedMetadata.thankYouEmailSentAt) {
+    const email = donationThankYouEmail({
+      donorName: refreshedDonation.donorName,
+      amount,
+      frequency,
+      receiptNumber,
+      stripeReceiptUrl,
+    });
 
-  if (sent.ok) {
+    const sent = await sendEmail({
+      to: refreshedDonation.donorEmail,
+      subject: email.subject,
+      html: email.html,
+      attachments: cerfa
+        ? [
+            {
+              filename: `${cerfa.receipt.number}.pdf`,
+              content: cerfa.pdf.toString("base64"),
+            },
+          ]
+        : undefined,
+    });
+
+    if (sent.ok) {
+      nextMetadata.thankYouEmailSentAt = new Date().toISOString();
+    }
+  }
+
+  if (!refreshedMetadata.adminDonationEmailSentAt) {
+    if (nextMetadata.thankYouEmailSentAt) {
+      await sleep(1200);
+    }
+
+    const adminSent = await sendAdminDonationEmail({
+      amount,
+      donation: refreshedDonation,
+      frequency,
+      receiptNumber,
+      stripeReceiptUrl,
+    });
+
+    if (adminSent) {
+      nextMetadata.adminDonationEmailSentAt = new Date().toISOString();
+    }
+  }
+
+  if (
+    nextMetadata.thankYouEmailSentAt !== refreshedMetadata.thankYouEmailSentAt ||
+    nextMetadata.adminDonationEmailSentAt !== refreshedMetadata.adminDonationEmailSentAt
+  ) {
     await prisma.donation.update({
       where: { id: donation.id },
       data: {
-        receiptStatus: cerfa ? ReceiptStatus.SENT : refreshedDonation.receiptStatus,
-        metadata: {
-          ...refreshedMetadata,
-          thankYouEmailSentAt: new Date().toISOString(),
-        },
+        receiptStatus:
+          cerfa && nextMetadata.thankYouEmailSentAt
+            ? ReceiptStatus.SENT
+            : refreshedDonation.receiptStatus,
+        metadata: nextMetadata as Prisma.InputJsonObject,
       },
     });
   }
+}
+
+async function adminDonationRecipients() {
+  const configured =
+    process.env.ADMIN_DONATION_EMAIL || process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  if (configured) {
+    return Array.from(new Set(configured
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean)));
+  }
+
+  const admins = await prisma.user.findMany({
+    where: { role: { in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] } },
+    select: { email: true },
+  });
+
+  return Array.from(new Set(admins.map((admin) => admin.email).filter(Boolean)));
+}
+
+async function sendAdminDonationEmail({
+  amount,
+  donation,
+  frequency,
+  receiptNumber,
+  stripeReceiptUrl,
+}: {
+  amount: string;
+  donation: {
+    id: string;
+    donorEmail: string;
+    donorName: string | null;
+    donorPhone: string | null;
+    stripePaymentIntentId: string | null;
+  };
+  frequency: string;
+  receiptNumber?: string | null;
+  stripeReceiptUrl?: string | null;
+}) {
+  const recipients = await adminDonationRecipients();
+
+  if (recipients.length === 0) {
+    return false;
+  }
+
+  const email = donationAdminNotificationEmail({
+    adminLink: `${getBaseUrl()}/admin/dons?q=${encodeURIComponent(donation.id)}`,
+    amount,
+    donorEmail: donation.donorEmail,
+    donorName: donation.donorName,
+    donorPhone: donation.donorPhone,
+    frequency,
+    receiptNumber,
+    stripePaymentIntentId: donation.stripePaymentIntentId,
+    stripeReceiptUrl,
+  });
+
+  const [primaryRecipient, ...bccRecipients] = recipients;
+
+  const result = await sendEmail({
+    to: primaryRecipient,
+    bcc: bccRecipients.length > 0 ? bccRecipients : undefined,
+    subject: email.subject,
+    html: email.html,
+  });
+
+  return result.ok;
 }
 
 async function updateChargeRefund(charge: Stripe.Charge) {

@@ -31,6 +31,21 @@ export const donationFrequencyLabels: Record<DonationFrequency, string> = {
   MONTHLY: "Recurrent mensuel",
 };
 
+export function formatDonationFrequency(
+  frequency: DonationFrequency,
+  recurringMonths?: number | null,
+) {
+  if (frequency === DonationFrequency.ONE_TIME) {
+    return donationFrequencyLabels.ONE_TIME;
+  }
+
+  if (!recurringMonths) {
+    return "Recurrent mensuel sans limite";
+  }
+
+  return `Recurrent mensuel - ${recurringMonths} mois`;
+}
+
 export const donationSourceLabels: Record<DonationSource, string> = {
   ONLINE: "En ligne",
   ADMIN_CASH: "Especes",

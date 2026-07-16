@@ -22,6 +22,20 @@ function normalizeCurrency(value: string) {
   return currency;
 }
 
+function readRecurringMonths(formData: FormData, frequency: DonationFrequency) {
+  if (frequency !== DonationFrequency.MONTHLY) {
+    return null;
+  }
+
+  const months = Number(readString(formData, "recurringMonths"));
+
+  if (!Number.isInteger(months) || months < 0 || months > 120) {
+    return 12;
+  }
+
+  return months;
+}
+
 export async function POST(request: Request) {
   const formData = await request.formData();
   const customAmount = readString(formData, "customAmount");
@@ -32,16 +46,15 @@ export async function POST(request: Request) {
   const email = readString(formData, "email").toLowerCase();
   const phone = readString(formData, "phone");
   const dedication = readString(formData, "dedication");
-  const campaign = readString(formData, "campaign") || "general";
   const donorType = readString(formData, "donorType") || "PARTICULIER";
   const companyName = readString(formData, "companyName");
   const anonymous = readString(formData, "anonymous") === "true";
-  const newsletter = readString(formData, "newsletter") !== "false";
-  const receiptNeeded = formData.get("receiptNeeded") === "on";
+  const receiptNeeded = true;
   const frequency =
     formData.get("frequency") === "MONTHLY"
       ? DonationFrequency.MONTHLY
       : DonationFrequency.ONE_TIME;
+  const recurringMonths = readRecurringMonths(formData, frequency);
 
   if (!firstName || !lastName || !email) {
     return NextResponse.json(
@@ -61,6 +74,7 @@ export async function POST(request: Request) {
       provider: PaymentProvider.STRIPE,
       status: "PENDING",
       frequency,
+      recurringMonths,
       amountCents,
       currency,
       donorEmail: email,
@@ -72,21 +86,17 @@ export async function POST(request: Request) {
       receiptNeeded,
       receiptStatus: receiptStatusFromNeeded(receiptNeeded),
       metadata: {
-        campaign,
         donorType,
         companyName: companyName || null,
         anonymous,
-        newsletter,
-        receipt: receiptNeeded
-          ? {
-              type: readString(formData, "receiptType") || "PARTICULIER",
-              address: readString(formData, "receiptAddress"),
-              zip: readString(formData, "receiptZip"),
-              city: readString(formData, "receiptCity"),
-              country: readString(formData, "receiptCountry") || "France",
-              taxId: readString(formData, "receiptTaxId"),
-            }
-          : null,
+        receipt: {
+          type: readString(formData, "receiptType") || "PARTICULIER",
+          address: readString(formData, "receiptAddress"),
+          zip: readString(formData, "receiptZip"),
+          city: readString(formData, "receiptCity"),
+          country: readString(formData, "receiptCountry") || "France",
+          taxId: readString(formData, "receiptTaxId"),
+        },
       },
     },
   });
@@ -102,10 +112,18 @@ export async function POST(request: Request) {
     metadata: {
       donationId: donation.id,
       receiptNeeded: String(receiptNeeded),
-      campaign,
       donorType,
       anonymous: String(anonymous),
     },
+    subscription_data:
+      frequency === DonationFrequency.MONTHLY
+        ? {
+            metadata: {
+              donationId: donation.id,
+              recurringMonths: recurringMonths == null ? "" : String(recurringMonths),
+            },
+          }
+        : undefined,
     line_items: [
       {
         quantity: 1,

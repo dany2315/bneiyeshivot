@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import {
   BadgeEuro,
@@ -23,7 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   InputGroup,
@@ -36,31 +36,14 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-const campaigns = [
-  {
-    value: "general",
-    label: "Fonds general",
-    description: "La ou le besoin est le plus urgent.",
-  },
-  {
-    value: "torah",
-    label: "Torah et mivhanim",
-    description: "Programmes d'etude, recompenses et suivi.",
-  },
-  {
-    value: "assistance",
-    label: "Aide administrative",
-    description: "Visa, koupat holim, urgence et accompagnement.",
-  },
-  {
-    value: "events",
-    label: "Evenements",
-    description: "Chabbat, rencontres et lien communautaire.",
-  },
+const recurringDurations = [
+  { value: "3", label: "3 mois" },
+  { value: "6", label: "6 mois" },
+  { value: "12", label: "12 mois" },
+  { value: "24", label: "24 mois" },
+  { value: "0", label: "Sans limite" },
 ];
 
 const impactByAmount = [
@@ -84,18 +67,45 @@ function amountImpact(amount: number) {
   return [...impactByAmount].reverse().find((item) => amount >= item.min)?.label;
 }
 
+function StepHeader({
+  description,
+  icon,
+  number,
+  title,
+}: {
+  description: string;
+  icon: ReactNode;
+  number: string;
+  title: string;
+}) {
+  return (
+    <div className="flex gap-3">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--primary)] text-sm font-black text-white">
+        {number}
+      </span>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[var(--accent)]">{icon}</span>
+          <h2 className="text-lg font-bold text-[var(--primary)]">{title}</h2>
+        </div>
+        <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function DonationCheckoutForm() {
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState("");
   const [currency, setCurrency] = useState("EUR");
   const [frequency, setFrequency] = useState<"ONE_TIME" | "MONTHLY">("ONE_TIME");
-  const [campaign, setCampaign] = useState("general");
-  const [receiptNeeded, setReceiptNeeded] = useState(false);
+  const [recurringMonths, setRecurringMonths] = useState("12");
   const [donorType, setDonorType] = useState<"PARTICULIER" | "ENTREPRISE">(
     "PARTICULIER",
   );
   const [anonymous, setAnonymous] = useState(false);
-  const [newsletter, setNewsletter] = useState(true);
 
   const effectiveAmount = useMemo(() => {
     const custom = Number(customAmount.replace(",", "."));
@@ -107,11 +117,14 @@ export function DonationCheckoutForm() {
     return selectedAmount;
   }, [customAmount, selectedAmount]);
 
-  const selectedCampaign = campaigns.find((item) => item.value === campaign);
   const providerLabel =
     currency === "ILS"
       ? "Stripe test pour ILS, Nedarim Plus pourra etre branche ensuite"
       : "Stripe";
+  const recurringLabel =
+    frequency === "MONTHLY"
+      ? recurringDurations.find((item) => item.value === recurringMonths)?.label
+      : null;
 
   return (
     <Card
@@ -127,7 +140,8 @@ export function DonationCheckoutForm() {
             <div>
               <CardTitle className="text-2xl">Finaliser mon don</CardTitle>
               <CardDescription>
-                Montant, affectation, coordonnees, Cerfa et paiement securise.
+                Un parcours simple en 4 etapes. Le recu Cerfa est genere
+                automatiquement pour chaque don confirme.
               </CardDescription>
             </div>
           </div>
@@ -138,34 +152,25 @@ export function DonationCheckoutForm() {
         </div>
       </CardHeader>
 
-      <CardContent className="p-5 sm:p-6">
-        <form action="/api/dons/checkout" className="grid gap-7" method="post">
+      <CardContent className="p-4 sm:p-6">
+        <form action="/api/dons/checkout" className="grid gap-5" method="post">
           <input name="amount" type="hidden" value={selectedAmount} />
-          <input name="campaign" type="hidden" value={campaign} />
           <input name="donorType" type="hidden" value={donorType} />
           <input name="anonymous" type="hidden" value={String(anonymous)} />
-          <input name="newsletter" type="hidden" value={String(newsletter)} />
+          <input name="receiptNeeded" type="hidden" value="on" />
 
-          <section className="grid gap-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-[var(--primary)]">
-                  1. Montant du don
-                </h2>
-                <p className="text-sm text-[var(--muted)]">
-                  Choisissez une proposition ou entrez un montant libre.
-                </p>
-              </div>
-              <Badge variant="warning" className="px-3 py-2">
-                {moneyLabel(effectiveAmount, currency)}
-                {frequency === "MONTHLY" ? " / mois" : ""}
-              </Badge>
-            </div>
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5">
+            <StepHeader
+              description="Choisissez une proposition ou entrez un montant libre."
+              icon={<BadgeEuro className="size-5" />}
+              number="1"
+              title="Montant"
+            />
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
               {donationAmountOptions.map((amount) => (
                 <button
-                  className="grid min-h-24 place-items-center rounded-xl border border-[var(--border)] bg-white font-serif text-3xl font-bold text-[var(--primary)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)]"
+                  className="grid min-h-20 place-items-center rounded-xl border border-[var(--border)] bg-white font-serif text-2xl font-bold text-[var(--primary)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)] sm:min-h-24 sm:text-3xl"
                   data-selected={customAmount === "" && selectedAmount === amount}
                   key={amount}
                   onClick={() => {
@@ -179,7 +184,7 @@ export function DonationCheckoutForm() {
               ))}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
+            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px]">
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Montant libre
@@ -218,19 +223,15 @@ export function DonationCheckoutForm() {
             </div>
           </section>
 
-          <Separator />
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5">
+            <StepHeader
+              description="Pour un don recurrent, indiquez aussi la duree souhaitee."
+              icon={<Repeat2 className="size-5" />}
+              number="2"
+              title="Frequence"
+            />
 
-          <section className="grid gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-[var(--primary)]">
-                2. Type de soutien
-              </h2>
-              <p className="text-sm text-[var(--muted)]">
-                Le don recurrent cree un paiement mensuel Stripe.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <button
                 className="flex min-h-16 items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 text-left transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)]"
                 data-selected={frequency === "ONE_TIME"}
@@ -257,52 +258,41 @@ export function DonationCheckoutForm() {
               </button>
             </div>
             <input name="frequency" type="hidden" value={frequency} />
-          </section>
 
-          <Separator />
-
-          <section className="grid gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-[var(--primary)]">
-                3. Affectation du don
-              </h2>
-              <p className="text-sm text-[var(--muted)]">
-                L'admin verra cette indication dans la fiche du don.
-              </p>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              {campaigns.map((item) => (
-                <button
-                  className="grid gap-1 rounded-xl border border-[var(--border)] bg-white p-4 text-left transition hover:border-[var(--accent)]/40 data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)]"
-                  data-selected={campaign === item.value}
-                  key={item.value}
-                  onClick={() => setCampaign(item.value)}
-                  type="button"
+            {frequency === "MONTHLY" && (
+              <Label className="mt-4 grid gap-2">
+                <span className="text-sm font-bold text-[var(--primary)]">
+                  Pendant combien de mois ?
+                </span>
+                <NativeSelect
+                  className="w-full sm:w-64"
+                  name="recurringMonths"
+                  onChange={(event) => setRecurringMonths(event.target.value)}
+                  value={recurringMonths}
                 >
-                  <strong className="text-[var(--primary)]">{item.label}</strong>
-                  <span className="text-sm text-[var(--muted)]">
-                    {item.description}
-                  </span>
-                </button>
-              ))}
-            </div>
+                  {recurringDurations.map((duration) => (
+                    <NativeSelectOption key={duration.value} value={duration.value}>
+                      {duration.label}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+                <span className="text-sm text-[var(--muted)]">
+                  Stripe gere le paiement mensuel. La duree est enregistree dans
+                  l'admin pour suivi.
+                </span>
+              </Label>
+            )}
           </section>
 
-          <Separator />
+          <section className="rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5">
+            <StepHeader
+              description="Ces informations servent au paiement, au rattachement compte et au Cerfa."
+              icon={<User className="size-5" />}
+              number="3"
+              title="Donateur"
+            />
 
-          <section className="grid gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-[var(--primary)]">
-                4. Donateur
-              </h2>
-              <p className="text-sm text-[var(--muted)]">
-                Ces informations servent au paiement, au rattachement compte et
-                au recu.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <button
                 className="flex min-h-14 items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 text-left transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)]"
                 data-selected={donorType === "PARTICULIER"}
@@ -323,7 +313,7 @@ export function DonationCheckoutForm() {
               </button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Prenom
@@ -358,7 +348,7 @@ export function DonationCheckoutForm() {
               )}
             </div>
 
-            <Label className="grid gap-2">
+            <Label className="mt-4 grid gap-2">
               <span className="text-sm font-bold text-[var(--primary)]">
                 Dedicace ou message
               </span>
@@ -368,101 +358,65 @@ export function DonationCheckoutForm() {
               />
             </Label>
 
-            <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/60 p-4">
-              <label className="flex items-center justify-between gap-4">
-                <span className="grid">
-                  <strong className="text-sm text-[var(--primary)]">
-                    Don anonyme cote public
-                  </strong>
-                  <small className="text-[var(--muted)]">
-                    L'admin garde les informations pour le suivi.
-                  </small>
-                </span>
-                <Switch
-                  checked={anonymous}
-                  onCheckedChange={setAnonymous}
-                />
-              </label>
-              <label className="flex items-center justify-between gap-4">
-                <span className="grid">
-                  <strong className="text-sm text-[var(--primary)]">
-                    Recevoir les nouvelles de l'association
-                  </strong>
-                  <small className="text-[var(--muted)]">
-                    Utile pour remercier et donner des nouvelles.
-                  </small>
-                </span>
-                <Switch
-                  checked={newsletter}
-                  onCheckedChange={setNewsletter}
-                />
-              </label>
-            </div>
+            <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/60 p-4">
+              <span className="grid">
+                <strong className="text-sm text-[var(--primary)]">
+                  Don anonyme cote public
+                </strong>
+                <small className="text-[var(--muted)]">
+                  L'admin garde les informations pour le suivi.
+                </small>
+              </span>
+              <input
+                checked={anonymous}
+                className="size-4"
+                onChange={(event) => setAnonymous(event.target.checked)}
+                type="checkbox"
+              />
+            </label>
           </section>
 
-          <Separator />
+          <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)]/55 p-4 sm:p-5">
+            <StepHeader
+              description="Le recu fiscal est toujours prepare automatiquement apres paiement confirme."
+              icon={<ReceiptText className="size-5" />}
+              number="4"
+              title="Recu Cerfa automatique"
+            />
 
-          <section className="grid gap-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-[var(--primary)]">
-                  5. Recu Cerfa
-                </h2>
-                <p className="text-sm text-[var(--muted)]">
-                  Les informations sont rattachees au don dans l'admin.
-                </p>
-              </div>
-              <label className="flex items-center gap-3 rounded-full border border-[var(--border)] bg-white px-4 py-2 font-bold text-[var(--primary)]">
-                <Checkbox
-                  checked={receiptNeeded}
-                  name="receiptNeeded"
-                  onCheckedChange={(checked) => setReceiptNeeded(checked === true)}
-                />
-                Demander un Cerfa
-              </label>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <NativeSelect
+                defaultValue={
+                  donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER"
+                }
+                name="receiptType"
+              >
+                <NativeSelectOption value="PARTICULIER">
+                  Particulier
+                </NativeSelectOption>
+                <NativeSelectOption value="ENTREPRISE">
+                  Entreprise
+                </NativeSelectOption>
+                <NativeSelectOption value="ISF_IFI">IFI</NativeSelectOption>
+                <NativeSelectOption value="AUTRE">Autre</NativeSelectOption>
+              </NativeSelect>
+              <Input
+                name="receiptTaxId"
+                placeholder={
+                  donorType === "ENTREPRISE"
+                    ? "SIREN / SIRET"
+                    : "Identifiant fiscal si necessaire"
+                }
+              />
+              <Input
+                className="sm:col-span-2"
+                name="receiptAddress"
+                placeholder="Adresse"
+              />
+              <Input name="receiptZip" placeholder="Code postal" />
+              <Input name="receiptCity" placeholder="Ville" />
+              <Input defaultValue="France" name="receiptCountry" placeholder="Pays" />
             </div>
-
-            {receiptNeeded && (
-              <Card className="border-[var(--accent)]/20 bg-[var(--accent-soft)]/60">
-                <CardContent className="grid gap-3 p-4 sm:grid-cols-2">
-                  <NativeSelect
-                    defaultValue={
-                      donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER"
-                    }
-                    name="receiptType"
-                  >
-                    <NativeSelectOption value="PARTICULIER">
-                      Particulier
-                    </NativeSelectOption>
-                    <NativeSelectOption value="ENTREPRISE">
-                      Entreprise
-                    </NativeSelectOption>
-                    <NativeSelectOption value="ISF_IFI">IFI</NativeSelectOption>
-                    <NativeSelectOption value="AUTRE">Autre</NativeSelectOption>
-                  </NativeSelect>
-                  <Input
-                    name="receiptTaxId"
-                    placeholder={
-                      donorType === "ENTREPRISE"
-                        ? "SIREN / SIRET"
-                        : "Identifiant fiscal si necessaire"
-                    }
-                  />
-                  <Input
-                    className="sm:col-span-2"
-                    name="receiptAddress"
-                    placeholder="Adresse"
-                  />
-                  <Input name="receiptZip" placeholder="Code postal" />
-                  <Input name="receiptCity" placeholder="Ville" />
-                  <Input
-                    defaultValue="France"
-                    name="receiptCountry"
-                    placeholder="Pays"
-                  />
-                </CardContent>
-              </Card>
-            )}
           </section>
 
           <Card className="border-[var(--border)] bg-[var(--primary-soft)]">
@@ -473,8 +427,9 @@ export function DonationCheckoutForm() {
                   {frequency === "MONTHLY" ? " par mois" : ""}
                 </strong>
                 <span className="text-sm text-[var(--muted)]">
-                  {selectedCampaign?.label} - {amountImpact(effectiveAmount)}
-                  {receiptNeeded ? " - Recu Cerfa demande" : ""}
+                  {amountImpact(effectiveAmount)}
+                  {recurringLabel ? ` - ${recurringLabel}` : ""}
+                  {" - Recu Cerfa automatique"}
                 </span>
               </div>
               <Button size="lg" type="submit">
@@ -491,11 +446,11 @@ export function DonationCheckoutForm() {
             </span>
             <span className="flex items-center gap-2">
               <Mail className="size-4 text-[var(--success)]" />
-              Rattachement par email
+              Confirmation par email
             </span>
             <span className="flex items-center gap-2">
               <ReceiptText className="size-4 text-[var(--success)]" />
-              Suivi Cerfa admin
+              Cerfa PDF automatique
             </span>
           </div>
         </form>

@@ -49,7 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  donationFrequencyLabels,
+  formatDonationFrequency,
   donationSourceLabels,
   formatMoney,
   paymentStatusLabels,
@@ -79,13 +79,6 @@ const receiptStatusLabels: Record<ReceiptStatus, string> = {
   REQUESTED: "Demande",
   GENERATED: "Genere",
   SENT: "Envoye",
-};
-
-const campaignLabels: Record<string, string> = {
-  general: "Fonds general",
-  torah: "Torah et mivhanim",
-  assistance: "Aide administrative",
-  events: "Evenements",
 };
 
 function donationTone(status: PaymentStatus) {
@@ -134,11 +127,6 @@ function metadataBoolean(metadata: unknown, key: string) {
   const value = metadataObject(metadata)[key];
 
   return typeof value === "boolean" ? value : null;
-}
-
-function campaignLabel(donation: AdminDonation) {
-  return campaignLabels[metadataText(donation.metadata, "campaign") ?? "general"] ??
-    "Fonds general";
 }
 
 function stripePaymentUrl(donation: AdminDonation) {
@@ -378,7 +366,12 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           <Card>
             <CardHeader>
               <CardTitle>{formatMoney(donation.amountCents, donation.currency)}</CardTitle>
-              <CardDescription>{donationFrequencyLabels[donation.frequency]}</CardDescription>
+              <CardDescription>
+                {formatDonationFrequency(
+                  donation.frequency,
+                  donation.recurringMonths,
+                )}
+              </CardDescription>
             </CardHeader>
           </Card>
           <Card>
@@ -402,11 +395,9 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           <CardContent className="grid gap-2 text-sm md:grid-cols-2">
             <span>Email: {donation.donorEmail}</span>
             <span>Telephone: {donation.donorPhone ?? "-"}</span>
-            <span>Affectation: {campaignLabel(donation)}</span>
             <span>Type: {metadataText(donation.metadata, "donorType") ?? "-"}</span>
             <span>Entreprise: {metadataText(donation.metadata, "companyName") ?? "-"}</span>
             <span>Anonyme: {metadataBoolean(donation.metadata, "anonymous") ? "Oui" : "Non"}</span>
-            <span>Newsletter: {metadataBoolean(donation.metadata, "newsletter") === false ? "Non" : "Oui"}</span>
             <span>Compte rattache: {donation.user?.email ?? "Non"}</span>
           </CardContent>
         </Card>
@@ -615,7 +606,7 @@ function ReceiptBulkDownloadCard() {
         <CardTitle>Telechargement groupe des recus</CardTitle>
         <CardDescription>
           Selectionnez une plage de dates d'emission. Le ZIP contient un index
-          CSV et un fichier Cerfa HTML imprimable par recu.
+          CSV et un fichier PDF Cerfa par recu.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -736,7 +727,6 @@ export default async function AdminDonationsPage({
                   <TableHead>Montant</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Origine</TableHead>
-                  <TableHead>Affectation</TableHead>
                   <TableHead>Cerfa</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
@@ -759,7 +749,10 @@ export default async function AdminDonationsPage({
                           {formatMoney(donation.amountCents, donation.currency)}
                         </strong>
                         <span className="text-sm text-[var(--muted)]">
-                          {donationFrequencyLabels[donation.frequency]}
+                          {formatDonationFrequency(
+                            donation.frequency,
+                            donation.recurringMonths,
+                          )}
                         </span>
                       </div>
                     </TableCell>
@@ -769,7 +762,6 @@ export default async function AdminDonationsPage({
                       </StatusBadge>
                     </TableCell>
                     <TableCell>{donationSourceLabels[donation.source]}</TableCell>
-                    <TableCell>{campaignLabel(donation)}</TableCell>
                     <TableCell>
                       <div className="grid">
                         <strong>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { formatMoney } from "@/lib/donations";
+import { formatDonationFrequency, formatMoney } from "@/lib/donations";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/session";
 
@@ -42,7 +42,7 @@ export async function GET() {
       formatMoney(donation.amountCents, donation.currency),
       donation.currency,
       donation.status,
-      donation.frequency,
+      formatDonationFrequency(donation.frequency, donation.recurringMonths),
       donation.source,
       donation.receiptStatus,
       donation.receipt?.number ?? "",

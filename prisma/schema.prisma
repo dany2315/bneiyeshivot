@@ -331,6 +331,7 @@ model Donation {
   source                DonationSource    @default(ONLINE)
   status                PaymentStatus     @default(PENDING)
   frequency             DonationFrequency @default(ONE_TIME)
+  recurringMonths       Int?
   amountCents           Int
   refundedAmountCents   Int               @default(0)
   currency              String
