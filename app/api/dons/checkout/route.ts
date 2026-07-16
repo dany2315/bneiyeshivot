@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   const dedication = readString(formData, "dedication");
   const donorType = readString(formData, "donorType") || "PARTICULIER";
   const companyName = readString(formData, "companyName");
-  const anonymous = readString(formData, "anonymous") === "true";
+  const companyLegalForm = readString(formData, "companyLegalForm");
   const receiptNeeded = true;
   const frequency =
     formData.get("frequency") === "MONTHLY"
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       metadata: {
         donorType,
         companyName: companyName || null,
-        anonymous,
+        companyLegalForm: companyLegalForm || null,
         receipt: {
           type: readString(formData, "receiptType") || "PARTICULIER",
           address: readString(formData, "receiptAddress"),
@@ -113,7 +113,6 @@ export async function POST(request: Request) {
       donationId: donation.id,
       receiptNeeded: String(receiptNeeded),
       donorType,
-      anonymous: String(anonymous),
     },
     subscription_data:
       frequency === DonationFrequency.MONTHLY

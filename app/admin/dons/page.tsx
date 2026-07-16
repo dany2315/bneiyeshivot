@@ -123,12 +123,6 @@ function metadataText(metadata: unknown, key: string) {
   return typeof value === "string" ? value : null;
 }
 
-function metadataBoolean(metadata: unknown, key: string) {
-  const value = metadataObject(metadata)[key];
-
-  return typeof value === "boolean" ? value : null;
-}
-
 function stripePaymentUrl(donation: AdminDonation) {
   if (!donation.stripePaymentIntentId) return null;
 
@@ -397,7 +391,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             <span>Telephone: {donation.donorPhone ?? "-"}</span>
             <span>Type: {metadataText(donation.metadata, "donorType") ?? "-"}</span>
             <span>Entreprise: {metadataText(donation.metadata, "companyName") ?? "-"}</span>
-            <span>Anonyme: {metadataBoolean(donation.metadata, "anonymous") ? "Oui" : "Non"}</span>
+            <span>Type juridique: {metadataText(donation.metadata, "companyLegalForm") ?? "-"}</span>
             <span>Compte rattache: {donation.user?.email ?? "Non"}</span>
           </CardContent>
         </Card>

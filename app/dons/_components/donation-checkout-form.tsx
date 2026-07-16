@@ -3,9 +3,12 @@
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import {
+  ArrowLeft,
+  ArrowRight,
   BadgeEuro,
   Building2,
   CheckCircle2,
+  ClipboardCheck,
   Gift,
   HeartHandshake,
   Mail,
@@ -37,6 +40,7 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 
 const recurringDurations = [
   { value: "3", label: "3 mois" },
@@ -46,6 +50,17 @@ const recurringDurations = [
   { value: "0", label: "Sans limite" },
 ];
 
+const legalForms = [
+  "Association",
+  "SARL",
+  "SAS",
+  "SA",
+  "EURL",
+  "SCI",
+  "Auto-entrepreneur",
+  "Autre",
+];
+
 const impactByAmount = [
   { min: 20, label: "Un dossier accompagne" },
   { min: 50, label: "Une aide administrative concrete" },
@@ -53,6 +68,13 @@ const impactByAmount = [
   { min: 180, label: "Un programme Torah soutenu" },
   { min: 260, label: "Un jeune suivi sur plusieurs etapes" },
   { min: 500, label: "Un vrai levier pour une action collective" },
+];
+
+const steps = [
+  { title: "Montant", icon: BadgeEuro },
+  { title: "Frequence", icon: Repeat2 },
+  { title: "Donateur", icon: User },
+  { title: "Confirmation", icon: ClipboardCheck },
 ];
 
 function moneyLabel(amount: number, currency: string) {
@@ -97,6 +119,7 @@ function StepHeader({
 }
 
 export function DonationCheckoutForm() {
+  const [activeStep, setActiveStep] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState("");
   const [currency, setCurrency] = useState("EUR");
@@ -105,7 +128,12 @@ export function DonationCheckoutForm() {
   const [donorType, setDonorType] = useState<"PARTICULIER" | "ENTREPRISE">(
     "PARTICULIER",
   );
-  const [anonymous, setAnonymous] = useState(false);
+  const [receiptType, setReceiptType] = useState("PARTICULIER");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [error, setError] = useState("");
 
   const effectiveAmount = useMemo(() => {
     const custom = Number(customAmount.replace(",", "."));
@@ -125,6 +153,37 @@ export function DonationCheckoutForm() {
     frequency === "MONTHLY"
       ? recurringDurations.find((item) => item.value === recurringMonths)?.label
       : null;
+  const donorName = [firstName, lastName].filter(Boolean).join(" ");
+
+  function validateStep(step: number) {
+    if (step === 0 && effectiveAmount <= 0) {
+      return "Choisissez un montant valide.";
+    }
+
+    if (step === 2) {
+      if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+        return "Prenom, nom et email sont obligatoires.";
+      }
+
+      if (donorType === "ENTREPRISE" && !companyName.trim()) {
+        return "Le nom de l'entreprise est obligatoire.";
+      }
+    }
+
+    return "";
+  }
+
+  function goNext() {
+    const nextError = validateStep(activeStep);
+
+    if (nextError) {
+      setError(nextError);
+      return;
+    }
+
+    setError("");
+    setActiveStep((step) => Math.min(step + 1, steps.length - 1));
+  }
 
   return (
     <Card
@@ -140,8 +199,8 @@ export function DonationCheckoutForm() {
             <div>
               <CardTitle className="text-2xl">Finaliser mon don</CardTitle>
               <CardDescription>
-                Un parcours simple en 4 etapes. Le recu Cerfa est genere
-                automatiquement pour chaque don confirme.
+                Avancez etape par etape. Le recu Cerfa est genere automatiquement
+                pour chaque don confirme.
               </CardDescription>
             </div>
           </div>
@@ -156,10 +215,59 @@ export function DonationCheckoutForm() {
         <form action="/api/dons/checkout" className="grid gap-5" method="post">
           <input name="amount" type="hidden" value={selectedAmount} />
           <input name="donorType" type="hidden" value={donorType} />
-          <input name="anonymous" type="hidden" value={String(anonymous)} />
           <input name="receiptNeeded" type="hidden" value="on" />
 
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5">
+          <div className="grid gap-3 rounded-2xl border border-[var(--border)] bg-white p-3 sm:p-4">
+            <div className="grid grid-cols-4 gap-2">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isDone = index < activeStep;
+                const isActive = index === activeStep;
+
+                return (
+                  <button
+                    className="grid min-h-16 place-items-center rounded-xl border px-2 text-center text-xs font-bold transition data-[active=true]:border-[var(--accent)]/60 data-[active=true]:bg-[var(--accent-soft)] data-[done=true]:border-[var(--success)]/30 data-[done=true]:bg-[var(--success-soft)]"
+                    data-active={isActive}
+                    data-done={isDone}
+                    key={step.title}
+                    onClick={() => {
+                      if (index <= activeStep) {
+                        setActiveStep(index);
+                        setError("");
+                      }
+                    }}
+                    type="button"
+                  >
+                    <Icon className="size-4 text-[var(--accent)]" />
+                    <span>{step.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {activeStep > 0 && (
+              <div className="rounded-xl bg-[var(--primary-soft)] p-3 text-sm text-[var(--primary)]">
+                <strong>Resume:</strong> {moneyLabel(effectiveAmount, currency)}
+                {frequency === "MONTHLY" ? " par mois" : ""} -{" "}
+                {recurringLabel ?? "Don ponctuel"}
+                {donorName ? ` - ${donorName}` : ""}
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+              {error}
+            </div>
+          )}
+
+          <section
+            className={
+              activeStep === 0
+                ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
+                : "hidden"
+            }
+          >
             <StepHeader
               description="Choisissez une proposition ou entrez un montant libre."
               icon={<BadgeEuro className="size-5" />}
@@ -223,7 +331,13 @@ export function DonationCheckoutForm() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5">
+          <section
+            className={
+              activeStep === 1
+                ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
+                : "hidden"
+            }
+          >
             <StepHeader
               description="Pour un don recurrent, indiquez aussi la duree souhaitee."
               icon={<Repeat2 className="size-5" />}
@@ -276,27 +390,32 @@ export function DonationCheckoutForm() {
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
-                <span className="text-sm text-[var(--muted)]">
-                  Stripe gere le paiement mensuel. La duree est enregistree dans
-                  l'admin pour suivi.
-                </span>
               </Label>
             )}
           </section>
 
-          <section className="rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5">
+          <section
+            className={
+              activeStep === 2
+                ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
+                : "hidden"
+            }
+          >
             <StepHeader
-              description="Ces informations servent au paiement, au rattachement compte et au Cerfa."
+              description="Une seule saisie pour le paiement, le donateur et le recu Cerfa."
               icon={<User className="size-5" />}
               number="3"
-              title="Donateur"
+              title="Donateur et Cerfa"
             />
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <button
                 className="flex min-h-14 items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 text-left transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)]"
                 data-selected={donorType === "PARTICULIER"}
-                onClick={() => setDonorType("PARTICULIER")}
+                onClick={() => {
+                  setDonorType("PARTICULIER");
+                  setReceiptType("PARTICULIER");
+                }}
                 type="button"
               >
                 <User className="size-5 text-[var(--accent)]" />
@@ -305,7 +424,10 @@ export function DonationCheckoutForm() {
               <button
                 className="flex min-h-14 items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 text-left transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)]"
                 data-selected={donorType === "ENTREPRISE"}
-                onClick={() => setDonorType("ENTREPRISE")}
+                onClick={() => {
+                  setDonorType("ENTREPRISE");
+                  setReceiptType("ENTREPRISE");
+                }}
                 type="button"
               >
                 <Building2 className="size-5 text-[var(--accent)]" />
@@ -318,87 +440,80 @@ export function DonationCheckoutForm() {
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Prenom
                 </span>
-                <Input name="firstName" required />
+                <Input
+                  name="firstName"
+                  onChange={(event) => setFirstName(event.target.value)}
+                  value={firstName}
+                />
               </Label>
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Nom
                 </span>
-                <Input name="lastName" required />
+                <Input
+                  name="lastName"
+                  onChange={(event) => setLastName(event.target.value)}
+                  value={lastName}
+                />
               </Label>
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Email
                 </span>
-                <Input name="email" required type="email" />
+                <Input
+                  name="email"
+                  onChange={(event) => setEmail(event.target.value)}
+                  type="email"
+                  value={email}
+                />
               </Label>
               <Label className="grid gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Telephone
                 </span>
-                <Input name="phone" type="tel" />
+                <PhoneInputGroup id="don-phone" name="phone" />
               </Label>
+
               {donorType === "ENTREPRISE" && (
-                <Label className="grid gap-2 sm:col-span-2">
-                  <span className="text-sm font-bold text-[var(--primary)]">
-                    Nom de l'entreprise
-                  </span>
-                  <Input name="companyName" />
-                </Label>
+                <>
+                  <Label className="grid gap-2">
+                    <span className="text-sm font-bold text-[var(--primary)]">
+                      Nom de l'entreprise
+                    </span>
+                    <Input
+                      name="companyName"
+                      onChange={(event) => setCompanyName(event.target.value)}
+                      value={companyName}
+                    />
+                  </Label>
+                  <Label className="grid gap-2">
+                    <span className="text-sm font-bold text-[var(--primary)]">
+                      Type juridique
+                    </span>
+                    <NativeSelect name="companyLegalForm">
+                      {legalForms.map((form) => (
+                        <NativeSelectOption key={form} value={form}>
+                          {form}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
+                  </Label>
+                </>
               )}
-            </div>
 
-            <Label className="mt-4 grid gap-2">
-              <span className="text-sm font-bold text-[var(--primary)]">
-                Dedicace ou message
-              </span>
-              <Textarea
-                name="dedication"
-                placeholder="Pour une refoua, une reussite, a la memoire de..."
-              />
-            </Label>
-
-            <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/60 p-4">
-              <span className="grid">
-                <strong className="text-sm text-[var(--primary)]">
-                  Don anonyme cote public
-                </strong>
-                <small className="text-[var(--muted)]">
-                  L'admin garde les informations pour le suivi.
-                </small>
-              </span>
-              <input
-                checked={anonymous}
-                className="size-4"
-                onChange={(event) => setAnonymous(event.target.checked)}
-                type="checkbox"
-              />
-            </label>
-          </section>
-
-          <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)]/55 p-4 sm:p-5">
-            <StepHeader
-              description="Le recu fiscal est toujours prepare automatiquement apres paiement confirme."
-              icon={<ReceiptText className="size-5" />}
-              number="4"
-              title="Recu Cerfa automatique"
-            />
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <NativeSelect
-                defaultValue={
-                  donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER"
-                }
                 name="receiptType"
+                onChange={(event) => setReceiptType(event.target.value)}
+                value={receiptType}
               >
                 <NativeSelectOption value="PARTICULIER">
-                  Particulier
+                  Recu particulier
                 </NativeSelectOption>
                 <NativeSelectOption value="ENTREPRISE">
-                  Entreprise
+                  Recu entreprise
                 </NativeSelectOption>
-                <NativeSelectOption value="ISF_IFI">IFI</NativeSelectOption>
-                <NativeSelectOption value="AUTRE">Autre</NativeSelectOption>
+                <NativeSelectOption value="ISF_IFI">Recu IFI</NativeSelectOption>
+                <NativeSelectOption value="AUTRE">Autre recu</NativeSelectOption>
               </NativeSelect>
               <Input
                 name="receiptTaxId"
@@ -411,33 +526,97 @@ export function DonationCheckoutForm() {
               <Input
                 className="sm:col-span-2"
                 name="receiptAddress"
-                placeholder="Adresse"
+                placeholder="Adresse fiscale"
               />
               <Input name="receiptZip" placeholder="Code postal" />
               <Input name="receiptCity" placeholder="Ville" />
               <Input defaultValue="France" name="receiptCountry" placeholder="Pays" />
             </div>
+
+            <Label className="mt-4 grid gap-2">
+              <span className="text-sm font-bold text-[var(--primary)]">
+                Dedicace ou message
+              </span>
+              <Textarea
+                name="dedication"
+                placeholder="Pour une refoua, une reussite, a la memoire de..."
+              />
+            </Label>
           </section>
 
-          <Card className="border-[var(--border)] bg-[var(--primary-soft)]">
-            <CardContent className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
-              <div className="grid gap-2">
-                <strong className="text-[var(--primary)]">
-                  Resume: {moneyLabel(effectiveAmount, currency)}
-                  {frequency === "MONTHLY" ? " par mois" : ""}
+          <section
+            className={
+              activeStep === 3
+                ? "rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)]/55 p-4 sm:p-5"
+                : "hidden"
+            }
+          >
+            <StepHeader
+              description="Verifiez le recapitulatif puis passez au paiement securise."
+              icon={<ClipboardCheck className="size-5" />}
+              number="4"
+              title="Confirmation"
+            />
+
+            <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+              <div className="rounded-xl bg-white p-4">
+                <span className="text-[var(--muted)]">Montant</span>
+                <strong className="mt-1 block text-lg text-[var(--primary)]">
+                  {moneyLabel(effectiveAmount, currency)}
+                  {frequency === "MONTHLY" ? " / mois" : ""}
                 </strong>
-                <span className="text-sm text-[var(--muted)]">
-                  {amountImpact(effectiveAmount)}
-                  {recurringLabel ? ` - ${recurringLabel}` : ""}
-                  {" - Recu Cerfa automatique"}
+              </div>
+              <div className="rounded-xl bg-white p-4">
+                <span className="text-[var(--muted)]">Frequence</span>
+                <strong className="mt-1 block text-lg text-[var(--primary)]">
+                  {recurringLabel ?? "Don ponctuel"}
+                </strong>
+              </div>
+              <div className="rounded-xl bg-white p-4">
+                <span className="text-[var(--muted)]">Donateur</span>
+                <strong className="mt-1 block text-lg text-[var(--primary)]">
+                  {donorName || "-"}
+                </strong>
+                <span className="text-[var(--muted)]">{email || "-"}</span>
+              </div>
+              <div className="rounded-xl bg-white p-4">
+                <span className="text-[var(--muted)]">Recu fiscal</span>
+                <strong className="mt-1 block text-lg text-[var(--primary)]">
+                  Cerfa PDF automatique
+                </strong>
+                <span className="text-[var(--muted)]">
+                  Envoye avec le mail de remerciement.
                 </span>
               </div>
+            </div>
+          </section>
+
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Button
+              disabled={activeStep === 0}
+              onClick={() => {
+                setActiveStep((step) => Math.max(step - 1, 0));
+                setError("");
+              }}
+              type="button"
+              variant="secondary"
+            >
+              <ArrowLeft className="size-4" />
+              Retour
+            </Button>
+
+            {activeStep < steps.length - 1 ? (
+              <Button onClick={goNext} type="button">
+                Suivant
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : (
               <Button size="lg" type="submit">
                 <HeartHandshake className="size-5" />
                 Payer avec Stripe
               </Button>
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           <div className="grid gap-2 text-sm text-[var(--muted)] sm:grid-cols-3">
             <span className="flex items-center gap-2">
