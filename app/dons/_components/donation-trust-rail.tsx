@@ -1,7 +1,7 @@
 import {
   Banknote,
-  FileCheck2,
   LockKeyhole,
+  MailCheck,
   ReceiptText,
   RefreshCcw,
   ShieldCheck,
@@ -19,23 +19,28 @@ import { Separator } from "@/components/ui/separator";
 const trustItems = [
   {
     icon: ShieldCheck,
-    title: "Paiement suivi",
-    text: "Creation du don en base puis mise a jour par webhook Stripe.",
+    title: "Paiement securise",
+    text: "Le paiement est traite par Stripe, avec carte bancaire et protection 3D Secure si necessaire.",
   },
   {
     icon: ReceiptText,
-    title: "Cerfa rattache",
-    text: "Le recu est lie au don exact, modifiable depuis l'admin.",
+    title: "Recu fiscal automatique",
+    text: "Le Cerfa est rattache au don confirme et envoye avec l'email de remerciement.",
+  },
+  {
+    icon: MailCheck,
+    title: "Confirmation immediate",
+    text: "Vous recevez une confirmation par email apres validation du paiement.",
   },
   {
     icon: RefreshCcw,
-    title: "Remboursement",
-    text: "Les paiements Stripe peuvent etre rembourses depuis le back-office.",
+    title: "Suivi en cas de besoin",
+    text: "L'equipe peut retrouver le don, le recu et le paiement depuis l'espace admin.",
   },
   {
     icon: Banknote,
-    title: "Dons hors ligne",
-    text: "Especes, cheque et virement peuvent etre ajoutes par l'admin.",
+    title: "Dons ponctuels ou mensuels",
+    text: "Vous choisissez librement un don unique ou recurrent pour la duree souhaitee.",
   },
 ];
 
@@ -46,12 +51,12 @@ export function DonationTrustRail() {
         <CardHeader>
           <Badge variant="success" className="mb-2 w-fit gap-2 px-3 py-2">
             <LockKeyhole className="size-4" />
-            Stripe test active
+            Paiement Stripe
           </Badge>
-          <CardTitle>Suivi transparent</CardTitle>
+          <CardTitle>Don simple et securise</CardTitle>
           <CardDescription>
-            L'admin voit les dons reussis, echoues, rembourses, recurrents et
-            les recus a traiter.
+            Votre don est confirme par email et votre recu fiscal est prepare
+            automatiquement.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -76,17 +81,6 @@ export function DonationTrustRail() {
             );
           })}
         </CardContent>
-      </Card>
-
-      <Card className="border-[var(--border)] bg-[var(--primary)] text-white">
-        <CardHeader>
-          <FileCheck2 className="size-8 text-[var(--gold)]" />
-          <CardTitle>Pour le recu Cerfa</CardTitle>
-          <CardDescription className="text-white/72">
-            La generation PDF fiscale definitive viendra ensuite, mais toutes
-            les donnees sont deja structurees et rattachees au don.
-          </CardDescription>
-        </CardHeader>
       </Card>
     </aside>
   );

@@ -149,6 +149,7 @@ export function DonationCheckoutForm() {
       ? recurringDurations.find((item) => item.value === recurringMonths)?.label
       : null;
   const donorName = [firstName, lastName].filter(Boolean).join(" ");
+  const afterTaxAmount = effectiveAmount * 0.34;
 
   function validateStep(step: number) {
     if (step === 0 && effectiveAmount <= 0) {
@@ -296,8 +297,9 @@ export function DonationCheckoutForm() {
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Montant
                 </span>
-                <InputGroup className="h-12 bg-white">
+                <InputGroup className="h-16 border-[var(--accent)]/35 bg-white shadow-[0_14px_40px_rgba(255,127,42,0.12)]">
                   <InputGroupInput
+                    className="text-2xl font-black text-[var(--primary)]"
                     min="1"
                     name="customAmount"
                     onChange={(event) => {
@@ -314,10 +316,20 @@ export function DonationCheckoutForm() {
                     value={customAmount}
                   />
                   <InputGroupAddon align="inline-end">
-                    <InputGroupText>{currency}</InputGroupText>
+                    <InputGroupText className="text-lg font-black text-[var(--accent)]">
+                      {currency}
+                    </InputGroupText>
                   </InputGroupAddon>
                 </InputGroup>
               </Label>
+              <div className="rounded-2xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-4">
+                <span className="text-sm font-bold text-[var(--primary)]">
+                  Apres reduction fiscale de 66%, ce don ne vous coute que
+                </span>
+                <strong className="mt-1 block font-serif text-3xl text-[var(--success)]">
+                  {moneyLabel(afterTaxAmount, currency)}
+                </strong>
+              </div>
             </div>
 
             <div className="mt-6 border-t border-[var(--border)] pt-5">
@@ -553,7 +565,7 @@ export function DonationCheckoutForm() {
               <div className="rounded-xl bg-white p-4">
                 <span className="text-[var(--muted)]">Recu fiscal</span>
                 <strong className="mt-1 block text-lg text-[var(--primary)]">
-                  Cerfa PDF automatique
+                  Recu Cerfa automatique
                 </strong>
                 <span className="text-[var(--muted)]">
                   Envoye avec le mail de remerciement.
@@ -592,15 +604,15 @@ export function DonationCheckoutForm() {
           <div className="grid gap-2 text-sm text-[var(--muted)] sm:grid-cols-3">
             <span className="flex items-center gap-2">
               <CheckCircle2 className="size-4 text-[var(--success)]" />
-              Don cree en base
+              Paiement securise
             </span>
             <span className="flex items-center gap-2">
               <Mail className="size-4 text-[var(--success)]" />
-              Confirmation par email
+              Email de confirmation
             </span>
             <span className="flex items-center gap-2">
               <ReceiptText className="size-4 text-[var(--success)]" />
-              Cerfa PDF automatique
+              Recu Cerfa automatique
             </span>
           </div>
         </form>
