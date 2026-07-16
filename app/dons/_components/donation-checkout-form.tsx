@@ -71,8 +71,7 @@ const impactByAmount = [
 ];
 
 const steps = [
-  { title: "Montant", icon: BadgeEuro },
-  { title: "Frequence", icon: Repeat2 },
+  { title: "Don", icon: BadgeEuro },
   { title: "Donateur", icon: User },
   { title: "Confirmation", icon: ClipboardCheck },
 ];
@@ -160,7 +159,7 @@ export function DonationCheckoutForm() {
       return "Choisissez un montant valide.";
     }
 
-    if (step === 2) {
+    if (step === 1) {
       if (!firstName.trim() || !lastName.trim() || !email.trim()) {
         return "Prenom, nom et email sont obligatoires.";
       }
@@ -218,7 +217,7 @@ export function DonationCheckoutForm() {
           <input name="receiptNeeded" type="hidden" value="on" />
 
           <div className="grid gap-3 rounded-2xl border border-[var(--border)] bg-white p-3 sm:p-4">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isDone = index < activeStep;
@@ -272,7 +271,7 @@ export function DonationCheckoutForm() {
               description="Choisissez une proposition ou entrez un montant libre."
               icon={<BadgeEuro className="size-5" />}
               number="1"
-              title="Montant"
+              title="Montant et frequence"
             />
 
             <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -329,21 +328,16 @@ export function DonationCheckoutForm() {
                 </NativeSelect>
               </Label>
             </div>
-          </section>
 
-          <section
-            className={
-              activeStep === 1
-                ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
-                : "hidden"
-            }
-          >
-            <StepHeader
-              description="Pour un don recurrent, indiquez aussi la duree souhaitee."
-              icon={<Repeat2 className="size-5" />}
-              number="2"
-              title="Frequence"
-            />
+            <div className="mt-6 border-t border-[var(--border)] pt-5">
+              <div className="flex items-center gap-2 text-[var(--primary)]">
+                <Repeat2 className="size-5 text-[var(--accent)]" />
+                <h3 className="text-lg font-bold">Frequence</h3>
+              </div>
+              <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                Pour un don recurrent, indiquez aussi la duree souhaitee.
+              </p>
+            </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <button
@@ -396,7 +390,7 @@ export function DonationCheckoutForm() {
 
           <section
             className={
-              activeStep === 2
+              activeStep === 1
                 ? "rounded-2xl border border-[var(--border)] bg-white p-4 sm:p-5"
                 : "hidden"
             }
@@ -404,7 +398,7 @@ export function DonationCheckoutForm() {
             <StepHeader
               description="Une seule saisie pour le paiement, le donateur et le recu Cerfa."
               icon={<User className="size-5" />}
-              number="3"
+              number="2"
               title="Donateur et Cerfa"
             />
 
@@ -546,7 +540,7 @@ export function DonationCheckoutForm() {
 
           <section
             className={
-              activeStep === 3
+              activeStep === 2
                 ? "rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)]/55 p-4 sm:p-5"
                 : "hidden"
             }
@@ -554,7 +548,7 @@ export function DonationCheckoutForm() {
             <StepHeader
               description="Verifiez le recapitulatif puis passez au paiement securise."
               icon={<ClipboardCheck className="size-5" />}
-              number="4"
+              number="3"
               title="Confirmation"
             />
 
