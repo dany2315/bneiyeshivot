@@ -8,14 +8,14 @@ import { Badge } from "@/components/ui/badge";
 
 const faq = [
   {
-    question: "Le paiement est-il vraiment effectue avec Stripe ?",
+    question: "Le paiement est-il securise ?",
     answer:
-      "Oui. Le formulaire cree un don en attente puis redirige vers Stripe Checkout. Le webhook Stripe met ensuite le don a jour automatiquement.",
+      "Oui. Le formulaire cree un don en attente puis redirige vers une page de paiement securisee. La confirmation met ensuite le don a jour automatiquement.",
   },
   {
     question: "Puis-je faire un don mensuel ?",
     answer:
-      "Oui. Le choix don mensuel cree une session Stripe en mode subscription avec paiement recurrent mensuel.",
+      "Oui. Le choix don mensuel active un paiement recurrent mensuel pour la duree choisie.",
   },
   {
     question: "Comment le recu Cerfa est-il gere ?",
@@ -25,7 +25,7 @@ const faq = [
   {
     question: "Que se passe-t-il si le paiement echoue ?",
     answer:
-      "Le don reste suivi en base et Stripe renvoie les evenements necessaires. L'admin peut voir les paiements en attente, echoues, reussis ou rembourses.",
+      "Le don reste suivi en base et les confirmations de paiement mettent son statut a jour. L'admin peut voir les paiements en attente, echoues, reussis ou rembourses.",
   },
   {
     question: "Les dons en especes ou cheque sont-ils possibles ?",

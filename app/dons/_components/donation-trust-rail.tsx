@@ -20,7 +20,7 @@ const trustItems = [
   {
     icon: ShieldCheck,
     title: "Paiement securise",
-    text: "Le paiement est traite par Stripe, avec carte bancaire et protection 3D Secure si necessaire.",
+    text: "Le paiement est traite sur une page securisee, avec carte bancaire et protection 3D Secure si necessaire.",
   },
   {
     icon: ReceiptText,
@@ -51,7 +51,7 @@ export function DonationTrustRail() {
         <CardHeader>
           <Badge variant="success" className="mb-2 w-fit gap-2 px-3 py-2">
             <LockKeyhole className="size-4" />
-            Paiement Stripe
+            Paiement securise
           </Badge>
           <CardTitle>Don simple et securise</CardTitle>
           <CardDescription>

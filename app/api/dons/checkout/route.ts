@@ -16,7 +16,7 @@ function normalizeCurrency(value: string) {
   const currency = value.toUpperCase();
 
   if (currency !== "EUR") {
-    throw new Error("Seule la devise EUR est activee pour Stripe.");
+    throw new Error("Seule la devise EUR est activee pour les dons en ligne.");
   }
 
   return currency;
@@ -58,9 +58,9 @@ export async function POST(request: Request) {
       : DonationFrequency.ONE_TIME;
   const recurringMonths = readRecurringMonths(formData, frequency);
 
-  if (!firstName || !lastName || !email) {
+  if (!firstName || !lastName || !email || !phone) {
     return NextResponse.json(
-      { error: "Nom, prenom et email obligatoires." },
+      { error: "Nom, prenom, email et telephone obligatoires." },
       { status: 400 },
     );
   }
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
 
   if (!session.url) {
     return NextResponse.json(
-      { error: "Session Stripe creee sans URL de paiement." },
+      { error: "Session de paiement creee sans URL de paiement." },
       { status: 500 },
     );
   }

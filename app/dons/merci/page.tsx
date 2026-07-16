@@ -40,7 +40,7 @@ export default async function DonationThanksPage({
                 <CardTitle>Merci pour votre soutien</CardTitle>
                 <CardDescription>
                   Votre don est enregistré. La confirmation finale du paiement
-                  est synchronisée par Stripe automatiquement.
+                  est synchronisée automatiquement.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
