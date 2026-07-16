@@ -1,10 +1,12 @@
 import {
   BookOpenText,
   CalendarDays,
-  FileCheck2,
+  GraduationCap,
   HeartHandshake,
+  UsersRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,32 +14,37 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress, ProgressLabel } from "@/components/ui/progress";
 
 const impactCards = [
   {
-    icon: FileCheck2,
-    title: "Demarches",
-    value: "Visa, koupat holim, ETA-IL",
-    progress: 82,
+    icon: GraduationCap,
+    title: "Collelim",
+    description:
+      "Collel Erev ZIHRON ELIYAHOU : 12 avrekhim. Collel CHICHI CHABBAT Ohel Yaacov : 10 avrekhim.",
   },
   {
     icon: BookOpenText,
-    title: "Torah",
-    value: "Mivhanim, limoud, recompenses",
-    progress: 74,
+    title: "Programme Leachlim",
+    description:
+      "Étude hebdomadaire Houmach et Rachi sur la Paracha de la semaine : 150 participants français.",
+  },
+  {
+    icon: UsersRound,
+    title: "Yechivot Ben Hazmanim",
+    description:
+      "150 Ba'hourim, élèves, étudiants, Avrekhim à Paris et Banlieue : Tefila, étude, chiour.",
   },
   {
     icon: CalendarDays,
-    title: "Evenements",
-    value: "Chabbat, rencontres, soutien social",
-    progress: 68,
+    title: "Beth Hamidrach Lel Chichi",
+    description:
+      "Étude le jeudi soir, à Jérusalem pour plusieurs dizaines de Avrekhim, Ba'hourim, étudiants.",
   },
   {
     icon: HeartHandshake,
-    title: "Urgences",
-    value: "Accompagnement humain et terrain",
-    progress: 88,
+    title: "Soirées Hizouk",
+    description:
+      "Grandes soirées tout au long de l'année réunissant des dizaines de Ba'hourim Français en France et en Israël.",
   },
 ];
 
@@ -45,22 +52,28 @@ export function DonationImpactGrid() {
   return (
     <section className="section border-y border-[var(--border)] bg-white" id="impact">
       <div className="container">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(320px,1fr)] lg:items-end">
           <div>
             <Badge variant="info" className="mb-4 px-3 py-2">
-              Impact
+              GRÂCE À VOUS
             </Badge>
             <h2 className="font-serif text-4xl leading-none font-bold text-[var(--primary-strong)] md:text-5xl">
-              Ce que votre don finance.
+              Aidez-nous à faire perdurer ce magnifique projet !
             </h2>
           </div>
-          <p className="max-w-xl text-base leading-7 text-[var(--muted)]">
-            Le don peut etre affecte a une action precise, tout en laissant
-            l'equipe garder la souplesse necessaire pour les besoins urgents.
-          </p>
+          <div className="grid gap-4">
+            <p className="text-base leading-7 text-[var(--muted)]">
+              Votre participation permet de faire vivre les collelim, les
+              programmes d'étude, les Yechivot Ben Hazmanim, le Beth Hamidrach
+              et les soirées de hizouk.
+            </p>
+            <Button asChild size="lg" className="w-fit">
+              <a href="#don-form">Je participe</a>
+            </Button>
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {impactCards.map((item) => {
             const Icon = item.icon;
 
@@ -74,15 +87,11 @@ export function DonationImpactGrid() {
                     <Icon className="size-5" />
                   </span>
                   <CardTitle>{item.title}</CardTitle>
-                  <CardDescription>{item.value}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Progress value={item.progress}>
-                    <ProgressLabel>Priorite terrain</ProgressLabel>
-                    <span className="ml-auto text-sm text-[var(--muted)] tabular-nums">
-                      {item.progress}%
-                    </span>
-                  </Progress>
+                  <CardDescription className="leading-6">
+                    {item.description}
+                  </CardDescription>
                 </CardContent>
               </Card>
             );

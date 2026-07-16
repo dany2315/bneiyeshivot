@@ -127,7 +127,6 @@ export function DonationCheckoutForm() {
   const [donorType, setDonorType] = useState<"PARTICULIER" | "ENTREPRISE">(
     "PARTICULIER",
   );
-  const [receiptType, setReceiptType] = useState("PARTICULIER");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -408,7 +407,6 @@ export function DonationCheckoutForm() {
                 data-selected={donorType === "PARTICULIER"}
                 onClick={() => {
                   setDonorType("PARTICULIER");
-                  setReceiptType("PARTICULIER");
                 }}
                 type="button"
               >
@@ -420,7 +418,6 @@ export function DonationCheckoutForm() {
                 data-selected={donorType === "ENTREPRISE"}
                 onClick={() => {
                   setDonorType("ENTREPRISE");
-                  setReceiptType("ENTREPRISE");
                 }}
                 type="button"
               >
@@ -495,28 +492,16 @@ export function DonationCheckoutForm() {
                 </>
               )}
 
-              <NativeSelect
-                name="receiptType"
-                onChange={(event) => setReceiptType(event.target.value)}
-                value={receiptType}
-              >
-                <NativeSelectOption value="PARTICULIER">
-                  Recu particulier
-                </NativeSelectOption>
-                <NativeSelectOption value="ENTREPRISE">
-                  Recu entreprise
-                </NativeSelectOption>
-                <NativeSelectOption value="ISF_IFI">Recu IFI</NativeSelectOption>
-                <NativeSelectOption value="AUTRE">Autre recu</NativeSelectOption>
-              </NativeSelect>
-              <Input
-                name="receiptTaxId"
-                placeholder={
-                  donorType === "ENTREPRISE"
-                    ? "SIREN / SIRET"
-                    : "Identifiant fiscal si necessaire"
-                }
-              />
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)]/60 p-3 text-sm text-[var(--muted)] sm:col-span-2">
+                Le recu fiscal sera genere automatiquement en mode{" "}
+                <strong className="text-[var(--primary)]">
+                  {donorType === "ENTREPRISE" ? "entreprise" : "particulier"}
+                </strong>
+                .
+              </div>
+              {donorType === "ENTREPRISE" && (
+                <Input name="receiptTaxId" placeholder="SIREN / SIRET" />
+              )}
               <Input
                 className="sm:col-span-2"
                 name="receiptAddress"

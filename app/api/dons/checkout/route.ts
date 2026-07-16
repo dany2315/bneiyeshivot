@@ -49,6 +49,8 @@ export async function POST(request: Request) {
   const donorType = readString(formData, "donorType") || "PARTICULIER";
   const companyName = readString(formData, "companyName");
   const companyLegalForm = readString(formData, "companyLegalForm");
+  const normalizedDonorType =
+    donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER";
   const receiptNeeded = true;
   const frequency =
     formData.get("frequency") === "MONTHLY"
@@ -86,16 +88,19 @@ export async function POST(request: Request) {
       receiptNeeded,
       receiptStatus: receiptStatusFromNeeded(receiptNeeded),
       metadata: {
-        donorType,
+        donorType: normalizedDonorType,
         companyName: companyName || null,
         companyLegalForm: companyLegalForm || null,
         receipt: {
-          type: readString(formData, "receiptType") || "PARTICULIER",
+          type: normalizedDonorType,
           address: readString(formData, "receiptAddress"),
           zip: readString(formData, "receiptZip"),
           city: readString(formData, "receiptCity"),
           country: readString(formData, "receiptCountry") || "France",
-          taxId: readString(formData, "receiptTaxId"),
+          taxId:
+            normalizedDonorType === "ENTREPRISE"
+              ? readString(formData, "receiptTaxId")
+              : "",
         },
       },
     },
@@ -112,7 +117,7 @@ export async function POST(request: Request) {
     metadata: {
       donationId: donation.id,
       receiptNeeded: String(receiptNeeded),
-      donorType,
+      donorType: normalizedDonorType,
     },
     subscription_data:
       frequency === DonationFrequency.MONTHLY
