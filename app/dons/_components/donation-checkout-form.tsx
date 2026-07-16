@@ -430,69 +430,43 @@ export function DonationCheckoutForm() {
               </button>
             </div>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Label className="grid gap-2">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Prenom
-                </span>
-                <Input
-                  name="firstName"
-                  onChange={(event) => setFirstName(event.target.value)}
-                  value={firstName}
-                />
-              </Label>
-              <Label className="grid gap-2">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Nom
-                </span>
-                <Input
-                  name="lastName"
-                  onChange={(event) => setLastName(event.target.value)}
-                  value={lastName}
-                />
-              </Label>
-              <Label className="grid gap-2">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Email
-                </span>
-                <Input
-                  name="email"
-                  onChange={(event) => setEmail(event.target.value)}
-                  type="email"
-                  value={email}
-                />
-              </Label>
-              <Label className="grid gap-2">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Telephone
-                </span>
-                <PhoneInputGroup id="don-phone" name="phone" />
-              </Label>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Input
+                name="firstName"
+                onChange={(event) => setFirstName(event.target.value)}
+                placeholder="Prenom"
+                value={firstName}
+              />
+              <Input
+                name="lastName"
+                onChange={(event) => setLastName(event.target.value)}
+                placeholder="Nom"
+                value={lastName}
+              />
+              <Input
+                name="email"
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="Email"
+                type="email"
+                value={email}
+              />
+              <PhoneInputGroup id="don-phone" name="phone" />
 
               {donorType === "ENTREPRISE" && (
                 <>
-                  <Label className="grid gap-2">
-                    <span className="text-sm font-bold text-[var(--primary)]">
-                      Nom de l'entreprise
-                    </span>
-                    <Input
-                      name="companyName"
-                      onChange={(event) => setCompanyName(event.target.value)}
-                      value={companyName}
-                    />
-                  </Label>
-                  <Label className="grid gap-2">
-                    <span className="text-sm font-bold text-[var(--primary)]">
-                      Type juridique
-                    </span>
-                    <NativeSelect name="companyLegalForm">
-                      {legalForms.map((form) => (
-                        <NativeSelectOption key={form} value={form}>
-                          {form}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
-                  </Label>
+                  <Input
+                    name="companyName"
+                    onChange={(event) => setCompanyName(event.target.value)}
+                    placeholder="Nom de l'entreprise"
+                    value={companyName}
+                  />
+                  <NativeSelect className="w-full" name="companyLegalForm">
+                    {legalForms.map((form) => (
+                      <NativeSelectOption key={form} value={form}>
+                        {form}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
                 </>
               )}
 
@@ -506,20 +480,13 @@ export function DonationCheckoutForm() {
               {donorType === "ENTREPRISE" && (
                 <Input name="receiptTaxId" placeholder="SIREN / SIRET" />
               )}
-              <Input
-                className="sm:col-span-2"
-                name="receiptAddress"
-                placeholder="Adresse fiscale"
-              />
-              <Input name="receiptZip" placeholder="Code postal" />
-              <Input name="receiptCity" placeholder="Ville" />
-              <Input defaultValue="France" name="receiptCountry" placeholder="Pays" />
+              <div className="rounded-xl border border-[var(--border)] bg-white p-3 text-sm leading-6 text-[var(--muted)] sm:col-span-2">
+                L'adresse fiscale sera recuperee dans l'etape de paiement Stripe
+                pour eviter une double saisie.
+              </div>
             </div>
 
-            <Label className="mt-4 grid gap-2">
-              <span className="text-sm font-bold text-[var(--primary)]">
-                Dedicace ou message
-              </span>
+            <Label className="mt-3 grid gap-2">
               <Textarea
                 name="dedication"
                 placeholder="Pour une refoua, une reussite, a la memoire de..."
@@ -575,28 +542,32 @@ export function DonationCheckoutForm() {
           </section>
 
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Button
+            <button
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-white px-4 text-sm font-bold text-[var(--primary)] transition hover:bg-[var(--primary-soft)] disabled:pointer-events-none disabled:opacity-50"
               disabled={activeStep === 0}
               onClick={() => {
                 setActiveStep((step) => Math.max(step - 1, 0));
                 setError("");
               }}
               type="button"
-              variant="secondary"
             >
               <ArrowLeft className="size-4" />
               Retour
-            </Button>
+            </button>
 
             {activeStep < steps.length - 1 ? (
-              <Button onClick={goNext} type="button">
+              <button
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-4 text-sm font-bold text-white shadow-[0_14px_32px_rgba(6,40,70,0.18)] transition hover:bg-[#0b3b63]"
+                onClick={goNext}
+                type="button"
+              >
                 Suivant
                 <ArrowRight className="size-4" />
-              </Button>
+              </button>
             ) : (
               <Button size="lg" type="submit">
                 <HeartHandshake className="size-5" />
-                Payer avec Stripe
+                Je donne {moneyLabel(effectiveAmount, currency)}
               </Button>
             )}
           </div>

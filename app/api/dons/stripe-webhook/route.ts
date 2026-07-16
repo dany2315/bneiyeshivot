@@ -22,10 +22,37 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function metadataObject(metadata: unknown) {
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : {};
+}
+
+function receiptAddressFromSession(session: Stripe.Checkout.Session) {
+  const address = session.customer_details?.address;
+
+  if (!address) return null;
+
+  return {
+    address: [address.line1, address.line2].filter(Boolean).join(" "),
+    zip: address.postal_code ?? "",
+    city: address.city ?? "",
+    country: address.country ?? "FR",
+  };
+}
+
 async function markCheckoutPaid(session: Stripe.Checkout.Session) {
   const donationId = session.metadata?.donationId || session.client_reference_id;
 
   if (!donationId) return;
+
+  const existingDonation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    select: { metadata: true },
+  });
+  const metadata = metadataObject(existingDonation?.metadata);
+  const receipt = metadataObject(metadata.receipt);
+  const stripeAddress = receiptAddressFromSession(session);
 
   const donation = await prisma.donation.update({
     where: { id: donationId },
@@ -45,6 +72,13 @@ async function markCheckoutPaid(session: Stripe.Checkout.Session) {
         session.metadata?.receiptNeeded === "true"
           ? ReceiptStatus.REQUESTED
           : ReceiptStatus.NOT_REQUESTED,
+      metadata: {
+        ...metadata,
+        receipt: {
+          ...receipt,
+          ...(stripeAddress ?? {}),
+        },
+      },
     },
     include: { receipt: true },
   });

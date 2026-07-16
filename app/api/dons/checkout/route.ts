@@ -93,10 +93,10 @@ export async function POST(request: Request) {
         companyLegalForm: companyLegalForm || null,
         receipt: {
           type: normalizedDonorType,
-          address: readString(formData, "receiptAddress"),
-          zip: readString(formData, "receiptZip"),
-          city: readString(formData, "receiptCity"),
-          country: readString(formData, "receiptCountry") || "France",
+          address: "",
+          zip: "",
+          city: "",
+          country: "France",
           taxId:
             normalizedDonorType === "ENTREPRISE"
               ? readString(formData, "receiptTaxId")
@@ -111,6 +111,7 @@ export async function POST(request: Request) {
   const session = await stripe.checkout.sessions.create({
     mode: frequency === DonationFrequency.MONTHLY ? "subscription" : "payment",
     payment_method_types: ["card"],
+    billing_address_collection: "required",
     customer_email: email,
     client_reference_id: donation.id,
     success_url: `${baseUrl}/dons/merci?donation=${donation.id}`,
