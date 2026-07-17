@@ -30,10 +30,10 @@ export const services = [
 ];
 
 export const impactStats = [
-  ["1 500+", "jeunes accompagnes"],
-  ["300+", "demandes administratives"],
-  ["400+", "kits de lit distribues"],
-  ["300+", "participants aux yeshivot Ben Hazmanim"],
+  ["5 000+", "Jeunes accompagnés depuis notre création"],
+  ["300+", "Événements & programmes organisés"],
+  ["120 000+", "Heures de Torah étudiées chaque année"],
+  ["100 %", "Accompagnement gratuit et personnalisé"],
 ];
 
 export const adminMetrics = [

@@ -703,8 +703,15 @@ textarea {
 }
 
 .service-card [data-slot="card-description"] {
+  display: grid;
+  gap: 8px;
   font-size: 15px;
   line-height: 1.7;
+}
+
+.service-card [data-slot="card-description"] strong {
+  color: var(--primary);
+  font-weight: 850;
 }
 
 .service-card:first-child,

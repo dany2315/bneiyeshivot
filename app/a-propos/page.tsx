@@ -270,13 +270,12 @@ const completeStorySections = [
   },
   {
     title: "Le mot du fondateur",
-    eyebrow: "Meir Guetta",
+    eyebrow: "Rav Meir Guetta",
     paragraphs: [
-      "Meir Guetta, fondateur et President de Bnei Yeshivot.",
-      "Bnei Yeshivot est nee d'une rencontre avec les besoins reels des jeunes francophones.",
-      "Depuis le debut, notre volonte a toujours ete la meme : etre presents sur le terrain, ecouter les besoins de la communaute et construire des solutions concretes.",
-      "Ce qui a commence avec quelques jeunes est devenu, avec l'aide d'Hachem, un mouvement reunissant aujourd'hui des jeunes, des Avrekhim, des Rabbanim et de nombreux acteurs engages autour d'une meme mission.",
-      "Notre ambition est de continuer a construire les structures necessaires pour accompagner les generations futures et permettre a chaque jeune francophone de trouver sa place dans un cadre de Torah.",
+      "Rav Meir Guetta - Fondateur de Bnei Yeshivot Torat Yaacov",
+      "Bnei Yeshivot est née d'une rencontre avec les besoins réels des jeunes francophones. Depuis le début, notre volonté est d'être présents, d'écouter la communauté et de construire des solutions concrètes.",
+      "Ce qui a commencé avec quelques jeunes est devenu, avec l'aide d'Hachem, un mouvement réunissant jeunes, Avrékhim, Rabbanim et acteurs engagés autour d'une même mission.",
+      "Depuis sa création, Bnei Yeshivot se développe sous les conseils et l'accompagnement de Guedolei Israël, de Rabbanim et de Roché Yéchivot en Israël comme en France. Chacun de nos programmes est construit avec leur orientation, leur approbation et leur soutien, afin d'agir avec responsabilité, fidélité à la Torah et au service de la communauté.",
     ],
   },
   {
@@ -576,18 +575,26 @@ export default function AboutPage() {
               <span className="eyebrow">Le mot du fondateur</span>
               <h2>Une presence nee des besoins reels du terrain.</h2>
               <p className="about-founder-name">
-                Meir Guetta - Fondateur et President de Bnei Yeshivot
+                Rav Meir Guetta - Fondateur de Bnei Yeshivot Torat Yaacov
               </p>
               <p>
-                Bnei Yeshivot est nee d&apos;une rencontre avec les besoins reels
-                des jeunes francophones. Depuis le debut, notre volonte est
-                d&apos;etre presents, d&apos;ecouter la communaute et de construire des
-                solutions concretes.
+                Bnei Yeshivot est née d&apos;une rencontre avec les besoins réels
+                des jeunes francophones. Depuis le début, notre volonté est
+                d&apos;être présents, d&apos;écouter la communauté et de construire des
+                solutions concrètes.
               </p>
               <p>
-                Ce qui a commence avec quelques jeunes est devenu, avec l&apos;aide
-                d&apos;Hachem, un mouvement reunissant jeunes, Avrekhim, Rabbanim et
-                acteurs engages autour d&apos;une meme mission.
+                Ce qui a commencé avec quelques jeunes est devenu, avec l&apos;aide
+                d&apos;Hachem, un mouvement réunissant jeunes, Avrékhim, Rabbanim et
+                acteurs engagés autour d&apos;une même mission.
+              </p>
+              <p>
+                Depuis sa création, Bnei Yeshivot se développe sous les conseils
+                et l&apos;accompagnement de Guedolei Israël, de Rabbanim et de Roché
+                Yéchivot en Israël comme en France. Chacun de nos programmes est
+                construit avec leur orientation, leur approbation et leur soutien,
+                afin d&apos;agir avec responsabilité, fidélité à la Torah et au service
+                de la communauté.
               </p>
             </div>
             <Card className="about-question-card">

@@ -18,8 +18,9 @@ export const metadata = {
 const pageServices = [
   {
     title: "Assurance maladie",
+    subtitle: "Votre couverture santé en Israël, sans stress.",
     description:
-      "Nous accompagnons gratuitement les etudiants dans leurs demarches aupres des caisses d'assurance maladie israeliennes.",
+      "Nous vous accompagnons gratuitement dans toutes vos démarches afin d'obtenir rapidement votre assurance maladie.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
     learnMoreHref: "/services/assurance-maladie",
@@ -28,9 +29,10 @@ const pageServices = [
   },
   {
     title: "Visa etudiant",
+    subtitle: "Étudiez en Israël en toute sérénité.",
     description:
-      "Nous vous accompagnons dans toutes les demarches pour obtenir ou renouveler votre visa etudiant.",
-    action: "Deposer un dossier",
+      "De la première demande au renouvellement, notre équipe vous accompagne à chaque étape de votre dossier.",
+    action: "Déposer mon dossier",
     href: "/demandes/visa",
     learnMoreHref: "/services/visa-etudiant",
     image:
@@ -38,8 +40,9 @@ const pageServices = [
   },
   {
     title: "ETA-IL",
+    subtitle: "Préparez votre entrée en Israël en quelques clics.",
     description:
-      "Nous vous aidons a effectuer votre demande d'autorisation d'entree en Israel.",
+      "Nous vous guidons pour effectuer votre demande d'ETA-IL rapidement et sans erreur.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     learnMoreHref: "/services/eta-il",
@@ -47,29 +50,35 @@ const pageServices = [
       "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Installation en Israel",
+    title: "Installation en Israël",
+    subtitle: "Tout ce qu'il faut pour bien démarrer votre nouvelle vie.",
     description:
-      "Toutes les informations essentielles avant votre arrivee : checklist, telephone, banque, assurance, transport et administratif.",
-    action: "Je prepare mon arrivee",
+      "Retrouvez toutes les informations essentielles pour préparer sereinement votre arrivée en Israël.",
+    action: "Préparer mon arrivée",
     href: "/services",
+    learnMoreHref: "/services",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
   },
   {
     title: "Boutique Literie",
+    subtitle: "Installez-vous dès votre arrivée.",
     description:
-      "Commandez votre pack complet avant votre arrivee en Israel : oreiller, couette, draps, housse et protege-matelas selon les packs.",
+      "Commandez votre kit de literie complet et retrouvez un logement prêt à vous accueillir.",
     action: "Voir la boutique",
     href: "/boutique",
+    learnMoreHref: "/boutique",
     image:
       "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
   },
   {
     title: "Guide PDF",
+    subtitle: "Le guide indispensable des étudiants francophones.",
     description:
-      "Tout ce qu'il faut savoir avant de venir etudier en Israel dans un guide complet telechargeable.",
-    action: "Telecharger gratuitement",
+      "Toutes les réponses à vos questions réunies dans un guide pratique, complet et gratuit.",
+    action: "Télécharger gratuitement",
     href: "/guide",
+    learnMoreHref: "/guide",
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
   },
@@ -102,7 +111,7 @@ export default function ServicesPage() {
               </p>
             </div>
             <div className="service-showcase">
-              {pageServices.map(({ title, description, action, href, learnMoreHref, image }) => (
+              {pageServices.map(({ title, subtitle, description, action, href, learnMoreHref, image }) => (
                 <Card className="service-card" key={title}>
                   <div className="service-card-image">
                     <Image
@@ -114,7 +123,10 @@ export default function ServicesPage() {
                   </div>
                   <CardHeader>
                     <CardTitle>{title}</CardTitle>
-                    <CardDescription>{description}</CardDescription>
+                    <CardDescription>
+                      <strong>{subtitle}</strong>
+                      <span>{description}</span>
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="flex flex-wrap justify-end gap-2">
                     {learnMoreHref ? (
