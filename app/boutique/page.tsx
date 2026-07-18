@@ -22,15 +22,7 @@ export default async function StorePage({
   return (
     <PageShell>
       <main>
-        <section className="page-hero">
-          <div className="container">
-            <span className="eyebrow">Reservation sans paiement</span>
-            <h1>{storefront.heroTitle}</h1>
-            <p>{storefront.heroSubtitle}</p>
-          </div>
-        </section>
-
-        <section className="section">
+        <section className="section pt-0">
           <StorefrontClient
             products={products.map((product) => ({
               id: product.id,
