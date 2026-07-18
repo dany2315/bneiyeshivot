@@ -229,11 +229,13 @@ function InteractiveForm({
   action,
   children,
   className,
+  onSuccess,
   successMessage,
 }: {
   action: (formData: FormData) => Promise<void>;
   children: ReactNode;
   className?: string;
+  onSuccess?: () => void;
   successMessage: string;
 }) {
   return (
@@ -242,6 +244,7 @@ function InteractiveForm({
         try {
           await action(formData);
           toast.success(successMessage);
+          onSuccess?.();
         } catch (error) {
           toast.error(errorMessage(error));
         }
@@ -402,9 +405,14 @@ function ProductsTab({ products }: { products: ProductView[] }) {
               <TableRow key={product.id}>
                 <TableCell>
                   <strong>{product.title}</strong>
-                  <span className="block max-w-xl text-sm text-[var(--muted)]">
+                  <span className="block max-w-xl truncate text-sm text-[var(--muted)]">
                     {product.description}
                   </span>
+                  {product.details ? (
+                    <span className="block max-w-xl truncate text-xs text-[var(--muted)]">
+                      {product.details}
+                    </span>
+                  ) : null}
                   {product.featured ? (
                     <Badge className="mt-2" variant="success">
                       Recommande
@@ -451,6 +459,7 @@ function ProductDialog({
   product?: ProductView;
 }) {
   const isEdit = mode === "edit";
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(product?.title ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [details, setDetails] = useState(product?.details ?? "");
@@ -479,7 +488,7 @@ function ProductDialog({
   );
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
           <Button size={isEdit ? "icon-sm" : "default"} variant={isEdit ? "secondary" : "default"} />
@@ -513,6 +522,7 @@ function ProductDialog({
             await (isEdit ? updateStoreProduct : createStoreProduct)(formData);
           }}
           className="grid gap-5"
+          onSuccess={() => setOpen(false)}
           successMessage={isEdit ? "Produit modifie." : "Produit cree."}
         >
           {product ? <input name="productId" type="hidden" value={product.id} /> : null}
