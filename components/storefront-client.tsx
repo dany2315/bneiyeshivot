@@ -85,8 +85,29 @@ export function StorefrontClient({
   }
 
   return (
-    <div className="container grid gap-6">
-      <div className="grid gap-4">
+    <>
+      <div className="sticky top-[74px] z-20 border-b border-[var(--border)] bg-white/92 shadow-sm backdrop-blur">
+        <div className="container flex min-h-16 items-center justify-between gap-4">
+          <div className="min-w-0">
+            <strong className="block truncate text-base text-[var(--primary)]">
+              {storefront.name}
+            </strong>
+            <small className="block truncate text-[var(--muted)]">
+              Reservation sans paiement
+            </small>
+          </div>
+          <CartSheet
+            cartItems={cartItems}
+            currency={currency}
+            products={products}
+            quantities={quantities}
+            storefront={storefront}
+            totalCents={totalCents}
+          />
+        </div>
+      </div>
+
+      <div className="container grid gap-4 pt-5">
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
             <CheckCircle2 className="size-4" />
@@ -106,20 +127,10 @@ export function StorefrontClient({
               {storefront.description}
             </p>
           </div>
-          <div className="hidden md:block">
-            <CartSheet
-              cartItems={cartItems}
-              currency={currency}
-              products={products}
-              quantities={quantities}
-              storefront={storefront}
-              totalCents={totalCents}
-            />
-          </div>
         </div>
 
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-5">
             {products.map((product) => (
               <Card className="overflow-hidden" key={product.id}>
                 <StoreProductImageDialog
@@ -127,7 +138,7 @@ export function StorefrontClient({
                   imageUrls={product.imageUrls}
                   title={product.title}
                 />
-                <CardHeader className="gap-3 p-3 md:p-4">
+                <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
                   {product.featured ? (
                     <Badge className="w-fit" variant="success">Recommande</Badge>
                   ) : null}
@@ -137,7 +148,7 @@ export function StorefrontClient({
                     </Link>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3 p-3 pt-0 md:flex-row md:items-center md:justify-between md:p-4 md:pt-0">
+                <CardContent className="flex flex-col gap-2 px-3 pb-2 pt-0 md:flex-row md:items-center md:justify-between md:px-4 md:pb-3 md:pt-0">
                   <strong className="text-base text-[var(--primary)] md:text-xl">
                     {formatPrice(product.priceCents, product.currency)}
                   </strong>
@@ -160,18 +171,7 @@ export function StorefrontClient({
           </Card>
         )}
       </div>
-
-      <div className="fixed bottom-4 right-4 z-40 md:hidden">
-        <CartSheet
-          cartItems={cartItems}
-          currency={currency}
-          products={products}
-          quantities={quantities}
-          storefront={storefront}
-          totalCents={totalCents}
-        />
-      </div>
-    </div>
+    </>
   );
 }
 
