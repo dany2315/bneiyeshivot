@@ -143,6 +143,45 @@ export function StoreReservationConfirmationEmail(props: {
   );
 }
 
+export function StoreReservationStatusEmail(props: {
+  customerName: string;
+  statusLabel: string;
+  total: string;
+  items: string[];
+  pickupDate?: string | null;
+  pickupLocation?: string | null;
+  unavailableItems?: string | null;
+  message?: string | null;
+}) {
+  return (
+    <BaseEmail
+      preview={`Mise a jour de votre reservation boutique - ${props.statusLabel}`}
+      title="Mise a jour de votre reservation"
+    >
+      <Text style={paragraph}>Bonjour {props.customerName},</Text>
+      <Text style={paragraph}>
+        Votre reservation boutique est maintenant indiquee comme{" "}
+        <strong>{props.statusLabel}</strong>.
+      </Text>
+      {props.pickupDate ? (
+        <InfoLine label="Date de recuperation" value={props.pickupDate} />
+      ) : null}
+      {props.pickupLocation ? (
+        <InfoLine label="Lieu de recuperation" value={props.pickupLocation} />
+      ) : null}
+      {props.unavailableItems ? (
+        <Text style={paragraph}>
+          Produits non disponibles ou a ajuster :{" "}
+          <strong>{props.unavailableItems}</strong>
+        </Text>
+      ) : null}
+      {props.message ? <Text style={paragraph}>{props.message}</Text> : null}
+      <InfoLine label="Total indicatif" value={props.total} />
+      <ItemsList items={props.items} />
+    </BaseEmail>
+  );
+}
+
 export function DonationThankYouEmail(props: {
   donorName?: string | null;
   amount: string;

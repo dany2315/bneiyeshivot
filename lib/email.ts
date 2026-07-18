@@ -6,6 +6,7 @@ import {
   RequestConfirmationEmail,
   StoreReservationAdminEmail,
   StoreReservationConfirmationEmail,
+  StoreReservationStatusEmail,
   TalmoudoRegistrationAdminEmail,
   TalmoudoResultEmail,
 } from "@/emails/transactional-email";
@@ -151,6 +152,24 @@ export async function storeReservationConfirmationEmail(params: {
 
   return {
     subject: "Bnei Yeshivot - Votre reservation boutique a bien ete recue",
+    html,
+  };
+}
+
+export async function storeReservationStatusEmail(params: {
+  customerName: string;
+  statusLabel: string;
+  total: string;
+  items: string[];
+  pickupDate?: string | null;
+  pickupLocation?: string | null;
+  unavailableItems?: string | null;
+  message?: string | null;
+}) {
+  const html = await render(StoreReservationStatusEmail(params));
+
+  return {
+    subject: `Bnei Yeshivot - Reservation boutique ${params.statusLabel}`,
     html,
   };
 }

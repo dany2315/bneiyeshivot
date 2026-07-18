@@ -20,6 +20,7 @@ import {
 } from "@/lib/donations";
 import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
 import { requireAdminUser } from "@/lib/session";
+import { sendEmail, storeReservationStatusEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { deleteFilesFromS3, uploadFilesToS3 } from "@/lib/uploads";
 import { ensureDefaultStorefront, readStorePrice } from "@/lib/store";
@@ -37,6 +38,15 @@ function slugify(value: string) {
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
+
+const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
+  SUBMITTED: "Nouvelle",
+  CONFIRMED: "Confirmee",
+  PREPARING: "En preparation",
+  READY: "Prete",
+  COLLECTED: "Recuperee",
+  CANCELED: "Annulee",
+};
 
 function splitLines(value: string) {
   return value
@@ -542,10 +552,42 @@ export async function deleteStoreProduct(formData: FormData) {
   revalidatePath("/boutique");
 }
 
+export async function setStoreProductActive(formData: FormData) {
+  const admin = await requireAdminUser();
+  const productId = readString(formData, "productId");
+  const active = readString(formData, "active") === "true";
+
+  if (!productId) {
+    throw new Error("Produit introuvable.");
+  }
+
+  await prisma.storeProduct.update({
+    where: { id: productId },
+    data: { active },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: active ? "store_product.activated" : "store_product.deactivated",
+      entity: "StoreProduct",
+      entityId: productId,
+    },
+  });
+
+  revalidatePath("/admin/boutique");
+  revalidatePath("/boutique");
+}
+
 export async function updateStoreReservation(formData: FormData) {
   const admin = await requireAdminUser();
   const reservationId = readString(formData, "reservationId");
   const status = readString(formData, "status") as StoreReservationStatus;
+  const pickupDate = readString(formData, "pickupDate");
+  const pickupLocation = readString(formData, "pickupLocation");
+  const unavailableItems = readString(formData, "unavailableItems");
+  const customerMessage = readString(formData, "customerMessage");
+  const notifyCustomer = formData.get("notifyCustomer") === "on";
 
   if (
     !reservationId ||
@@ -554,13 +596,55 @@ export async function updateStoreReservation(formData: FormData) {
     throw new Error("Reservation ou statut invalide.");
   }
 
-  await prisma.storeReservation.update({
+  const reservation = await prisma.storeReservation.update({
     where: { id: reservationId },
     data: {
       status,
+      pickupDate: pickupDate ? new Date(pickupDate) : null,
+      pickupLocation: pickupLocation || null,
+      unavailableItems: unavailableItems || null,
       adminNote: readString(formData, "adminNote") || null,
     },
+    include: { items: true },
   });
+
+  if (notifyCustomer) {
+    const total = new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: reservation.currency,
+    }).format(reservation.totalCents / 100);
+    const items = reservation.items.map(
+      (item) =>
+        `${item.quantity} x ${item.productTitle} - ${new Intl.NumberFormat(
+          "fr-FR",
+          {
+            style: "currency",
+            currency: reservation.currency,
+          },
+        ).format((item.unitCents * item.quantity) / 100)}`,
+    );
+    const pickupDateLabel = reservation.pickupDate
+      ? new Intl.DateTimeFormat("fr-FR", {
+          dateStyle: "full",
+          timeStyle: "short",
+        }).format(reservation.pickupDate)
+      : null;
+    const email = await storeReservationStatusEmail({
+      customerName: reservation.customerName,
+      statusLabel: storeReservationStatusLabels[reservation.status],
+      total,
+      items,
+      pickupDate: pickupDateLabel,
+      pickupLocation: reservation.pickupLocation,
+      unavailableItems: reservation.unavailableItems,
+      message: customerMessage || null,
+    });
+
+    await sendEmail({
+      to: reservation.customerEmail,
+      ...email,
+    });
+  }
 
   await prisma.auditLog.create({
     data: {
@@ -568,7 +652,7 @@ export async function updateStoreReservation(formData: FormData) {
       action: "store_reservation.updated",
       entity: "StoreReservation",
       entityId: reservationId,
-      metadata: { status },
+      metadata: { status, notifyCustomer },
     },
   });
 

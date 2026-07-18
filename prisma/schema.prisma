@@ -191,6 +191,9 @@ model StoreReservation {
   customerPhone String?
   yeshiva       String?
   arrivalDate   DateTime?
+  pickupDate    DateTime?
+  pickupLocation String?
+  unavailableItems String?
   note          String?
   adminNote     String?
   totalCents    Int
