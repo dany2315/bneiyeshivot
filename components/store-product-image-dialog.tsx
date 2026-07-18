@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ImageIcon, Maximize2 } from "lucide-react";
 import {
   Dialog,
@@ -25,7 +25,8 @@ export function StoreProductImageDialog({
     .map((value) => fileUrl(value))
     .filter((value): value is string => Boolean(value));
   const src = images[0] ?? null;
-  const [selectedImage, setSelectedImage] = useState(src);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   if (!src) {
     return (
@@ -45,53 +46,55 @@ export function StoreProductImageDialog({
           src={src}
         />
         <span className="absolute inset-0 bg-gradient-to-t from-[#061e35]/42 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-        {images.length > 1 ? (
-          <span className="absolute bottom-3 left-3 flex gap-2">
-            {images.slice(0, 2).map((image, index) => (
-              <span
-                className="block size-12 overflow-hidden rounded-lg border-2 border-white bg-white shadow-lg"
-                key={image}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={`${title} miniature ${index + 1}`}
-                  className="h-full w-full object-cover"
-                  src={image}
-                />
-              </span>
-            ))}
-          </span>
-        ) : null}
         <span className="absolute bottom-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-white/92 text-[var(--primary)] shadow-lg opacity-0 transition group-hover:opacity-100">
           <Maximize2 className="size-4" />
         </span>
       </DialogTrigger>
-      <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-4xl">
+      <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl">
         <DialogHeader className="border-b border-[var(--border)] p-4">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Apercu du produit</DialogDescription>
         </DialogHeader>
-        <div className="bg-[#061e35] p-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt={title}
-            className="max-h-[76vh] w-full rounded-lg object-contain"
-            src={selectedImage ?? src}
-          />
+        <div className="relative bg-[#061e35] p-3">
+          <div className="flex h-[min(70vh,620px)] snap-x snap-mandatory overflow-x-auto scroll-smooth rounded-lg">
+            {images.map((image, index) => (
+              <div
+                className="grid h-full min-w-full snap-center place-items-center bg-[#061e35]"
+                key={image}
+                ref={(node) => {
+                  slideRefs.current[index] = node;
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={`${title} ${index + 1}`}
+                  className="max-h-full max-w-full object-contain"
+                  src={image}
+                />
+              </div>
+            ))}
+          </div>
           {images.length > 1 ? (
-            <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
+            <div className="absolute inset-x-3 bottom-3 flex gap-2 overflow-x-auto rounded-xl bg-[#061e35]/72 p-2 backdrop-blur">
               {images.map((image, index) => (
                 <button
-                  className="overflow-hidden rounded-lg border border-white/12 bg-white/8 p-0 transition hover:border-white/70 data-[active=true]:border-[var(--gold)]"
-                  data-active={image === (selectedImage ?? src)}
+                  className="size-14 shrink-0 overflow-hidden rounded-lg border border-white/20 bg-white/8 p-0 transition hover:border-white/70 data-[active=true]:border-[var(--gold)]"
+                  data-active={index === selectedIndex}
                   key={image}
-                  onClick={() => setSelectedImage(image)}
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    slideRefs.current[index]?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "nearest",
+                      inline: "center",
+                    });
+                  }}
                   type="button"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     alt={`${title} ${index + 1}`}
-                    className="aspect-square w-full object-cover"
+                    className="h-full w-full object-cover"
                     src={image}
                   />
                 </button>

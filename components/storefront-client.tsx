@@ -16,6 +16,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 
 type StorefrontView = {
@@ -77,7 +85,7 @@ export function StorefrontClient({
   }
 
   return (
-    <div className="container grid gap-6 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_430px]">
+    <div className="container grid gap-6">
       <div className="grid gap-4">
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
@@ -90,16 +98,28 @@ export function StorefrontClient({
           </Alert>
         ) : null}
 
-        <div>
-          <span className="eyebrow">{storefront.name}</span>
-          <h2 className="mt-2 text-3xl font-semibold">Choisissez vos produits</h2>
-          <p className="mt-2 max-w-2xl text-base text-[var(--muted)]">
-            {storefront.description}
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="eyebrow">{storefront.name}</span>
+            <h2 className="mt-2 text-3xl font-semibold">Choisissez vos produits</h2>
+            <p className="mt-2 max-w-2xl text-base text-[var(--muted)]">
+              {storefront.description}
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <CartSheet
+              cartItems={cartItems}
+              currency={currency}
+              products={products}
+              quantities={quantities}
+              storefront={storefront}
+              totalCents={totalCents}
+            />
+          </div>
         </div>
 
         {products.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
             {products.map((product) => (
               <Card className="overflow-hidden" key={product.id}>
                 <StoreProductImageDialog
@@ -107,30 +127,20 @@ export function StorefrontClient({
                   imageUrls={product.imageUrls}
                   title={product.title}
                 />
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      {product.featured ? (
-                        <Badge variant="success">Recommande</Badge>
-                      ) : null}
-                      <CardTitle className="mt-2">
-                        <Link href={`/boutique/${product.slug}`}>
-                          {product.title}
-                        </Link>
-                      </CardTitle>
-                    </div>
-                    <strong className="text-xl text-[var(--primary)]">
-                      {formatPrice(product.priceCents, product.currency)}
-                    </strong>
-                  </div>
-                  <CardDescription className="line-clamp-2">
-                    {product.description}
-                  </CardDescription>
+                <CardHeader className="gap-3 p-3 md:p-4">
+                  {product.featured ? (
+                    <Badge className="w-fit" variant="success">Recommande</Badge>
+                  ) : null}
+                  <CardTitle className="text-base md:text-lg">
+                    <Link href={`/boutique/${product.slug}`}>
+                      {product.title}
+                    </Link>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="flex items-center justify-between gap-3">
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href={`/boutique/${product.slug}`}>Voir le produit</Link>
-                  </Button>
+                <CardContent className="flex flex-col gap-3 p-3 pt-0 md:flex-row md:items-center md:justify-between md:p-4 md:pt-0">
+                  <strong className="text-base text-[var(--primary)] md:text-xl">
+                    {formatPrice(product.priceCents, product.currency)}
+                  </strong>
                   <QuantityControl
                     onChange={(quantity) => setQuantity(product.id, quantity)}
                     quantity={quantities[product.id] ?? 0}
@@ -151,84 +161,118 @@ export function StorefrontClient({
         )}
       </div>
 
-      <aside className="lg:sticky lg:top-6 lg:self-start">
-        <Card>
-          <CardHeader>
-            <CardTitle>Panier de reservation</CardTitle>
-            <CardDescription>
-              Aucun paiement en ligne. L&apos;equipe confirme ensuite.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={createStoreReservation} className="grid gap-4">
-              {products.map((product) => (
-                <input
-                  key={product.id}
-                  name={`quantity-${product.id}`}
-                  type="hidden"
-                  value={quantities[product.id] ?? 0}
-                />
-              ))}
-
-              <div className="grid gap-2">
-                {cartItems.length > 0 ? (
-                  cartItems.map(({ product, quantity }) => (
-                    <div
-                      className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] p-3"
-                      key={product.id}
-                    >
-                      <span>
-                        <strong className="block">{product.title}</strong>
-                        <small className="text-[var(--muted)]">
-                          {quantity} x {formatPrice(product.priceCents, product.currency)}
-                        </small>
-                      </span>
-                      <strong className="text-[var(--primary)]">
-                        {formatPrice(product.priceCents * quantity, product.currency)}
-                      </strong>
-                    </div>
-                  ))
-                ) : (
-                  <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                    Ajoutez des produits depuis la liste.
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
-                <span className="font-bold text-[var(--primary)]">Total indicatif</span>
-                <strong className="text-xl text-[var(--primary)]">
-                  {formatPrice(totalCents, currency)}
-                </strong>
-              </div>
-
-              <Input name="customerName" placeholder="Nom et prenom" required />
-              <Input name="customerEmail" placeholder="Email" required type="email" />
-              <Input name="customerPhone" placeholder="Telephone" />
-              <Input name="yeshiva" placeholder="Yeshiva" />
-              <Input name="arrivalDate" type="date" aria-label="Date d'arrivee" />
-              <Textarea
-                name="note"
-                placeholder="Note pour l'equipe : livraison, adresse, besoin particulier..."
-              />
-
-              {storefront.pickupDetails ? (
-                <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                  {storefront.pickupDetails}
-                </p>
-              ) : null}
-
-              <Button
-                disabled={!storefront.active || products.length === 0 || cartItems.length === 0}
-              >
-                <ShoppingBag className="size-4" />
-                Envoyer la reservation
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </aside>
+      <div className="fixed bottom-4 right-4 z-40 md:hidden">
+        <CartSheet
+          cartItems={cartItems}
+          currency={currency}
+          products={products}
+          quantities={quantities}
+          storefront={storefront}
+          totalCents={totalCents}
+        />
+      </div>
     </div>
+  );
+}
+
+function CartSheet({
+  cartItems,
+  currency,
+  products,
+  quantities,
+  storefront,
+  totalCents,
+}: {
+  cartItems: Array<{ product: ProductView; quantity: number }>;
+  currency: string;
+  products: ProductView[];
+  quantities: Record<string, number>;
+  storefront: StorefrontView;
+  totalCents: number;
+}) {
+  const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+  return (
+    <Sheet>
+      <SheetTrigger render={<Button className="shadow-lg" />}>
+        <ShoppingBag className="size-4" />
+        Panier
+        {itemCount > 0 ? ` (${itemCount})` : ""}
+      </SheetTrigger>
+      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Panier de reservation</SheetTitle>
+          <SheetDescription>
+            Aucun paiement en ligne. L&apos;equipe confirme ensuite.
+          </SheetDescription>
+        </SheetHeader>
+        <form action={createStoreReservation} className="grid gap-4 px-4 pb-4">
+          {products.map((product) => (
+            <input
+              key={product.id}
+              name={`quantity-${product.id}`}
+              type="hidden"
+              value={quantities[product.id] ?? 0}
+            />
+          ))}
+
+          <div className="grid gap-2">
+            {cartItems.length > 0 ? (
+              cartItems.map(({ product, quantity }) => (
+                <div
+                  className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] p-3"
+                  key={product.id}
+                >
+                  <span>
+                    <strong className="block">{product.title}</strong>
+                    <small className="text-[var(--muted)]">
+                      {quantity} x {formatPrice(product.priceCents, product.currency)}
+                    </small>
+                  </span>
+                  <strong className="text-[var(--primary)]">
+                    {formatPrice(product.priceCents * quantity, product.currency)}
+                  </strong>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                Ajoutez des produits depuis la liste.
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
+            <span className="font-bold text-[var(--primary)]">Total indicatif</span>
+            <strong className="text-xl text-[var(--primary)]">
+              {formatPrice(totalCents, currency)}
+            </strong>
+          </div>
+
+          <Input name="customerName" placeholder="Nom et prenom" required />
+          <Input name="customerEmail" placeholder="Email" required type="email" />
+          <Input name="customerPhone" placeholder="Telephone" />
+          <Input name="yeshiva" placeholder="Yeshiva" />
+          <Input name="arrivalDate" type="date" aria-label="Date d'arrivee" />
+          <Textarea
+            name="note"
+            placeholder="Note pour l'equipe : livraison, adresse, besoin particulier..."
+          />
+
+          {storefront.pickupDetails ? (
+            <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+              {storefront.pickupDetails}
+            </p>
+          ) : null}
+
+          <Button
+            disabled={!storefront.active || products.length === 0 || cartItems.length === 0}
+          >
+            <ShoppingBag className="size-4" />
+            Envoyer la reservation
+          </Button>
+        </form>
+      </SheetContent>
+    </Sheet>
   );
 }
 
