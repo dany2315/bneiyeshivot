@@ -273,11 +273,31 @@ export function AdminStorePageClient({
       </div>
 
       <Tabs defaultValue="reservations">
-        <TabsList className="flex w-full flex-wrap justify-start">
-          <TabsTrigger value="reservations">Reservations</TabsTrigger>
-          <TabsTrigger value="products">Produits</TabsTrigger>
-          <TabsTrigger value="supply">Approvisionnement</TabsTrigger>
-          <TabsTrigger value="settings">Parametres</TabsTrigger>
+        <TabsList className="flex w-full flex-wrap justify-start border-transparent bg-[var(--primary)]">
+          <TabsTrigger
+            className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
+            value="reservations"
+          >
+            Reservations
+          </TabsTrigger>
+          <TabsTrigger
+            className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
+            value="products"
+          >
+            Produits
+          </TabsTrigger>
+          <TabsTrigger
+            className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
+            value="supply"
+          >
+            Approvisionnement
+          </TabsTrigger>
+          <TabsTrigger
+            className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
+            value="settings"
+          >
+            Parametres
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="reservations">
