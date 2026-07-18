@@ -86,7 +86,7 @@ export function StorefrontClient({
 
   return (
     <>
-      <div className="sticky top-[74px] z-20 border-b border-[var(--border)] bg-white/92 shadow-sm backdrop-blur">
+      <div className="fixed inset-x-0 top-[74px] z-20 border-b border-[var(--border)] bg-white/92 shadow-sm backdrop-blur">
         <div className="container flex min-h-16 items-center justify-between gap-4">
           <div className="min-w-0">
             <strong className="block truncate text-base text-[var(--primary)]">
@@ -107,7 +107,7 @@ export function StorefrontClient({
         </div>
       </div>
 
-      <div className="container grid gap-4 pt-5">
+      <div className="container grid gap-4 pt-24">
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
             <CheckCircle2 className="size-4" />
@@ -199,14 +199,14 @@ function CartSheet({
         Panier
         {itemCount > 0 ? ` (${itemCount})` : ""}
       </SheetTrigger>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+      <SheetContent className="w-full max-w-full overflow-x-hidden overflow-y-auto sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Panier de reservation</SheetTitle>
           <SheetDescription>
             Aucun paiement en ligne. L&apos;equipe confirme ensuite.
           </SheetDescription>
         </SheetHeader>
-        <form action={createStoreReservation} className="grid gap-4 px-4 pb-4">
+        <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pb-4">
           {products.map((product) => (
             <input
               key={product.id}
@@ -220,16 +220,16 @@ function CartSheet({
             {cartItems.length > 0 ? (
               cartItems.map(({ product, quantity }) => (
                 <div
-                  className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] p-3"
+                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-lg border border-[var(--border)] p-3"
                   key={product.id}
                 >
-                  <span>
-                    <strong className="block">{product.title}</strong>
+                  <span className="min-w-0">
+                    <strong className="block truncate">{product.title}</strong>
                     <small className="text-[var(--muted)]">
                       {quantity} x {formatPrice(product.priceCents, product.currency)}
                     </small>
                   </span>
-                  <strong className="text-[var(--primary)]">
+                  <strong className="whitespace-nowrap text-[var(--primary)]">
                     {formatPrice(product.priceCents * quantity, product.currency)}
                   </strong>
                 </div>
