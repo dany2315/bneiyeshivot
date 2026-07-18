@@ -45,6 +45,23 @@ export function StoreProductImageDialog({
           src={src}
         />
         <span className="absolute inset-0 bg-gradient-to-t from-[#061e35]/42 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+        {images.length > 1 ? (
+          <span className="absolute bottom-3 left-3 flex gap-2">
+            {images.slice(0, 2).map((image, index) => (
+              <span
+                className="block size-12 overflow-hidden rounded-lg border-2 border-white bg-white shadow-lg"
+                key={image}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={`${title} miniature ${index + 1}`}
+                  className="h-full w-full object-cover"
+                  src={image}
+                />
+              </span>
+            ))}
+          </span>
+        ) : null}
         <span className="absolute bottom-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-white/92 text-[var(--primary)] shadow-lg opacity-0 transition group-hover:opacity-100">
           <Maximize2 className="size-4" />
         </span>
