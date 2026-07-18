@@ -96,6 +96,7 @@ export default async function AdminStorePage() {
           priceCents: product.priceCents,
           currency: product.currency,
           imageUrl: product.imageUrl,
+          imageUrls: product.imageUrls,
           stockQuantity: product.stockQuantity,
           active: product.active,
           featured: product.featured,

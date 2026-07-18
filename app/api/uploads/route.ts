@@ -17,6 +17,9 @@ export async function POST(request: Request) {
   const files = formData
     .getAll("files")
     .filter((file): file is File => file instanceof File && file.size > 0);
+  const requestedPrefix = String(formData.get("prefix") ?? "").trim();
+  const prefix =
+    requestedPrefix === "store/products" ? requestedPrefix : "events/uploads";
 
   if (files.length === 0) {
     return NextResponse.json(
@@ -26,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const uploaded = await uploadFilesToS3(files, "events/uploads");
+    const uploaded = await uploadFilesToS3(files, prefix);
     return NextResponse.json({ ok: true, keys: uploaded.map((f) => f.key) });
   } catch (error) {
     console.error("[uploads] failed", error);

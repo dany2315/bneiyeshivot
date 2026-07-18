@@ -1,6 +1,7 @@
-import { CheckCircle2, PackageCheck, ShoppingBag } from "lucide-react";
+import { CheckCircle2, ShoppingBag } from "lucide-react";
 import { PageShell } from "../components";
 import { createStoreReservation } from "./actions";
+import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,18 +72,11 @@ export default async function StorePage({
                 <div className="grid gap-4 md:grid-cols-2">
                   {products.map((product) => (
                     <Card className="overflow-hidden" key={product.id}>
-                      <div className="flex aspect-[16/10] items-center justify-center overflow-hidden bg-[var(--subtle)]">
-                        {product.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            alt=""
-                            className="h-full w-full object-cover"
-                            src={product.imageUrl}
-                          />
-                        ) : (
-                          <PackageCheck className="size-12 text-[var(--primary)]" />
-                        )}
-                      </div>
+                      <StoreProductImageDialog
+                        imageUrl={product.imageUrl}
+                        imageUrls={product.imageUrls}
+                        title={product.title}
+                      />
                       <CardHeader>
                         <div className="flex items-start justify-between gap-3">
                           <div>

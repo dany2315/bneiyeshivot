@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useId, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { StoreReservationStatus } from "@prisma/client";
 import {
@@ -9,10 +10,13 @@ import {
   Edit,
   Eye,
   EyeOff,
+  ImageIcon,
   PackagePlus,
   Save,
   Settings,
   Trash2,
+  Upload,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -67,6 +71,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { fileUrl } from "@/lib/files";
 
 type StorefrontView = {
   id: string;
@@ -88,6 +93,7 @@ type ProductView = {
   priceCents: number;
   currency: string;
   imageUrl: string | null;
+  imageUrls: string[];
   stockQuantity: number | null;
   active: boolean;
   featured: boolean;
@@ -173,6 +179,28 @@ function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "Une erreur est survenue. Reessayez.";
+}
+
+async function uploadProductImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("files", file);
+  formData.append("prefix", "store/products");
+
+  const response = await fetch("/api/uploads", {
+    method: "POST",
+    body: formData,
+  });
+  const data = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    keys?: string[];
+    message?: string;
+  } | null;
+
+  if (!response.ok || !data?.ok || !data.keys?.[0]) {
+    throw new Error(data?.message ?? "Upload echoue.");
+  }
+
+  return data.keys[0];
 }
 
 function InteractiveForm({
@@ -397,6 +425,31 @@ function ProductDialog({
   product?: ProductView;
 }) {
   const isEdit = mode === "edit";
+  const [title, setTitle] = useState(product?.title ?? "");
+  const [description, setDescription] = useState(product?.description ?? "");
+  const [details, setDetails] = useState(product?.details ?? "");
+  const [price, setPrice] = useState(product ? moneyInput(product.priceCents) : "");
+  const [currency, setCurrency] = useState(product?.currency ?? "EUR");
+  const initialImages =
+    product?.imageUrls && product.imageUrls.length > 0
+      ? product.imageUrls
+      : product?.imageUrl
+        ? [product.imageUrl]
+        : [];
+  const [images, setImages] = useState<ProductImageItem[]>(
+    initialImages.map((value, index) => ({
+      id: `existing-${index}-${value}`,
+      value,
+      preview: fileUrl(value),
+      status: "done",
+    })),
+  );
+  const [featured, setFeatured] = useState(product?.featured ?? false);
+  const parsedPrice = Number(price.replace(",", "."));
+  const previewPrice = formatPrice(
+    Number.isFinite(parsedPrice) ? Math.round(parsedPrice * 100) : 0,
+    currency || "EUR",
+  );
 
   return (
     <Dialog>
@@ -417,57 +470,92 @@ function ProductDialog({
           </>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Modifier le produit" : "Nouveau produit"}</DialogTitle>
           <DialogDescription>
-            Gere le nom, le prix, la visibilite et le stock disponible.
+            Gere le nom, le prix, l&apos;image, la visibilite et le stock disponible.
           </DialogDescription>
         </DialogHeader>
         <InteractiveForm
           action={isEdit ? updateStoreProduct : createStoreProduct}
-          className="grid gap-3"
+          className="grid gap-5"
           successMessage={isEdit ? "Produit modifie." : "Produit cree."}
         >
           {product ? <input name="productId" type="hidden" value={product.id} /> : null}
-          <Input name="title" placeholder="Nom du produit" defaultValue={product?.title} required />
-          <Textarea
-            name="description"
-            placeholder="Description courte"
-            defaultValue={product?.description}
-            required
-          />
-          <Textarea
-            name="details"
-            placeholder="Details, contenu du pack, dimensions..."
-            defaultValue={product?.details ?? ""}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              name="price"
-              placeholder="Prix"
-              defaultValue={product ? moneyInput(product.priceCents) : ""}
-              required
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid gap-3">
+              <Input
+                name="title"
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Nom du produit"
+                required
+                value={title}
+              />
+              <Textarea
+                name="description"
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Description courte"
+                required
+                value={description}
+              />
+              <Textarea
+                name="details"
+                onChange={(event) => setDetails(event.target.value)}
+                placeholder="Details, contenu du pack, dimensions..."
+                value={details}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  name="price"
+                  onChange={(event) => setPrice(event.target.value)}
+                  placeholder="Prix"
+                  required
+                  value={price}
+                />
+                <Input
+                  name="currency"
+                  onChange={(event) => setCurrency(event.target.value.toUpperCase())}
+                  value={currency}
+                />
+              </div>
+              <ProductImagesField
+                images={images}
+                onImagesChange={setImages}
+              />
+              <Input
+                name="stockQuantity"
+                placeholder="Stock optionnel"
+                type="number"
+                min="0"
+                defaultValue={product?.stockQuantity ?? ""}
+              />
+              <div className="grid gap-2 text-sm">
+                <label className="flex items-center gap-2">
+                  <input name="active" type="checkbox" defaultChecked={product?.active ?? true} />
+                  Produit visible
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    checked={featured}
+                    name="featured"
+                    onChange={(event) => setFeatured(event.target.checked)}
+                    type="checkbox"
+                  />
+                  Produit recommande
+                </label>
+              </div>
+            </div>
+
+            <ProductPreviewPanel
+              currency={currency || "EUR"}
+              description={description}
+              details={details}
+              featured={featured}
+              imagePreview={images[0]?.preview ?? null}
+              price={previewPrice}
+              title={title}
             />
-            <Input name="currency" defaultValue={product?.currency ?? "EUR"} />
-          </div>
-          <Input name="imageUrl" placeholder="URL image produit" defaultValue={product?.imageUrl ?? ""} />
-          <Input
-            name="stockQuantity"
-            placeholder="Stock optionnel"
-            type="number"
-            min="0"
-            defaultValue={product?.stockQuantity ?? ""}
-          />
-          <div className="grid gap-2 text-sm">
-            <label className="flex items-center gap-2">
-              <input name="active" type="checkbox" defaultChecked={product?.active ?? true} />
-              Produit visible
-            </label>
-            <label className="flex items-center gap-2">
-              <input name="featured" type="checkbox" defaultChecked={product?.featured ?? false} />
-              Produit recommande
-            </label>
           </div>
           <DialogFooter>
             <SubmitButton>
@@ -478,6 +566,298 @@ function ProductDialog({
         </InteractiveForm>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type ProductImageItem = {
+  id: string;
+  value: string;
+  preview: string | null;
+  status: "uploading" | "done" | "error";
+};
+
+function ProductImagesField({
+  images,
+  onImagesChange,
+}: {
+  images: ProductImageItem[];
+  onImagesChange: Dispatch<SetStateAction<ProductImageItem[]>>;
+}) {
+  const id = useId();
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const uploading = images.some((image) => image.status === "uploading");
+
+  function updateImage(idToUpdate: string, next: Partial<ProductImageItem>) {
+    onImagesChange((current) =>
+      current.map((image) =>
+        image.id === idToUpdate ? { ...image, ...next } : image,
+      ),
+    );
+  }
+
+  function moveImage(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const sourceIndex = images.findIndex((image) => image.id === sourceId);
+    const targetIndex = images.findIndex((image) => image.id === targetId);
+
+    if (sourceIndex < 0 || targetIndex < 0) {
+      return;
+    }
+
+    onImagesChange((current) => {
+      const next = [...current];
+      const [source] = next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, source);
+      return next;
+    });
+  }
+
+  function addManualUrl(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    onImagesChange((current) => [
+      ...current,
+      {
+        id: `manual-${Date.now()}-${trimmed}`,
+        value: trimmed,
+        preview: fileUrl(trimmed),
+        status: "done",
+      },
+    ]);
+  }
+
+  function handleFiles(files: File[]) {
+    const created = files.map((file, index) => ({
+      id: `upload-${Date.now()}-${index}-${file.name}`,
+      file,
+      value: "",
+      preview: URL.createObjectURL(file),
+      status: "uploading" as const,
+    }));
+
+    onImagesChange((current) => [
+      ...current,
+      ...created.map((item) => ({
+        id: item.id,
+        value: item.value,
+        preview: item.preview,
+        status: item.status,
+      })),
+    ]);
+
+    for (const item of created) {
+      uploadProductImage(item.file)
+        .then((key) => {
+          updateImage(item.id, {
+            value: key,
+            preview: fileUrl(key),
+            status: "done",
+          });
+        })
+        .catch((error) => {
+          updateImage(item.id, { status: "error" });
+          toast.error(errorMessage(error));
+        });
+    }
+  }
+
+  function removeImage(idToRemove: string) {
+    onImagesChange((current) => current.filter((image) => image.id !== idToRemove));
+  }
+
+  return (
+    <div className="grid gap-3">
+      {images.map((image) =>
+        image.status === "done" && image.value ? (
+          <input key={image.id} name="imageUrls" type="hidden" value={image.value} />
+        ) : null,
+      )}
+      <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
+        <label
+          className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-[var(--border)] bg-[var(--subtle)] p-3 text-sm font-bold text-[var(--primary)] transition hover:border-[var(--accent)]/40"
+          htmlFor={id}
+        >
+          <Upload className="size-4" />
+          {uploading ? "Upload en cours..." : "Uploader des images produit"}
+        </label>
+        <ManualImageUrlInput onAdd={addManualUrl} />
+        {images.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {images.map((image, index) => (
+              <div
+                className="group relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--subtle)]"
+                draggable
+                key={image.id}
+                onDragEnd={() => setDraggedId(null)}
+                onDragOver={(event) => event.preventDefault()}
+                onDragStart={() => setDraggedId(image.id)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (draggedId) moveImage(draggedId, image.id);
+                  setDraggedId(null);
+                }}
+              >
+                <span className="absolute left-2 top-2 z-10 grid size-7 place-items-center rounded-full bg-white text-xs font-black text-[var(--primary)] shadow">
+                  {index + 1}
+                </span>
+                <button
+                  aria-label="Supprimer l'image"
+                  className="absolute right-2 top-2 z-10 grid size-7 place-items-center rounded-full bg-white text-[var(--primary)] shadow transition hover:bg-[var(--accent-soft)]"
+                  onClick={() => removeImage(image.id)}
+                  type="button"
+                >
+                  <X className="size-4" />
+                </button>
+                <div className="flex aspect-square items-center justify-center overflow-hidden">
+                  {image.preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt=""
+                      className="h-full w-full object-cover"
+                      src={image.preview}
+                    />
+                  ) : (
+                    <ImageIcon className="size-8 text-[var(--primary)]" />
+                  )}
+                </div>
+                <div className="absolute inset-x-0 bottom-0 bg-[#061e35]/78 px-2 py-1 text-center text-xs font-bold text-white">
+                  {image.status === "uploading"
+                    ? "Upload..."
+                    : image.status === "error"
+                      ? "Echec"
+                      : index === 0
+                        ? "Image principale"
+                        : "Glisser pour ordonner"}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      <input
+        accept="image/*"
+        className="sr-only"
+        id={id}
+        multiple
+        onChange={(event) => {
+          const files = Array.from(event.target.files ?? []);
+          if (files.length > 0) handleFiles(files);
+          event.target.value = "";
+        }}
+        type="file"
+      />
+    </div>
+  );
+}
+
+function ManualImageUrlInput({ onAdd }: { onAdd: (value: string) => void }) {
+  const [value, setValue] = useState("");
+
+  return (
+    <div className="flex gap-2">
+      <Input
+        onChange={(event) => setValue(event.target.value)}
+        placeholder="Ou coller une URL image externe"
+        value={value}
+      />
+      <Button
+        onClick={() => {
+          onAdd(value);
+          setValue("");
+        }}
+        type="button"
+        variant="secondary"
+      >
+        Ajouter
+      </Button>
+    </div>
+  );
+}
+
+function ProductPreviewPanel({
+  title,
+  description,
+  details,
+  price,
+  currency,
+  imagePreview,
+  featured,
+}: {
+  title: string;
+  description: string;
+  details: string;
+  price: string;
+  currency: string;
+  imagePreview: string | null;
+  featured: boolean;
+}) {
+  return (
+    <div className="grid h-fit gap-4 rounded-xl bg-[var(--subtle)] p-4">
+      <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
+        Preview
+      </span>
+      <div>
+        <p className="mb-2 text-sm font-semibold text-[var(--muted)]">
+          Card boutique
+        </p>
+        <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-[0_20px_60px_rgba(6,40,70,0.08)]">
+          <div className="flex aspect-[16/10] items-center justify-center overflow-hidden bg-[var(--primary-soft)]">
+            {imagePreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt="" className="h-full w-full object-cover" src={imagePreview} />
+            ) : (
+              <ImageIcon className="size-10 text-[var(--primary)]" />
+            )}
+          </div>
+          <div className="grid gap-2 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                {featured ? <Badge variant="success">Recommande</Badge> : null}
+                <strong className="mt-2 block text-[var(--primary)]">
+                  {title || "Nom du produit"}
+                </strong>
+              </div>
+              <strong className="text-lg text-[var(--primary)]">{price}</strong>
+            </div>
+            <p className="text-sm text-[var(--muted)]">
+              {description || "Description courte du produit."}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-sm font-semibold text-[var(--muted)]">
+          Page produit
+        </p>
+        <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white">
+          <div className="relative flex min-h-40 items-end overflow-hidden bg-[var(--primary)] p-4">
+            {imagePreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt="" className="absolute inset-0 h-full w-full object-cover" src={imagePreview} />
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#061e35]/88 via-[#061e35]/45 to-transparent" />
+            <div className="relative z-10 text-white">
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/72">
+                {currency}
+              </span>
+              <h3 className="mt-2 text-2xl font-bold">
+                {title || "Nom du produit"}
+              </h3>
+              <p className="mt-1 text-lg font-black">{price}</p>
+            </div>
+          </div>
+          <div className="grid gap-2 p-4">
+            <p className="text-sm leading-6 text-[var(--primary)]">
+              {description || "Description courte du produit."}
+            </p>
+            <p className="text-sm leading-6 text-[var(--muted)]">
+              {details || "Details, contenu du pack, dimensions..."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

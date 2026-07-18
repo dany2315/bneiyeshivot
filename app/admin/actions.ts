@@ -440,6 +440,7 @@ export async function createStoreProduct(formData: FormData) {
   const title = readString(formData, "title");
   const description = readString(formData, "description");
   const priceCents = readStorePrice(formData.get("price"));
+  const imageUrls = formData.getAll("imageUrls").map(String).filter(Boolean);
 
   if (!title || !description || !priceCents) {
     throw new Error("Titre, description et prix obligatoires.");
@@ -454,7 +455,8 @@ export async function createStoreProduct(formData: FormData) {
       details: readString(formData, "details") || null,
       priceCents,
       currency: readString(formData, "currency").toUpperCase() || "EUR",
-      imageUrl: readString(formData, "imageUrl") || null,
+      imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
+      imageUrls,
       stockQuantity: readString(formData, "stockQuantity")
         ? Number(readString(formData, "stockQuantity"))
         : null,
@@ -483,6 +485,7 @@ export async function updateStoreProduct(formData: FormData) {
   const title = readString(formData, "title");
   const description = readString(formData, "description");
   const priceCents = readStorePrice(formData.get("price"));
+  const imageUrls = formData.getAll("imageUrls").map(String).filter(Boolean);
 
   if (!productId || !title || !description || !priceCents) {
     throw new Error("Produit invalide.");
@@ -496,7 +499,8 @@ export async function updateStoreProduct(formData: FormData) {
       details: readString(formData, "details") || null,
       priceCents,
       currency: readString(formData, "currency").toUpperCase() || "EUR",
-      imageUrl: readString(formData, "imageUrl") || null,
+      imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
+      imageUrls,
       stockQuantity: readString(formData, "stockQuantity")
         ? Number(readString(formData, "stockQuantity"))
         : null,

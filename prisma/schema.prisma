@@ -169,6 +169,7 @@ model StoreProduct {
   priceCents     Int
   currency       String                 @default("EUR")
   imageUrl       String?
+  imageUrls      String[]               @default([])
   stockQuantity  Int?
   active         Boolean                @default(true)
   featured       Boolean                @default(false)
