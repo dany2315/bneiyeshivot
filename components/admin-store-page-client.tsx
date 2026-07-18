@@ -203,6 +203,28 @@ async function uploadProductImage(file: File): Promise<string> {
   return data.keys[0];
 }
 
+async function deleteProductImage(value: string) {
+  if (!value.startsWith("store/products/")) {
+    return;
+  }
+
+  const response = await fetch("/api/store/product-images", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ key: value }),
+  });
+  const data = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    message?: string;
+  } | null;
+
+  if (!response.ok || !data?.ok) {
+    throw new Error(data?.message ?? "Suppression image echouee.");
+  }
+}
+
 function InteractiveForm({
   action,
   children,
@@ -596,6 +618,7 @@ function ProductImagesField({
 }) {
   const id = useId();
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const uploading = images.some((image) => image.status === "uploading");
 
   function updateImage(idToUpdate: string, next: Partial<ProductImageItem>) {
@@ -671,8 +694,23 @@ function ProductImagesField({
     }
   }
 
-  function removeImage(idToRemove: string) {
-    onImagesChange((current) => current.filter((image) => image.id !== idToRemove));
+  async function removeImage(imageToRemove: ProductImageItem) {
+    if (imageToRemove.status === "done" && imageToRemove.value) {
+      setDeletingId(imageToRemove.id);
+      try {
+        await deleteProductImage(imageToRemove.value);
+        toast.success("Image supprimee.");
+      } catch (error) {
+        toast.error(errorMessage(error));
+        return;
+      } finally {
+        setDeletingId(null);
+      }
+    }
+
+    onImagesChange((current) =>
+      current.filter((image) => image.id !== imageToRemove.id),
+    );
   }
 
   return (
@@ -713,7 +751,8 @@ function ProductImagesField({
                 <button
                   aria-label="Supprimer l'image"
                   className="absolute right-2 top-2 z-10 grid size-7 place-items-center rounded-full bg-white text-[var(--primary)] shadow transition hover:bg-[var(--accent-soft)]"
-                  onClick={() => removeImage(image.id)}
+                  disabled={deletingId === image.id}
+                  onClick={() => removeImage(image)}
                   type="button"
                 >
                   <X className="size-4" />

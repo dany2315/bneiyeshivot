@@ -135,6 +135,14 @@ export async function deleteFileFromS3(key: string) {
   }
 }
 
+export async function deleteStoreProductImageFromS3(key: string) {
+  if (!key.startsWith("store/products/")) {
+    throw new Error("Cle image produit invalide.");
+  }
+
+  await deleteFileFromS3(key);
+}
+
 export async function deleteFilesFromS3(keys: string[]) {
   await Promise.all(keys.filter(Boolean).map((key) => deleteFileFromS3(key)));
 }
