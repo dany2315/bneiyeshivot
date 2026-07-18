@@ -8,10 +8,14 @@ export async function GET(
   const { key } = await params;
   const fileKey = key.map((part) => decodeURIComponent(part)).join("/");
 
-  // Securite : seuls les medias publics du site et les medias d'evenement
-  // sont servis publiquement.
+  // Securite : seuls les medias publics du site, les medias d'evenement
+  // et les images produit boutique sont servis publiquement.
   // Les documents de dossier (passeports, etc.) ont leurs propres routes protegees.
-  if (!fileKey.startsWith("events/") && !fileKey.startsWith("public/")) {
+  if (
+    !fileKey.startsWith("events/") &&
+    !fileKey.startsWith("public/") &&
+    !fileKey.startsWith("store/products/")
+  ) {
     return NextResponse.json({ message: "Introuvable." }, { status: 404 });
   }
 

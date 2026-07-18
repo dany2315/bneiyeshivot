@@ -233,16 +233,20 @@ function InteractiveForm({
 
 function SubmitButton({
   children,
+  disabled,
+  pendingLabel = "Enregistrement...",
   variant = "default",
 }: {
   children: ReactNode;
+  disabled?: boolean;
+  pendingLabel?: string;
   variant?: "default" | "secondary" | "destructive";
 }) {
   const { pending } = useFormStatus();
 
   return (
-    <Button disabled={pending} type="submit" variant={variant}>
-      {pending ? "Enregistrement..." : children}
+    <Button disabled={pending || disabled} type="submit" variant={variant}>
+      {pending ? pendingLabel : children}
     </Button>
   );
 }
@@ -445,6 +449,7 @@ function ProductDialog({
     })),
   );
   const [featured, setFeatured] = useState(product?.featured ?? false);
+  const imageUploadPending = images.some((image) => image.status === "uploading");
   const parsedPrice = Number(price.replace(",", "."));
   const previewPrice = formatPrice(
     Number.isFinite(parsedPrice) ? Math.round(parsedPrice * 100) : 0,
@@ -478,7 +483,13 @@ function ProductDialog({
           </DialogDescription>
         </DialogHeader>
         <InteractiveForm
-          action={isEdit ? updateStoreProduct : createStoreProduct}
+          action={async (formData) => {
+            if (imageUploadPending) {
+              throw new Error("Attendez la fin de l'upload des images avant d'enregistrer.");
+            }
+
+            await (isEdit ? updateStoreProduct : createStoreProduct)(formData);
+          }}
           className="grid gap-5"
           successMessage={isEdit ? "Produit modifie." : "Produit cree."}
         >
@@ -558,9 +569,9 @@ function ProductDialog({
             />
           </div>
           <DialogFooter>
-            <SubmitButton>
+            <SubmitButton disabled={imageUploadPending} pendingLabel="Enregistrement...">
               <Save className="size-4" />
-              Enregistrer
+              {imageUploadPending ? "Upload des images..." : "Enregistrer"}
             </SubmitButton>
           </DialogFooter>
         </InteractiveForm>
@@ -650,7 +661,6 @@ function ProductImagesField({
         .then((key) => {
           updateImage(item.id, {
             value: key,
-            preview: fileUrl(key),
             status: "done",
           });
         })
