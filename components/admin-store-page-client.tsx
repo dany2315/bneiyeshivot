@@ -518,6 +518,10 @@ function ProductDialog({
           {product ? <input name="productId" type="hidden" value={product.id} /> : null}
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-3">
+              <ProductImagesField
+                images={images}
+                onImagesChange={setImages}
+              />
               <Input
                 name="title"
                 onChange={(event) => setTitle(event.target.value)}
@@ -552,10 +556,6 @@ function ProductDialog({
                   value={currency}
                 />
               </div>
-              <ProductImagesField
-                images={images}
-                onImagesChange={setImages}
-              />
               <Input
                 name="stockQuantity"
                 placeholder="Stock optionnel"
