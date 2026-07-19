@@ -2671,6 +2671,215 @@ a.card:hover,
   font-weight: 850;
 }
 
+/* ---------------------------------------------------------------------------
+   Chabbat Plein - sections sur-mesure
+--------------------------------------------------------------------------- */
+.shabbat-pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.shabbat-pillar-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(223, 231, 240, 0.9);
+  background:
+    radial-gradient(circle at top right, rgba(246, 170, 28, 0.12), transparent 15rem),
+    #fff;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.shabbat-pillar-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent), var(--gold));
+}
+
+.shabbat-pillar-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 70px rgba(6, 40, 70, 0.1);
+}
+
+.shabbat-pillar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent-soft), #fff);
+  border: 1px solid rgba(242, 99, 0, 0.16);
+  color: var(--accent-strong);
+}
+
+.shabbat-pillar-card [data-slot="card-title"] {
+  font-size: 1.35rem;
+}
+
+/* Bien plus qu'un Chabbat */
+.shabbat-community-inner {
+  display: grid;
+  justify-items: center;
+  max-width: 860px;
+  text-align: center;
+}
+
+.shabbat-community-inner h2 {
+  margin: 14px 0 10px;
+  color: var(--primary-strong);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(30px, 3.6vw, 46px);
+  font-weight: 680;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+
+.shabbat-community-inner p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+/* Organisation */
+.shabbat-orga-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.shabbat-orga-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(223, 231, 240, 0.92);
+  border-radius: 16px;
+  background: #fff;
+  padding: 16px 18px;
+  box-shadow: 0 16px 40px rgba(6, 40, 70, 0.05);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.shabbat-orga-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(242, 99, 0, 0.32);
+}
+
+.shabbat-orga-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.shabbat-orga-item strong {
+  color: var(--primary);
+  font-size: 15.5px;
+  font-weight: 820;
+}
+
+/* Galerie mosaique */
+.shabbat-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 180px;
+  gap: 14px;
+}
+
+.shabbat-gallery-cell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(223, 231, 240, 0.9);
+  box-shadow: 0 18px 48px rgba(6, 40, 70, 0.08);
+}
+
+.shabbat-gallery-cell img {
+  object-fit: cover;
+  transition: transform 600ms ease;
+}
+
+.shabbat-gallery-cell:hover img {
+  transform: scale(1.06);
+}
+
+.shabbat-gallery-cell-feature {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+/* Appel final */
+.shabbat-final-cta {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 6px;
+  border-radius: 30px;
+  padding: 62px 32px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(242, 99, 0, 0.3), transparent 22rem),
+    radial-gradient(circle at 84% 82%, rgba(246, 170, 28, 0.22), transparent 20rem),
+    linear-gradient(135deg, #061e35, #0b3b63);
+  box-shadow: 0 34px 90px rgba(6, 40, 70, 0.24);
+}
+
+.shabbat-final-cta .eyebrow {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffd4b4;
+}
+
+.shabbat-final-cta h2 {
+  margin: 14px 0 0;
+  color: #fff;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(30px, 3.6vw, 46px);
+  font-weight: 680;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+
+.shabbat-final-cta p {
+  max-width: 640px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.shabbat-final-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.shabbat-final-secondary {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--primary);
+}
+
+.shabbat-final-secondary:hover {
+  background: #fff;
+}
+
 .program-rabbi-rail {
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
@@ -4490,12 +4699,32 @@ a.card:hover,
   .about-partner-list,
   .form-grid,
   .footer-grid,
-  .gallery-grid {
+  .gallery-grid,
+  .shabbat-pillar-grid {
     grid-template-columns: 1fr;
   }
 
   .ben-gallery-pair {
     grid-template-columns: 1fr;
+  }
+
+  .shabbat-orga-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shabbat-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 150px;
+  }
+
+  .shabbat-gallery-cell-feature {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+
+  .shabbat-final-cta {
+    padding: 48px 22px;
+    border-radius: 24px;
   }
 
   .program-list-grid,

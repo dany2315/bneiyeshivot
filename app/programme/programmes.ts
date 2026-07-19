@@ -139,30 +139,30 @@ export const programmes: Program[] = [
     title: "Chabbat Plein",
     eyebrow: "Communaute",
     description:
-      "Des Chabbatot d'exception qui renforcent les liens, la Torah et le sentiment d'appartenance.",
+      "Le rendez-vous incontournable de la jeunesse francophone : un Chabbat d'exception autour de la Torah, de la fraternite et de la Sim'ha.",
     longDescription:
-      "Les Shabbatot organises par Bnei Yeshivot reunissent des jeunes et des familles autour de la Torah, de la convivialite et d'une ambiance exceptionnelle.",
+      "Un Chabbat qui rassemble, une experience qui marque, une communaute qui se construit.",
     focusLabel: "Au programme",
-    ctaLabel: "Découvrir nos Chabbatot",
+    ctaLabel: "Découvrir Chabbat Plein",
     image:
       "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1100&q=82",
     href: "/programme/shabbatot",
     Icon: Users,
     actions: [
       {
-        title: "Conférences de Rabbanim",
-        description: "Des repas de Chabbat et des moments de fraternite.",
-        Icon: Users,
-      },
-      {
-        title: "Repas & ambiance unique",
-        description: "Des etudes, conferences et divrei Torah.",
+        title: "Des moments de Torah",
+        description: "Cours, divrei Torah et interventions de Rabbanim.",
         Icon: BookOpen,
       },
       {
-        title: "Rencontres et échanges",
-        description: "Des rencontres dans une atmosphere chaleureuse.",
+        title: "Repas & ambiance unique",
+        description: "Des repas d'exception, des Zemirot et de la Sim'ha.",
         Icon: Heart,
+      },
+      {
+        title: "Rencontres et fraternite",
+        description: "Des liens durables entre jeunes francophones.",
+        Icon: Users,
       },
     ],
   },
