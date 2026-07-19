@@ -456,6 +456,95 @@ export async function updateHomeGalleryAlbum(formData: FormData) {
   revalidatePath("/admin/galerie");
 }
 
+export async function reorderHomeGalleryAlbum(formData: FormData) {
+  const admin = await requireAdminUser();
+  const orderedAlbumIds = formData
+    .getAll("orderedAlbumIds")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const albumId = readString(formData, "albumId");
+  const direction = readString(formData, "direction");
+
+  if (orderedAlbumIds.length > 1) {
+    const existingIds = new Set(
+      (
+        await prisma.homeGalleryAlbum.findMany({
+          select: { id: true },
+        })
+      ).map((album) => album.id),
+    );
+    const ordered = orderedAlbumIds.filter((id) => existingIds.has(id));
+
+    await prisma.$transaction(
+      ordered.map((id, index) =>
+        prisma.homeGalleryAlbum.update({
+          where: { id },
+          data: { sortOrder: index },
+        }),
+      ),
+    );
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "home_gallery_album.reordered",
+        entity: "HomeGalleryAlbum",
+        metadata: { orderedAlbumIds: ordered },
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin/galerie");
+    return;
+  }
+
+  if (!albumId || (direction !== "up" && direction !== "down")) {
+    throw new Error("Ordre de galerie invalide.");
+  }
+
+  const albums = await prisma.homeGalleryAlbum.findMany({
+    select: { id: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+  });
+  const currentIndex = albums.findIndex((album) => album.id === albumId);
+  const targetIndex =
+    direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+  if (
+    currentIndex < 0 ||
+    targetIndex < 0 ||
+    targetIndex >= albums.length
+  ) {
+    return;
+  }
+
+  const ordered = [...albums];
+  const [album] = ordered.splice(currentIndex, 1);
+  ordered.splice(targetIndex, 0, album);
+
+  await prisma.$transaction(
+    ordered.map((item, index) =>
+      prisma.homeGalleryAlbum.update({
+        where: { id: item.id },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "home_gallery_album.reordered",
+      entity: "HomeGalleryAlbum",
+      entityId: albumId,
+      metadata: { direction },
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/galerie");
+}
+
 export async function deleteHomeGalleryAlbum(formData: FormData) {
   const admin = await requireAdminUser();
   const albumId = readString(formData, "albumId");

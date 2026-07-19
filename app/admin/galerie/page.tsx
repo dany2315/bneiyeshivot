@@ -1,6 +1,7 @@
 import {
   createHomeGalleryAlbum,
   deleteHomeGalleryAlbum,
+  reorderHomeGalleryAlbum,
   updateHomeGalleryAlbum,
 } from "@/app/admin/actions";
 import {
@@ -50,6 +51,7 @@ export default async function AdminGalleryPage() {
         }
         createAction={createHomeGalleryAlbum}
         deleteAction={deleteHomeGalleryAlbum}
+        reorderAction={reorderHomeGalleryAlbum}
         updateAction={updateHomeGalleryAlbum}
       />
     </AdminShell>

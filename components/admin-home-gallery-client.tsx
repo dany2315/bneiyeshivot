@@ -38,6 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Eye,
   Film,
+  GripVertical,
   ImageIcon,
   Images,
   Pencil,
@@ -141,12 +142,65 @@ export function AdminHomeGalleryClient({
   createAction,
   updateAction,
   deleteAction,
+  reorderAction,
 }: {
   albums: AdminGalleryAlbum[];
   createAction: (formData: FormData) => void | Promise<void>;
   updateAction: (formData: FormData) => void | Promise<void>;
   deleteAction: (formData: FormData) => void | Promise<void>;
+  reorderAction: (formData: FormData) => void | Promise<void>;
 }) {
+  const [orderedAlbums, setOrderedAlbums] = useState(albums);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [savingOrder, startOrderTransition] = useTransition();
+
+  function saveOrder(nextAlbums: AdminGalleryAlbum[]) {
+    const formData = new FormData();
+    nextAlbums.forEach((album) => {
+      formData.append("orderedAlbumIds", album.id);
+    });
+
+    startOrderTransition(async () => {
+      try {
+        await reorderAction(formData);
+        toast.success("Ordre des galeries enregistre.");
+      } catch (error) {
+        setOrderedAlbums(albums);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Impossible d'enregistrer l'ordre.",
+        );
+      }
+    });
+  }
+
+  function dropAlbum(targetId: string) {
+    if (!draggingId || draggingId === targetId) {
+      setDraggingId(null);
+      return;
+    }
+
+    const sourceIndex = orderedAlbums.findIndex(
+      (album) => album.id === draggingId,
+    );
+    const targetIndex = orderedAlbums.findIndex(
+      (album) => album.id === targetId,
+    );
+
+    if (sourceIndex < 0 || targetIndex < 0) {
+      setDraggingId(null);
+      return;
+    }
+
+    const nextAlbums = [...orderedAlbums];
+    const [moved] = nextAlbums.splice(sourceIndex, 1);
+    nextAlbums.splice(targetIndex, 0, moved);
+    setOrderedAlbums(nextAlbums);
+    setDraggingId(null);
+    saveOrder(nextAlbums);
+  }
+
   return (
     <>
       <div className="admin-header">
@@ -158,7 +212,7 @@ export function AdminHomeGalleryClient({
       </div>
 
       <section className="section">
-        {albums.length === 0 ? (
+        {orderedAlbums.length === 0 ? (
           <Card>
             <CardContent className="grid place-items-center gap-4 py-12 text-center">
               <Images className="size-12 text-[var(--muted)]" />
@@ -175,8 +229,25 @@ export function AdminHomeGalleryClient({
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {albums.map((album) => (
-              <Card className="overflow-hidden" key={album.id}>
+            {orderedAlbums.map((album, index) => (
+              <Card
+                className="overflow-hidden transition data-[dragging=true]:opacity-55 data-[saving=true]:opacity-75"
+                data-dragging={draggingId === album.id}
+                data-saving={savingOrder}
+                draggable={!savingOrder}
+                key={album.id}
+                onDragEnd={() => setDraggingId(null)}
+                onDragOver={(event) => event.preventDefault()}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", album.id);
+                  setDraggingId(album.id);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  dropAlbum(album.id);
+                }}
+              >
                 <div className="gallery-card-mosaic bg-[var(--subtle)]">
                   {album.items.slice(0, 5).map((item, index) => (
                     <div
@@ -203,6 +274,10 @@ export function AdminHomeGalleryClient({
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div className="grid gap-2">
+                      <span className="inline-flex w-fit cursor-grab items-center gap-2 rounded-full border border-[var(--border)] bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted)] active:cursor-grabbing">
+                        <GripVertical className="size-3.5" />
+                        Position {index + 1}
+                      </span>
                       <CardTitle>{album.title}</CardTitle>
                       <CardDescription>{album.description}</CardDescription>
                     </div>
