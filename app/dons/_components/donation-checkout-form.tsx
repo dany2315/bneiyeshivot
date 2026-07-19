@@ -67,15 +67,6 @@ const legalForms = [
   "Autre",
 ];
 
-const impactByAmount = [
-  { min: 20, label: "Un dossier accompagne" },
-  { min: 50, label: "Une aide administrative concrete" },
-  { min: 100, label: "Un soutien terrain renforce" },
-  { min: 180, label: "Un programme Torah soutenu" },
-  { min: 260, label: "Un jeune suivi sur plusieurs etapes" },
-  { min: 500, label: "Un vrai levier pour une action collective" },
-];
-
 const steps = [
   { title: "Don", icon: BadgeEuro },
   { title: "Donateur", icon: User },
@@ -92,10 +83,6 @@ function moneyLabel(amount: number, currency: string) {
     currency,
     maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
   }).format(amount);
-}
-
-function amountImpact(amount: number) {
-  return [...impactByAmount].reverse().find((item) => amount >= item.min)?.label;
 }
 
 function StepHeader({
@@ -372,6 +359,8 @@ export function DonationCheckoutForm({
   stripePublishableKey: string;
   nedarimPlusEnabled: boolean;
 }) {
+  const checkoutCardRef = useRef<HTMLDivElement>(null);
+  const didMountRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(50);
@@ -419,6 +408,27 @@ export function DonationCheckoutForm({
   const isNedarimPayment = currency === "ILS";
   const receiptAvailable = currency === "EUR";
 
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
+    checkoutCardRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [activeStep]);
+
+  function scrollToCheckoutTop() {
+    window.requestAnimationFrame(() => {
+      checkoutCardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
   function validateStep(step: number) {
     if (step === 0 && effectiveAmount <= 0) {
       return "Choisissez un montant valide.";
@@ -446,6 +456,7 @@ export function DonationCheckoutForm({
 
     if (nextError) {
       setError(nextError);
+      scrollToCheckoutTop();
       return;
     }
 
@@ -460,6 +471,7 @@ export function DonationCheckoutForm({
     if (nextError) {
       setActiveStep(1);
       setError(nextError);
+      scrollToCheckoutTop();
       return;
     }
 
@@ -472,6 +484,7 @@ export function DonationCheckoutForm({
     if (nextError) {
       setActiveStep(1);
       setError(nextError);
+      scrollToCheckoutTop();
       return;
     }
 
@@ -527,13 +540,15 @@ export function DonationCheckoutForm({
     setNedarimFields(payload.fields ?? null);
     setDonationId(payload.donationId);
     setActiveStep(2);
+    scrollToCheckoutTop();
     setIsPreparingPayment(false);
   }
 
   return (
     <Card
       id="don-form"
-      className="mx-auto max-w-3xl overflow-hidden border-[var(--border)] bg-white/95 shadow-[0_18px_48px_rgba(6,40,70,0.08)]"
+      ref={checkoutCardRef}
+      className="scroll-mt-24 overflow-hidden border-[var(--border)] bg-white/95 shadow-[0_18px_48px_rgba(6,40,70,0.08)]"
     >
       <CardHeader className="border-b border-[var(--border)] bg-[var(--subtle)]/70 px-4 py-3 sm:px-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -570,7 +585,7 @@ export function DonationCheckoutForm({
           ) : null}
 
           <div className="grid gap-3">
-            <div className="relative grid grid-cols-2 gap-4">
+            <div className="relative grid grid-cols-3 gap-4">
               <span className="absolute top-5 right-[16%] left-[16%] h-0.5 bg-[var(--border)]" />
               {steps.map((step, index) => {
                 const Icon = step.icon;
@@ -587,6 +602,7 @@ export function DonationCheckoutForm({
                       if (index <= activeStep && (index < 2 || clientSecret)) {
                         setActiveStep(index);
                         setError("");
+                        scrollToCheckoutTop();
                       }
                     }}
                     type="button"
@@ -648,7 +664,7 @@ export function DonationCheckoutForm({
           <section
             className={
               activeStep === 0
-                ? "rounded-xl border border-[var(--border)] bg-white p-4"
+                ? "p-1"
                 : "hidden"
             }
           >
@@ -812,7 +828,7 @@ export function DonationCheckoutForm({
           <section
             className={
               activeStep === 2
-                ? "rounded-xl border border-[var(--border)] bg-white p-4"
+                ? "p-1"
                 : "hidden"
             }
           >
@@ -878,7 +894,7 @@ export function DonationCheckoutForm({
           <section
             className={
               activeStep === 1
-                ? "rounded-xl border border-[var(--border)] bg-white p-4"
+                ? "p-1"
                 : "hidden"
             }
           >
@@ -1010,6 +1026,7 @@ export function DonationCheckoutForm({
               onClick={() => {
                 setActiveStep((step) => Math.max(step - 1, 0));
                 setError("");
+                scrollToCheckoutTop();
               }}
               type="button"
             >
