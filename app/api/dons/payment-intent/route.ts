@@ -50,12 +50,8 @@ function addMonths(date: Date, months: number) {
   return next;
 }
 
-function stripeSubscriptionPaymentConfirmation(subscription: Stripe.Subscription) {
-  const latestInvoice =
-    subscription.latest_invoice && typeof subscription.latest_invoice !== "string"
-      ? subscription.latest_invoice
-      : null;
-  const invoiceWithPaymentIntent = latestInvoice as
+function stripeInvoicePaymentConfirmation(invoice: Stripe.Invoice | null) {
+  const invoiceWithPaymentIntent = invoice as
     | (Stripe.Invoice & {
         confirmation_secret?: { client_secret?: string | null } | null;
         payment_intent?: string | Stripe.PaymentIntent | null;
@@ -79,6 +75,20 @@ function stripeSubscriptionPaymentConfirmation(subscription: Stripe.Subscription
     paymentIntent: normalizedPaymentIntent,
     paymentIntentId,
   };
+}
+
+function subscriptionLatestInvoice(subscription: Stripe.Subscription) {
+  return subscription.latest_invoice && typeof subscription.latest_invoice !== "string"
+    ? subscription.latest_invoice
+    : null;
+}
+
+function subscriptionLatestInvoiceId(subscription: Stripe.Subscription) {
+  if (!subscription.latest_invoice) return null;
+
+  return typeof subscription.latest_invoice === "string"
+    ? subscription.latest_invoice
+    : subscription.latest_invoice.id;
 }
 
 export async function POST(request: Request) {
@@ -211,10 +221,28 @@ export async function POST(request: Request) {
           payment_method_types: ["card", "link"],
           save_default_payment_method: "on_subscription",
         },
-        expand: ["latest_invoice.payment_intent"],
+        expand: [
+          "latest_invoice.confirmation_secret",
+          "latest_invoice.payment_intent",
+        ],
       });
-      const { clientSecret, paymentIntent, paymentIntentId } =
-        stripeSubscriptionPaymentConfirmation(subscription);
+      let { clientSecret, paymentIntent, paymentIntentId } =
+        stripeInvoicePaymentConfirmation(subscriptionLatestInvoice(subscription));
+
+      if (!clientSecret || !paymentIntentId) {
+        const latestInvoiceId = subscriptionLatestInvoiceId(subscription);
+
+        if (latestInvoiceId) {
+          const invoice = await stripe.invoices.retrieve(latestInvoiceId, {
+            expand: ["confirmation_secret", "payment_intent"],
+          });
+          const refreshedConfirmation = stripeInvoicePaymentConfirmation(invoice);
+
+          clientSecret = refreshedConfirmation.clientSecret;
+          paymentIntent = refreshedConfirmation.paymentIntent;
+          paymentIntentId = refreshedConfirmation.paymentIntentId;
+        }
+      }
 
       if (!clientSecret || !paymentIntentId) {
         throw new Error("Stripe n'a pas retourne de client secret pour l'abonnement.");
