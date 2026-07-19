@@ -30,10 +30,20 @@ import {
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
+  BedDouble,
+  BookOpen,
+  Boxes,
   CheckCircle2,
+  ClipboardList,
+  HandHeart,
+  HeartHandshake,
   MessageCircle,
+  ShieldCheck,
+  Sparkles,
+  UtensilsCrossed,
   XIcon,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type ProgramDetail = {
   heroText: string;
@@ -66,6 +76,22 @@ type ProgramDetail = {
   formFields?: string[];
   secondaryHref?: string;
   secondaryCta?: string;
+  // Sections sur-mesure (Chabbat Plein).
+  pillars?: Array<{ Icon: LucideIcon; title: string; description: string }>;
+  community?: { eyebrow: string; title: string; paragraphs: string[] };
+  organisation?: {
+    title: string;
+    description: string;
+    items: Array<{ Icon: LucideIcon; label: string }>;
+  };
+  galleryImages?: string[];
+  finalCta?: {
+    eyebrow: string;
+    title: string;
+    text: string;
+    primaryCta: string;
+    primaryHref: string;
+  };
 };
 
 const benHazmanimShortUrl =
@@ -232,57 +258,95 @@ const programDetails: Record<string, ProgramDetail> = {
   },
   shabbatot: {
     heroText:
-      "Des moments privilegies pour se retrouver autour de la Torah, de la convivialite et d'une ambiance chaleureuse.",
-    primaryCta: "Voir les Shabbatot",
+      "Le rendez-vous incontournable de la jeunesse francophone. Bien plus qu'un simple programme : un Chabbat d'exception place sous le signe de la Torah, de la fraternite et de la Sim'ha.",
+    primaryCta: "Rejoindre le prochain Chabbat Plein",
     intro: {
       eyebrow: "Notre vision",
-      title: "Creer des moments qui marquent les parcours",
+      title: "Creer des moments qui construisent une generation",
       paragraphs: [
-        "L'annee d'un jeune etudiant en Israel est rythmee par l'etude et la vie en Yechiva.",
-        "Les Shabbatot Bnei Yeshivot offrent un moment different pour sortir du cadre quotidien et construire une vraie communaute.",
+        "Chez Bnei Yeshivot, nous sommes convaincus que certains moments ont la capacite de marquer profondement un parcours.",
+        "Un echange avec un Rav, un divrei Torah inspirant, un repas de Chabbat partage, un chant ou une rencontre peuvent devenir des souvenirs qui accompagnent une personne pendant des annees.",
+        "C'est cette vision qui anime les Chabbat Plein : un cadre chaleureux et inspirant ou chaque participant se renforce dans la Torah, rencontre d'autres jeunes partageant les memes valeurs et ressent pleinement l'appartenance a une communaute francophone unie.",
       ],
       bullets: [
+        "Se renforcer dans la Torah",
         "Rencontrer d'autres jeunes francophones",
-        "Renforcer son lien avec la Torah",
-        "Partager des moments de qualite",
-        "Creer une veritable communaute",
+        "Ressentir l'appartenance a une communaute",
+        "Repartir avec une nouvelle energie",
       ],
     },
-    featureTitle: "Un Chabbat autour de la Torah et de la fraternite",
+    featureTitle: "Une experience pensee dans les moindres details",
     featureDescription:
-      "Chaque Chabbat rassemble cours, repas, rencontres et moments de partage dans un esprit chaleureux.",
-    features: [
+      "Chaque Chabbat Plein allie qualite, spiritualite et convivialite autour de quatre temps forts.",
+    features: [],
+    pillars: [
       {
-        title: "Temps de Torah",
-        description: "Cours, divrei Torah, etudes et rencontres avec des Rabbanim.",
+        Icon: BookOpen,
+        title: "Des moments de Torah",
+        description:
+          "Cours, divrei Torah, echanges et interventions de Rabbanim pour puiser de nouvelles forces et renforcer son attachement a la Torah.",
       },
       {
-        title: "Rencontres",
-        description: "Moments de discussion et creation de liens entre jeunes.",
+        Icon: HeartHandshake,
+        title: "Des rencontres qui creent des liens",
+        description:
+          "Des jeunes venus de differentes Yechivot se retrouvent pour partager leur parcours, echanger et construire des amities solides.",
       },
       {
-        title: "Repas de Chabbat",
-        description: "Des repas organises dans une ambiance conviviale.",
+        Icon: UtensilsCrossed,
+        title: "Des repas de Chabbat d'exception",
+        description:
+          "Des repas prepares avec soin, accompagnes de Zemirot, de chants et d'une ambiance chaleureuse ou chacun trouve sa place.",
       },
       {
-        title: "Ambiance communautaire",
-        description: "Un esprit de fraternite ou chacun trouve sa place.",
+        Icon: Sparkles,
+        title: "Une atmosphere unique",
+        description:
+          "Un cadre base sur la fraternite, la Sim'ha et le respect, pour vivre pleinement la richesse du Chabbat.",
       },
     ],
+    community: {
+      eyebrow: "Une communaute",
+      title: "Bien plus qu'un Chabbat",
+      paragraphs: [
+        "Les Chabbat Plein Bnei Yeshivot sont devenus au fil du temps un veritable point de rencontre pour la communaute francophone.",
+        "Ils permettent de creer des liens entre jeunes issus de differentes Yechivot, de renforcer le sentiment d'appartenance et de construire une veritable communaute autour de la Torah. Chaque edition est une occasion de se retrouver, de se renforcer et de vivre ensemble des moments qui restent graves.",
+      ],
+    },
     audience: [
-      "Bahourim francophones",
-      "Etudiants en Israel",
-      "Jeunes souhaitant partager un moment de Torah et de communaute",
-      "Familles et participants souhaitant rejoindre une dynamique francophone",
+      "Bahourim francophones etudiant en Israel",
+      "Etudiants souhaitant vivre un Chabbat de Torah dans une ambiance chaleureuse",
+      "Jeunes souhaitant rencontrer d'autres francophones partageant les memes aspirations",
+      "Familles et participants desirant rejoindre une dynamique communautaire forte",
     ],
-    gallery: [
-      "Repas de Chabbat",
-      "Etudes",
-      "Interventions",
-      "Participants",
-      "Moments de convivialite",
+    organisation: {
+      title: "Une organisation au service des participants",
+      description:
+        "Pour offrir une experience de grande qualite, l'equipe de Bnei Yeshivot veille a chaque detail afin que chacun se concentre sur l'essentiel : la Torah, les rencontres et la fraternite.",
+      items: [
+        { Icon: ClipboardList, label: "Organisation generale" },
+        { Icon: HandHeart, label: "Accueil des participants" },
+        { Icon: BedDouble, label: "Hebergement" },
+        { Icon: UtensilsCrossed, label: "Repas" },
+        { Icon: ShieldCheck, label: "Encadrement" },
+        { Icon: Boxes, label: "Logistique" },
+      ],
+    },
+    galleryImages: [
+      "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=900&q=80",
     ],
-    testimonials: ["Jeunes", "Familles", "Rabbanim"],
+    finalCta: {
+      eyebrow: "Rejoignez le prochain Chabbat Plein",
+      title: "Vous souhaitez vivre un Chabbat different ?",
+      text: "Un Chabbat ou la Torah, la fraternite et la communaute se rencontrent. Decouvrez les prochains Chabbat Plein Bnei Yeshivot et rejoignez une dynamique qui rassemble chaque annee de nombreux jeunes francophones.",
+      primaryCta: "Decouvrir les prochains Chabbat Plein",
+      primaryHref: "/evenements",
+    },
   },
   "talmoudo-beyado": {
     heroText:
@@ -822,21 +886,52 @@ export default async function ProgramDetailPage({
               <h2>{detail.featureTitle}</h2>
               <p>{detail.featureDescription}</p>
             </div>
-            <div className="program-detail-feature-grid">
-              {detail.features.map((feature, index) => (
-                <Card className="program-detail-feature-card" key={feature.title}>
-                  <CardHeader>
-                    <span className="program-detail-feature-index">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <CardTitle>{feature.title}</CardTitle>
-                    <CardDescription>{feature.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
+            {detail.pillars?.length ? (
+              <div className="shabbat-pillar-grid">
+                {detail.pillars.map(({ Icon, title, description }) => (
+                  <Card className="shabbat-pillar-card" key={title}>
+                    <CardHeader>
+                      <span className="shabbat-pillar-icon">
+                        <Icon className="size-6" />
+                      </span>
+                      <CardTitle>{title}</CardTitle>
+                      <CardDescription>{description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="program-detail-feature-grid">
+                {detail.features.map((feature, index) => (
+                  <Card
+                    className="program-detail-feature-card"
+                    key={feature.title}
+                  >
+                    <CardHeader>
+                      <span className="program-detail-feature-index">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <CardTitle>{feature.title}</CardTitle>
+                      <CardDescription>{feature.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
+
+        {detail.community ? (
+          <section className="section shabbat-community">
+            <div className="container shabbat-community-inner">
+              <span className="eyebrow">{detail.community.eyebrow}</span>
+              <h2>{detail.community.title}</h2>
+              {detail.community.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {detail.rabbis?.length ? (
           <section className="section">
@@ -977,6 +1072,66 @@ export default async function ProgramDetailPage({
           </div>
         </section>
 
+        {detail.organisation ? (
+          <section className="section band">
+            <div className="container">
+              <div className="section-header">
+                <div>
+                  <span className="eyebrow">Coulisses</span>
+                  <h2>{detail.organisation.title}</h2>
+                </div>
+                <p>{detail.organisation.description}</p>
+              </div>
+              <div className="shabbat-orga-grid">
+                {detail.organisation.items.map(({ Icon, label }) => (
+                  <div className="shabbat-orga-item" key={label}>
+                    <span className="shabbat-orga-icon">
+                      <Icon className="size-5" />
+                    </span>
+                    <strong>{label}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {detail.galleryImages?.length ? (
+          <section className="section">
+            <div className="container">
+              <div className="section-header">
+                <div>
+                  <span className="eyebrow">Galerie</span>
+                  <h2>Les plus beaux moments</h2>
+                </div>
+                <p>
+                  Repas de Chabbat, cours de Torah, interventions de Rabbanim et
+                  ambiance communautaire.
+                </p>
+              </div>
+              <div className="shabbat-gallery">
+                {detail.galleryImages.map((src, index) => (
+                  <div
+                    className={
+                      index === 0
+                        ? "shabbat-gallery-cell shabbat-gallery-cell-feature"
+                        : "shabbat-gallery-cell"
+                    }
+                    key={src}
+                  >
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="(max-width: 980px) 50vw, 25vw"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {(detail.gallery?.length || detail.testimonials?.length || detail.formFields?.length) ? (
           <section className="section">
             <div className="container">
@@ -1040,36 +1195,61 @@ export default async function ProgramDetailPage({
           </section>
         ) : null}
 
-        <section className="section about-final-cta">
-          <div className="container about-final-cta-inner">
-            <div>
-              <span className="eyebrow">Rejoindre le programme</span>
-              <h2>Notre equipe peut vous accompagner dans la prochaine etape.</h2>
+        {detail.finalCta ? (
+          <section className="section">
+            <div className="container">
+              <div className="shabbat-final-cta">
+                <span className="eyebrow">{detail.finalCta.eyebrow}</span>
+                <h2>{detail.finalCta.title}</h2>
+                <p>{detail.finalCta.text}</p>
+                <div className="shabbat-final-actions">
+                  <Button asChild variant="accent" size="lg">
+                    <Link href={detail.finalCta.primaryHref}>
+                      <MessageCircle className="size-5" />
+                      {detail.finalCta.primaryCta}
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" className="shabbat-final-secondary">
+                    <Link href="/contact">Nous contacter</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="hero-actions">
-              <Button asChild variant="accent" size="lg">
-                <Link
-                  href={
-                    slug === "talmoudo-beyado"
-                      ? "#inscription-talmoudo"
-                      : "/contact"
-                  }
-                >
-                  {primaryCta}
-                </Link>
-              </Button>
-              {detail.secondaryHref && detail.secondaryCta ? (
-                <Button asChild variant="secondary" size="lg">
-                  <Link href={detail.secondaryHref}>{detail.secondaryCta}</Link>
+          </section>
+        ) : (
+          <section className="section about-final-cta">
+            <div className="container about-final-cta-inner">
+              <div>
+                <span className="eyebrow">Rejoindre le programme</span>
+                <h2>
+                  Notre equipe peut vous accompagner dans la prochaine etape.
+                </h2>
+              </div>
+              <div className="hero-actions">
+                <Button asChild variant="accent" size="lg">
+                  <Link
+                    href={
+                      slug === "talmoudo-beyado"
+                        ? "#inscription-talmoudo"
+                        : "/contact"
+                    }
+                  >
+                    {primaryCta}
+                  </Link>
                 </Button>
-              ) : (
-                <Button asChild variant="secondary" size="lg">
-                  <Link href="/programme">Voir les autres programmes</Link>
-                </Button>
-              )}
+                {detail.secondaryHref && detail.secondaryCta ? (
+                  <Button asChild variant="secondary" size="lg">
+                    <Link href={detail.secondaryHref}>{detail.secondaryCta}</Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="secondary" size="lg">
+                    <Link href="/programme">Voir les autres programmes</Link>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
     </PageShell>
   );
