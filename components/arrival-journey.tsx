@@ -157,7 +157,7 @@ const steps: JourneyStep[] = [
     description:
       "Nous vous accompagnons pour effectuer votre inscription aupres des caisses d'assurance maladie israeliennes.",
     cta: {
-      label: "Faire ma demande d'assurance maladie",
+      label: "Demander mon assurance",
       href: "/demandes/koupat-holim",
     },
     icon: HeartPulse,
@@ -268,6 +268,8 @@ export function ArrivalJourney() {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [armed, setArmed] = useState(false);
   const stepRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  const progressListRef = useRef<HTMLOListElement>(null);
+  const progressStepRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // Etape active + apparition au scroll.
   useEffect(() => {
@@ -315,6 +317,18 @@ export function ArrivalJourney() {
       revealObserver.disconnect();
     };
   }, []);
+
+  // Garder l'etape active visible dans la liste horizontale (mobile).
+  useEffect(() => {
+    const container = progressListRef.current;
+    const chip = progressStepRefs.current[activeId];
+    if (!container || !chip) return;
+    // Uniquement quand la liste defile horizontalement (vue mobile).
+    if (container.scrollWidth <= container.clientWidth) return;
+    const target =
+      chip.offsetLeft - container.clientWidth / 2 + chip.offsetWidth / 2;
+    container.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+  }, [activeId]);
 
   const toggle = useCallback((id: string) => {
     writeProgress((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -367,7 +381,7 @@ export function ArrivalJourney() {
             <span style={{ width: `${percent}%` }} />
           </div>
 
-          <ol className="arrival-progress-steps">
+          <ol className="arrival-progress-steps" ref={progressListRef}>
             {steps.map((s) => {
               const isDone = Boolean(done[s.id]);
               const isActive = activeId === s.id;
@@ -375,6 +389,9 @@ export function ArrivalJourney() {
                 <li key={s.id}>
                   <button
                     type="button"
+                    ref={(el) => {
+                      progressStepRefs.current[s.id] = el;
+                    }}
                     onClick={() => scrollToStep(s.id)}
                     aria-current={isActive ? "step" : undefined}
                     className={cn(
