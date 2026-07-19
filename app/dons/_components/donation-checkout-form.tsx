@@ -39,7 +39,6 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-  InputGroupText,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
@@ -660,28 +659,6 @@ export function DonationCheckoutForm({
             </div>
 
             <div className="mt-4 grid justify-items-center gap-3">
-              <div className="grid w-full max-w-sm gap-2">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Devise
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  {donationCurrencyOptions.map((option) => (
-                    <button
-                      className="flex h-12 items-center justify-center rounded-xl border border-[var(--border)] bg-white text-sm font-black text-[var(--primary)] transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)]"
-                      data-selected={currency === option.value}
-                      key={option.value}
-                      onClick={() => {
-                        setCurrency(option.value);
-                        setClientSecret("");
-                        setNedarimFields(null);
-                      }}
-                      type="button"
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <Label className="grid w-full max-w-sm gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Montant
@@ -704,10 +681,30 @@ export function DonationCheckoutForm({
                     type="number"
                     value={customAmount}
                   />
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupText className="text-lg font-black text-[var(--accent)]">
-                      {currency}
-                    </InputGroupText>
+                  <InputGroupAddon
+                    align="inline-end"
+                    className="cursor-default pr-1.5"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <NativeSelect
+                      aria-label="Devise du don"
+                      className="h-11 w-24 border-0 bg-[var(--accent-soft)] px-2 text-sm font-black text-[var(--accent-strong)] shadow-none focus-visible:ring-0"
+                      onChange={(event) => {
+                        setCurrency(event.target.value as DonationCurrency);
+                        setClientSecret("");
+                        setNedarimFields(null);
+                      }}
+                      value={currency}
+                    >
+                      {donationCurrencyOptions.map((option) => (
+                        <NativeSelectOption
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
                   </InputGroupAddon>
                 </InputGroup>
               </Label>
