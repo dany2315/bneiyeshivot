@@ -76,6 +76,7 @@ type Slot = {
   key: string;
   mimeType: string;
   size: number | null;
+  uploadProgress: number;
   uploadError: string;
   url: string;
   preview: string;
@@ -131,6 +132,7 @@ function slotsFromAlbum(album?: AdminGalleryAlbum): Slot[] {
       key: item.key ?? "",
       mimeType: item.mimeType ?? "",
       size: null,
+      uploadProgress: 100,
       uploadError: "",
       url: item.url ?? "",
       preview:
@@ -143,23 +145,51 @@ function slotsFromAlbum(album?: AdminGalleryAlbum): Slot[] {
   );
 }
 
-async function uploadFiles(files: File[]) {
+function uploadFileWithProgress(
+  file: File,
+  onProgress: (progress: number) => void,
+) {
   const formData = new FormData();
   formData.append("prefix", "home/gallery");
-  files.forEach((file) => formData.append("files", file));
+  formData.append("files", file);
 
-  const response = await fetch("/api/uploads", { method: "POST", body: formData });
-  const data = (await response.json().catch(() => null)) as {
-    ok?: boolean;
-    files?: UploadedFile[];
-    message?: string;
-  } | null;
+  return new Promise<UploadedFile>((resolve, reject) => {
+    const request = new XMLHttpRequest();
 
-  if (!response.ok || !data?.ok || !data.files) {
-    throw new Error(data?.message ?? "Upload echoue.");
-  }
+    request.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
 
-  return data.files;
+    request.onload = () => {
+      let data: {
+        ok?: boolean;
+        files?: UploadedFile[];
+        message?: string;
+      };
+
+      try {
+        data = JSON.parse(request.responseText || "{}") as typeof data;
+      } catch {
+        reject(new Error("Reponse upload invalide."));
+        return;
+      }
+
+      const media = data.files?.[0];
+
+      if (request.status >= 200 && request.status < 300 && data.ok && media) {
+        onProgress(100);
+        resolve(media);
+        return;
+      }
+
+      reject(new Error(data.message ?? "Upload echoue."));
+    };
+
+    request.onerror = () => reject(new Error("Connexion interrompue."));
+    request.open("POST", "/api/uploads");
+    request.send(formData);
+  });
 }
 
 async function deleteNewUpload(key: string) {
@@ -403,6 +433,7 @@ function AlbumDialog({
         key: "",
         mimeType: file.type || "application/octet-stream",
         size: file.size,
+        uploadProgress: 0,
         uploadError: "",
         url: "",
         preview: URL.createObjectURL(file),
@@ -414,47 +445,69 @@ function AlbumDialog({
     setSlots((current) => [...current, ...pending]);
     setUploading(true);
 
-    try {
-      const uploaded = await uploadFiles(files);
-      setSlots((current) =>
-        current.map((slot) => {
-          const index = pending.findIndex((item) => item.id === slot.id);
-          if (index < 0) return slot;
-          const media = uploaded[index];
-          return media
-            ? {
-                ...slot,
-                key: media.key,
-                mimeType: media.mimeType,
-                preview: fileUrl(media.key) ?? slot.preview,
-                size: media.size,
-                status: "ready" as const,
-              }
-            : {
-                ...slot,
-                status: "error" as const,
-                uploadError: "Reponse S3 incomplete.",
-              };
-        }),
-      );
-      toast.success(`${uploaded.length} media(s) uploade(s).`);
-    } catch (error) {
-      setSlots((current) =>
-        current.map((slot) =>
-          pending.some((item) => item.id === slot.id)
-            ? {
-                ...slot,
-                status: "error" as const,
-                uploadError:
-                  error instanceof Error ? error.message : "Upload impossible.",
-              }
-            : slot,
-        ),
-      );
-      toast.error(error instanceof Error ? error.message : "Upload impossible.");
-    } finally {
-      setUploading(false);
+    const results = await Promise.allSettled(
+      files.map((file, index) =>
+        uploadFileWithProgress(file, (progress) => {
+          const slotId = pending[index]?.id;
+          if (!slotId) return;
+          setSlots((current) =>
+            current.map((slot) =>
+              slot.id === slotId ? { ...slot, uploadProgress: progress } : slot,
+            ),
+          );
+        }).then((media) => ({ media, slotId: pending[index].id })),
+      ),
+    );
+
+    let uploadedCount = 0;
+    setSlots((current) =>
+      current.map((slot) => {
+        const success = results.find(
+          (result) =>
+            result.status === "fulfilled" && result.value.slotId === slot.id,
+        );
+
+        if (success?.status === "fulfilled") {
+          uploadedCount += 1;
+          return {
+            ...slot,
+            key: success.value.media.key,
+            mimeType: success.value.media.mimeType,
+            preview: fileUrl(success.value.media.key) ?? slot.preview,
+            size: success.value.media.size,
+            status: "ready" as const,
+            uploadProgress: 100,
+          };
+        }
+
+        const failedIndex = pending.findIndex((item) => item.id === slot.id);
+        const failure = failedIndex >= 0 ? results[failedIndex] : null;
+
+        if (failure?.status === "rejected") {
+          return {
+            ...slot,
+            status: "error" as const,
+            uploadError:
+              failure.reason instanceof Error
+                ? failure.reason.message
+                : "Upload impossible.",
+          };
+        }
+
+        return slot;
+      }),
+    );
+
+    const failedCount = results.filter(
+      (result) => result.status === "rejected",
+    ).length;
+    if (uploadedCount > 0) {
+      toast.success(`${uploadedCount} media(s) uploade(s).`);
     }
+    if (failedCount > 0) {
+      toast.error(`${failedCount} upload(s) en erreur.`);
+    }
+    setUploading(false);
   }
 
   function addYoutube() {
@@ -470,6 +523,7 @@ function AlbumDialog({
         key: "",
         mimeType: "youtube",
         size: null,
+        uploadProgress: 100,
         uploadError: "",
         url: "",
         preview: "",
@@ -640,9 +694,23 @@ function AlbumDialog({
                         type={slot.type}
                       />
                       {slot.status === "uploading" && (
-                        <span className="absolute inset-0 grid place-items-center bg-white/75">
-                          <Spinner />
-                        </span>
+                        <div className="absolute inset-0 grid place-items-center bg-[#061e35]/58 p-3 text-white backdrop-blur-[2px]">
+                          <div className="grid w-full gap-2">
+                            <div className="flex items-center justify-center gap-2 text-xs font-bold">
+                              <Spinner />
+                              {slot.uploadProgress}%
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-white/28">
+                              <div
+                                className="h-full rounded-full bg-white transition-[width]"
+                                style={{ width: `${slot.uploadProgress}%` }}
+                              />
+                            </div>
+                            <span className="truncate text-center text-xs font-semibold">
+                              {slotDisplayName(slot)}
+                            </span>
+                          </div>
+                        </div>
                       )}
                     </div>
                     <div className="grid gap-2">
