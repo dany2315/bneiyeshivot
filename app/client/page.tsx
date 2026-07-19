@@ -103,6 +103,21 @@ function payloadValue(payload: unknown, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function requestSubjectName(
+  payload: unknown,
+  fallbackUser: { email: string; firstName?: string | null; lastName?: string | null },
+) {
+  const firstName = payloadValue(payload, "firstName");
+  const lastName = payloadValue(payload, "lastName");
+  const payloadName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const fallbackName = [fallbackUser.firstName, fallbackUser.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return payloadName || fallbackName || fallbackUser.email;
+}
+
 const editableRequestFields = [
   ["firstName", "Prenom", "text"],
   ["lastName", "Nom", "text"],
@@ -374,6 +389,10 @@ export default async function ClientPage({
                           <StatusBadge tone={requestTone(request.status)}>
                             {requestStatusLabels[request.status]}
                           </StatusBadge>
+                          <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm text-[var(--primary)]">
+                            <span className="font-bold">Demande pour : </span>
+                            {requestSubjectName(request.payload, user)}
+                          </div>
                           {finalDocuments(request.documents, request.type).map(
                             (document) => (
                               <Button asChild key={document.id} variant="secondary">
