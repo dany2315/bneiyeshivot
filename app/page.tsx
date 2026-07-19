@@ -209,12 +209,14 @@ const galleryAlbums = [
 function GalleryMedia({
   item,
   className,
+  showCaption = true,
 }: {
   item: HomeGalleryMedia;
   className?: string;
+  showCaption?: boolean;
 }) {
   const overlay =
-    item.title || item.description ? (
+    showCaption && (item.title || item.description) ? (
       <div className="gallery-media-overlay">
         {item.title ? <strong>{item.title}</strong> : null}
         {item.description ? <span>{item.description}</span> : null}
@@ -595,7 +597,7 @@ export default async function Home() {
                                 : "gallery-mosaic-cell"
                             }
                           >
-                            <GalleryMedia item={item} />
+                            <GalleryMedia item={item} showCaption={false} />
                           </div>
                         ))}
                       </div>

@@ -265,6 +265,7 @@ export function AdminHomeGalleryClient({
                             ? youtubeEmbed(item.url ?? "")
                             : fileUrl(item.key) ?? ""
                         }
+                        showCaption={false}
                         title={item.title}
                         type={item.type}
                       />
@@ -564,6 +565,7 @@ function AlbumDialog({
                       <Media
                         description={slot.description}
                         preview={slot.preview}
+                        showCaption={false}
                         title={slot.title}
                         type={slot.type}
                       />
@@ -674,16 +676,18 @@ function Field({ label, required, children }: { label: string; required?: boolea
 function Media({
   description,
   preview,
+  showCaption = true,
   title,
   type,
 }: {
   description?: string | null;
   preview: string;
+  showCaption?: boolean;
   title?: string | null;
   type: GalleryItemType;
 }) {
   const overlay =
-    title || description ? (
+    showCaption && (title || description) ? (
       <div className="gallery-media-overlay">
         {title ? <strong>{title}</strong> : null}
         {description ? <span>{description}</span> : null}
