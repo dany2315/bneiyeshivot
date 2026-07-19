@@ -3,26 +3,11 @@ import {
   ServiceRequestType,
   type User,
 } from "@prisma/client";
-import {
-  deleteServiceRequest,
-  updateServiceRequest,
-  updateServiceRequestData,
-  uploadServiceRequestFinalDocument,
-} from "@/app/admin/actions";
+import Link from "next/link";
 import { StatusBadge } from "@/app/components";
 import { AdminCreateRequestDialog } from "@/components/admin-create-request-dialog";
+import { AdminServiceRequestActionsClient } from "@/components/admin-service-request-actions-client";
 import { AdminShell } from "@/components/admin-sidebar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,28 +15,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -60,26 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { prisma } from "@/lib/prisma";
-import {
-  Download,
-  Eye,
-  FileCheck2,
-  Filter,
-  MoreHorizontal,
-  Pencil,
-  Search,
-  Send,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { Filter, Search } from "lucide-react";
 
 const statusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
@@ -106,11 +56,6 @@ function requestDialogType(type: ServiceRequestType) {
   return null;
 }
 
-function originalNameFromKey(fileKey: string) {
-  const raw = fileKey.split("/").pop() ?? "";
-  return raw.replace(/^\d+-[a-f0-9-]+-/i, "") || raw;
-}
-
 function payloadObject(payload: unknown) {
   return typeof payload === "object" && payload !== null && !Array.isArray(payload)
     ? (payload as Record<string, unknown>)
@@ -122,55 +67,9 @@ function payloadText(payload: Record<string, unknown>, key: string) {
   return typeof value === "string" ? value : "";
 }
 
-const editableFieldLabels = [
-  ["firstName", "Prenom"],
-  ["lastName", "Nom"],
-  ["phone", "Telephone"],
-  ["parentPhone", "Telephone des parents"],
-  ["birthDate", "Date de naissance"],
-  ["nationality", "Nationalite"],
-  ["passportNumber", "Numero de passeport"],
-  ["school", "Yeshiva / programme"],
-  ["personStatus", "Statut visa"],
-] as const;
-
-const mainDataLabels = [
-  ["firstName", "Prenom"],
-  ["lastName", "Nom"],
-  ["email", "Email"],
-  ["phone", "Telephone"],
-  ["parentPhone", "Parents"],
-  ["birthDate", "Naissance"],
-  ["nationality", "Nationalite"],
-  ["passportNumber", "Passeport"],
-  ["school", "Yeshiva"],
-  ["personStatus", "Statut visa"],
-  ["message", "Message"],
-] as const;
-
-function requestedFieldsFromPayload(payload: unknown) {
-  const fields = payloadObject(payload).__requestedFields;
-
-  if (!Array.isArray(fields)) return new Set<string>();
-  return new Set(fields.filter((field): field is string => typeof field === "string"));
-}
-
-type RequestWithRelations = Awaited<
-  ReturnType<typeof prisma.serviceRequest.findMany>
->[number] & {
-  user: User | null;
-  messages: Array<{ body: string; createdAt: Date }>;
-  documents: Array<{
-    id: string;
-    label: string;
-    fileKey: string;
-    mimeType: string;
-    createdAt: Date;
-  }>;
-};
-
-// Ancien centre d'actions conserve comme reference pendant la transition UI.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/*
+Ancien centre d'actions conserve comme reference pendant la transition UI.
+Il est commente pour eviter toute imbrication Base UI DropdownMenuItem/DialogTrigger.
 function ServiceRequestActionsDialog({
   request,
 }: {
@@ -451,6 +350,8 @@ function ServiceRequestActionsDialog({
   );
 }
 
+// Ancienne implementation remplacee par AdminServiceRequestActionsClient.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ServiceRequestActionsDropdown({
   request,
 }: {
@@ -780,6 +681,7 @@ function ServiceRequestActionsDropdown({
     </DropdownMenu>
   );
 }
+*/
 
 export async function AdminServiceRequestsPage({
   title,
@@ -800,6 +702,22 @@ export async function AdminServiceRequestsPage({
     : undefined;
   const q = params.q?.trim();
   const dialogType = requestDialogType(type);
+  const statusTabs = [
+    { label: "Tous", value: "" },
+    ...Object.values(ServiceRequestStatus).map((status) => ({
+      label: statusLabels[status],
+      value: status,
+    })),
+  ];
+  const statusHref = (status: string) => {
+    const search = new URLSearchParams();
+
+    if (q) search.set("q", q);
+    if (status) search.set("status", status);
+
+    const query = search.toString();
+    return query ? `?${query}` : "?";
+  };
 
   const requests = await prisma.serviceRequest.findMany({
     where: {
@@ -839,6 +757,23 @@ export async function AdminServiceRequestsPage({
       <section className="section admin-section-tight">
         <div className="section-header">
           <p>{description}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {statusTabs.map((tab) => {
+            const active = (selectedStatus ?? "") === tab.value;
+
+            return (
+              <Button
+                asChild
+                key={tab.value || "all"}
+                size="sm"
+                variant={active ? "default" : "secondary"}
+              >
+                <Link href={statusHref(tab.value)}>{tab.label}</Link>
+              </Button>
+            );
+          })}
         </div>
 
         <form className="admin-toolbar">
@@ -918,7 +853,36 @@ export async function AdminServiceRequestsPage({
                     </TableCell>
                     <TableCell>{request.createdAt.toLocaleDateString("fr-FR")}</TableCell>
                     <TableCell className="text-right">
-                      <ServiceRequestActionsDropdown request={request as RequestWithRelations} />
+                      <AdminServiceRequestActionsClient
+                        request={{
+                          id: request.id,
+                          createdAt: request.createdAt.toISOString(),
+                          internalNote: request.internalNote,
+                          publicNote: request.publicNote,
+                          status: request.status,
+                          type: request.type,
+                          payload,
+                          user: request.user
+                            ? {
+                                email: request.user.email,
+                                firstName: request.user.firstName,
+                                lastName: request.user.lastName,
+                                phone: request.user.phone,
+                                parentPhone: request.user.parentPhone,
+                              }
+                            : null,
+                          messages: request.messages.map((message) => ({
+                            body: message.body,
+                            createdAt: message.createdAt.toISOString(),
+                          })),
+                          documents: request.documents.map((document) => ({
+                            id: document.id,
+                            label: document.label,
+                            fileKey: document.fileKey,
+                            createdAt: document.createdAt.toISOString(),
+                          })),
+                        }}
+                      />
                     </TableCell>
                   </TableRow>
                 );
