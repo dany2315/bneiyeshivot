@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   ["Accueil", "/"],
+  ["Venir en Israel", "/venir-etudier"],
   ["A propos", "/a-propos"],
   ["Services", "/services"],
   ["Evenements", "/evenements"],
