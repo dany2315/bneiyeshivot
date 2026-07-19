@@ -79,12 +79,85 @@ export function readDonationAmount(value: FormDataEntryValue | null) {
   return Math.round(amount * 100);
 }
 
+function normalizeBaseUrl(url: string) {
+  return url.replace(/\/$/, "");
+}
+
+function configuredBaseUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || "";
+}
+
+function isLocalUrl(url: string) {
+  try {
+    const { hostname } = new URL(url);
+
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
+function trustedOrigins() {
+  return (process.env.BETTER_AUTH_TRUSTED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function originMatches(origin: string, trustedOrigin: string) {
+  if (!trustedOrigin.includes("*")) {
+    return origin === normalizeBaseUrl(trustedOrigin);
+  }
+
+  try {
+    const candidate = new URL(origin);
+    const trusted = new URL(trustedOrigin.replace("*.", ""));
+    const suffix = `.${trusted.hostname}`;
+
+    return (
+      candidate.protocol === trusted.protocol &&
+      candidate.hostname.endsWith(suffix)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isTrustedOrigin(origin: string) {
+  if (isLocalUrl(origin)) return true;
+
+  return trustedOrigins().some((trustedOrigin) =>
+    originMatches(origin, trustedOrigin),
+  );
+}
+
 export function getBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.BETTER_AUTH_URL ||
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
+  return normalizeBaseUrl(configuredBaseUrl() || "http://localhost:3000");
+}
+
+export function getRequestBaseUrl(request: Request) {
+  const configuredUrl = configuredBaseUrl();
+
+  if (configuredUrl && !isLocalUrl(configuredUrl)) {
+    return normalizeBaseUrl(configuredUrl);
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost || request.headers.get("host");
+
+  if (host) {
+    const forwardedProto = request.headers.get("x-forwarded-proto");
+    const protocol =
+      forwardedProto || (host.startsWith("localhost") ? "http" : "https");
+
+    const requestOrigin = normalizeBaseUrl(`${protocol}://${host}`);
+
+    if (isTrustedOrigin(requestOrigin)) {
+      return requestOrigin;
+    }
+  }
+
+  return getBaseUrl();
 }
 
 export function getStripe() {

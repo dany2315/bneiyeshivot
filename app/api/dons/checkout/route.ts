@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { DonationFrequency } from "@prisma/client";
 import {
-  getBaseUrl,
+  getRequestBaseUrl,
   getStripe,
   readDonationAmount,
 } from "@/lib/donations";
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   const stripe = getStripe();
-  const baseUrl = getBaseUrl();
+  const baseUrl = getRequestBaseUrl(request);
   const checkoutMetadata = {
     amountCents: String(amountCents),
     currency,
