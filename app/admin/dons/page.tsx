@@ -292,7 +292,7 @@ async function getDonations(params: Record<string, string | undefined> = {}) {
         },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { updatedAt: "desc" },
     take: 250,
   });
 }
