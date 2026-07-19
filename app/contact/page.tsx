@@ -1,5 +1,5 @@
 import { PageShell } from "../components";
-import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -62,10 +62,33 @@ export default function ContactPage() {
                     <MessageCircle className="size-5" aria-hidden="true" />
                     WhatsApp
                   </CardTitle>
-                  <CardDescription>
-                    <a href={whatsappGroupUrl} target="_blank" rel="noreferrer">
-                      Rejoindre le groupe WhatsApp
-                    </a>
+                  <CardDescription className="space-y-3">
+                    <span>
+                      Recevez les annonces et les prochaines activites de
+                      l&apos;association.
+                    </span>
+                    <Button
+                      asChild
+                      className="h-auto w-full justify-between rounded-lg bg-[#25D366] px-4 py-3 font-bold text-white shadow-[0_12px_26px_rgba(37,211,102,0.28)] transition hover:bg-[#1ebe5d]"
+                    >
+                      <a
+                        href={whatsappGroupUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Rejoindre le groupe WhatsApp"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="grid size-9 place-items-center rounded-full bg-white text-[#25D366]">
+                            <MessageCircle
+                              className="size-5"
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span>Rejoindre le groupe</span>
+                        </span>
+                        <ArrowUpRight className="size-5" aria-hidden="true" />
+                      </a>
+                    </Button>
                   </CardDescription>
                 </CardHeader>
               </Card>

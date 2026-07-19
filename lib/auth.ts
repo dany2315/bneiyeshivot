@@ -10,6 +10,7 @@ const defaultTrustedOrigins = [
   "http://localhost:3000",
   "https://bneiyeshivot.com",
   "https://www.bneiyeshivot.com",
+  "https://bneiyeshivot-git-staging-dany2315s-projects.vercel.app",
   "https://bneiyeshivot.vercel.app",
   "https://*.vercel.app",
 ];
