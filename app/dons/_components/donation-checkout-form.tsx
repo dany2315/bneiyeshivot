@@ -188,14 +188,6 @@ function EmbeddedPaymentForm({
 
   return (
     <div className="grid gap-4">
-      <AddressElement
-        options={{
-          mode: "billing",
-          defaultValues: {
-            name: donorName,
-          },
-        }}
-      />
       <PaymentElement
         options={{
           layout: {
@@ -207,6 +199,14 @@ function EmbeddedPaymentForm({
             applePay: "auto",
             googlePay: "auto",
             link: "auto",
+          },
+        }}
+      />
+      <AddressElement
+        options={{
+          mode: "billing",
+          defaultValues: {
+            name: donorName,
           },
         }}
       />
