@@ -40,9 +40,9 @@ export function DvarTorahLibrary({
   }, [activeFilter, files]);
 
   return (
-    <div className="grid gap-6">
-      <div className="rounded-3xl border border-[var(--border)] bg-white/90 p-2 shadow-sm">
-        <div className="grid gap-2 sm:grid-cols-3">
+    <div className="grid gap-4">
+      <div className="rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-sm">
+        <div className="grid gap-1.5 sm:grid-cols-3">
           {filters.map(({ label, value, icon: Icon }) => {
             const active = activeFilter === value;
 
@@ -52,7 +52,7 @@ export function DvarTorahLibrary({
                 type="button"
                 variant={active ? "default" : "ghost"}
                 className={cn(
-                  "h-12 justify-start rounded-2xl px-4 text-base",
+                  "h-9 justify-start rounded-md px-3 text-sm",
                   active
                     ? "bg-[var(--primary)] text-white hover:bg-[var(--primary)]"
                     : "text-[var(--primary)] hover:bg-[var(--primary-soft)]"
@@ -63,7 +63,7 @@ export function DvarTorahLibrary({
                 {label}
                 <span
                   className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-xs font-bold",
+                    "ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold",
                     active
                       ? "bg-white/16 text-white"
                       : "bg-[var(--primary-soft)] text-[var(--primary)]"

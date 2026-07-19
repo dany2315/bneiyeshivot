@@ -1,8 +1,6 @@
-import { BookOpenText } from "lucide-react";
 import { PageShell } from "../components";
 import { DvarTorahLibrary } from "@/components/dvar-torah-library";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = {
   title: "Dvar Torah",
@@ -56,33 +54,19 @@ export default async function DvarTorahPage() {
   return (
     <PageShell>
       <main>
-        <section className="page-hero">
+        <section className="page-hero page-hero-compact">
           <div className="container">
             <span className="eyebrow">Dvar Torah</span>
             <h1>Feuillets a telecharger, ouvrir ou partager</h1>
-            <p>
+            <p className="max-w-2xl">
               Retrouvez les feuillets mis a disposition par Bnei Yeshivot pour
-              les Chabbatot et les fetes. Les prochains fichiers seront ajoutes
-              depuis l&apos;interface admin.
+              les Chabbatot et les fetes.
             </p>
           </div>
         </section>
 
-        <section className="section">
-          <div className="container grid gap-8">
-            <Card className="border-[var(--border)] bg-white shadow-sm">
-              <CardHeader>
-                <BookOpenText className="size-8 text-[var(--accent)]" />
-                <CardTitle>Bibliotheque Torah</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <p className="text-base leading-7 text-[var(--muted)]">
-                  Filtrez rapidement les feuillets par categorie, puis ouvrez,
-                  telechargez ou partagez le fichier souhaite.
-                </p>
-              </CardContent>
-            </Card>
-
+        <section className="section pt-6">
+          <div className="container">
             <DvarTorahLibrary files={files} />
           </div>
         </section>

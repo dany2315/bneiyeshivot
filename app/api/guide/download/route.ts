@@ -20,7 +20,7 @@ function createGuidePdf(name: string) {
     "- Installation, banque, telephone et transport",
     "- Contacts utiles Bnei Yeshivot",
     "",
-    "Version complete a enrichir depuis l'interface admin.",
+    "Une version enrichie sera proposee progressivement.",
   ];
 
   const text = lines

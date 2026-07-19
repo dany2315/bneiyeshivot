@@ -21,7 +21,7 @@ function createPdf(title: string) {
     "Feuillet Bnei Yeshivot",
     "Contenu de demonstration.",
     "",
-    "Les fichiers reels seront ajoutes depuis l'interface admin.",
+    "De nouveaux feuillets seront proposes regulierement.",
   ];
   const text = lines
     .map((line, index) => `1 0 0 1 72 ${760 - index * 24} Tm (${escapePdfText(line)}) Tj`)

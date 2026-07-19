@@ -30,7 +30,7 @@ export default function ProgrammePage() {
       <main>
         <section className="programme-hero">
           <Image
-            src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1800&q=86"
+            src="/programmes-hero.jpg"
             alt=""
             fill
             priority
@@ -81,7 +81,7 @@ export default function ProgrammePage() {
                 </span>
                 <div>
                   <strong>Accompagnement</strong>
-                  <small>Bayit Neeman, Chidoukhim</small>
+                  <small>Binian Adei Ad, Chidoukhim</small>
                 </div>
               </div>
             </div>
@@ -138,12 +138,14 @@ export default function ProgrammePage() {
             <div className="section-header">
               <div>
                 <span className="eyebrow">Nos grands programmes</span>
-                <h2>Des cadres pour etudier, se retrouver et construire</h2>
+                <h2>Des cadres pour etudier, grandir et construire</h2>
               </div>
               <p>
-                Chaque programme repond a un besoin concret : garder un rythme
-                d&apos;etude, vivre des moments forts, avancer dans son parcours et
-                rejoindre une communaute francophone solide.
+                Chaque programme repond a un besoin concret du parcours
+                d&apos;un jeune francophone : approfondir son etude, etre entoure
+                de Rabbanim, vivre des experiences marquantes, developper des
+                liens durables et trouver sa place au sein d&apos;une communaute
+                engagee.
               </p>
             </div>
 
@@ -158,8 +160,9 @@ export default function ProgrammePage() {
                   ctaLabel,
                   image,
                   href,
-                  Icon,
+                  slug,
                   actions,
+                  stats,
                 }, index) => (
                   <Card
                     className="program-list-card"
@@ -180,9 +183,6 @@ export default function ProgrammePage() {
                     </div>
                     <CardHeader className="program-card-header">
                       <div className="program-list-topline">
-                        <span className="icon-box">
-                          <Icon className="size-5" />
-                        </span>
                         <span className="program-kicker">{eyebrow}</span>
                       </div>
                       <CardTitle className="program-card-title">
@@ -205,12 +205,36 @@ export default function ProgrammePage() {
                           </li>
                         ))}
                       </ul>
-                      <Button asChild variant="secondary">
-                        <Link href={href}>
-                          {ctaLabel}
-                          <ArrowRight className="size-4" />
-                        </Link>
-                      </Button>
+                      {stats?.length ? (
+                        <div className="program-card-stats">
+                          {stats.map((stat) => (
+                            <div key={`${stat.value}-${stat.label}`}>
+                              <strong>{stat.value}</strong>
+                              <span>{stat.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                      {slug === "talmoudo-beyado" ? (
+                        <div className="flex flex-wrap gap-3">
+                          <Button asChild variant="accent">
+                            <Link href="/programme/talmoudo-beyado#inscription-talmoudo">
+                              M&apos;inscrire au mivhan
+                              <ArrowRight className="size-4" />
+                            </Link>
+                          </Button>
+                          <Button asChild variant="secondary">
+                            <Link href={href}>Decouvrir</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button asChild variant="secondary">
+                          <Link href={href}>
+                            {ctaLabel}
+                            <ArrowRight className="size-4" />
+                          </Link>
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ),

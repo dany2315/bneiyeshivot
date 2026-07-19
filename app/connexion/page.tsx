@@ -16,17 +16,17 @@ export default async function LoginPage() {
       <main>
         <section className="page-hero !py-10 md:!py-[82px]">
           <div className="container">
-            <span className="eyebrow">Espace Bahour</span>
+            <span className="eyebrow">Mon espace</span>
             <h1>Connexion</h1>
             <p>
-              Accede a ton suivi avec un code temporaire envoye par email. La
-              session reste active pendant 30 jours.
+              Accede a ton suivi, tes demandes ou tes recus de dons avec un code
+              temporaire envoye par email. La session reste active pendant 30 jours.
             </p>
           </div>
         </section>
         <section className="section">
           <div className="container grid max-w-3xl gap-5">
-            <OtpLoginCard audience="bahour" redirectTo="/client" />
+            <OtpLoginCard audience="bahour" redirectTo="auto" />
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white/90 p-5">
               <div>
                 <h2 className="text-xl font-bold text-[var(--primary)]">

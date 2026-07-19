@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthSession } from "@/components/auth-session";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -132,7 +133,7 @@ export function GuideDownloadForm() {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="guide-phone">Numero de telephone</Label>
-          <Input id="guide-phone" name="phone" type="tel" required />
+          <PhoneInputGroup id="guide-phone" name="phone" required />
         </div>
       </div>
       <Button type="submit" variant="accent" size="lg" disabled={submitting}>

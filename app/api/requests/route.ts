@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 import { createServiceRequest } from "@/lib/service-requests";
 import { normalizeRequestInput } from "@/lib/request-validation";
@@ -68,12 +69,14 @@ export async function POST(request: Request) {
 
     // Confirmation au demandeur (on n'echoue pas la demande si l'email ne part pas).
     if (email) {
+      const confirmationEmail = await requestConfirmationEmail({
+        firstName: firstName || undefined,
+        typeLabel,
+      });
+
       await sendEmail({
         to: email,
-        ...requestConfirmationEmail({
-          firstName: firstName || undefined,
-          typeLabel,
-        }),
+        ...confirmationEmail,
       });
     }
 
@@ -83,10 +86,28 @@ export async function POST(request: Request) {
     const adminPath =
       kind === "koupat" ? "koupat-holim" : kind === "visa" ? "visa" : "contact";
     const link = `${new URL(request.url).origin}/admin/${adminPath}#request-${serviceRequest.id}`;
+    const notificationEmail = await newRequestAdminEmail({
+      typeLabel,
+      fullName,
+      email,
+      phone,
+      link,
+    });
+
     await sendEmail({
       to: adminEmail,
-      ...newRequestAdminEmail({ typeLabel, fullName, email, phone, link }),
+      ...notificationEmail,
     });
+
+    if (kind === "visa") {
+      revalidatePath("/admin/visa");
+    }
+
+    if (kind === "koupat") {
+      revalidatePath("/admin/koupat-holim");
+    }
+
+    revalidatePath("/client");
 
     return NextResponse.json(
       {

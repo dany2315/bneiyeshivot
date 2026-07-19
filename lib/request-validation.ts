@@ -8,6 +8,7 @@ const baseRequestSchema = z.object({
     .email("Email invalide")
     .transform((value) => value.toLowerCase()),
   phone: z.string().trim().min(6, "Telephone requis"),
+  parentPhone: z.string().trim().min(6, "Telephone des parents requis"),
   birthDate: z.string().trim().min(1, "Date de naissance requise"),
   nationality: z.string().trim().min(2, "Nationalite requise"),
   passportNumber: z.string().trim().min(4, "Numero de passeport requis"),

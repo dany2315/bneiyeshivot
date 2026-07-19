@@ -1,13 +1,21 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   EventRegistrationStatus,
+  PaymentStatus,
   ServiceRequestStatus,
   ServiceRequestType,
 } from "@prisma/client";
 import { PageShell, StatusBadge } from "../components";
+import { updateBahourServiceRequest } from "@/app/client/actions";
+import { DonorDonationsTable } from "@/components/donor-donations-table";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { countDonationsForEmail, hasBahourActivity } from "@/lib/donor-access";
 import { formatDateTime } from "@/lib/event-content";
+import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
+import { BahourMivhanRegistrationCard } from "@/components/bahour-mivhan-registration-card";
+import { BahourMivhanSignupCards } from "@/components/bahour-mivhan-signup-cards";
 import {
   Alert,
   AlertDescription,
@@ -21,13 +29,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { CalendarCheck, CheckCircle2, FileText, Trophy } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  Download,
+  FileText,
+  Trophy,
+} from "lucide-react";
 
 export const metadata = {
   title: "Espace Bahour",
@@ -36,7 +52,7 @@ export const metadata = {
 const requestStatusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
   IN_REVIEW: "En traitement",
-  MISSING_DOCUMENTS: "Documents manquants",
+  MISSING_DOCUMENTS: "Elements a modifier",
   APPROVED: "Approuvee",
   REJECTED: "Refusee",
   COMPLETED: "Terminee",
@@ -67,9 +83,111 @@ function registrationTone(status: EventRegistrationStatus) {
   return "blue";
 }
 
-export default async function ClientPage() {
+function formatReward(amountCents: number | null, currency: string) {
+  if (amountCents === null) return "0";
+
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency,
+  }).format(amountCents / 100);
+}
+
+function readDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function payloadValue(payload: unknown, key: string) {
+  if (typeof payload !== "object" || payload === null) return "";
+  const value = (payload as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
+}
+
+function requestSubjectName(
+  payload: unknown,
+  fallbackUser: { email: string; firstName?: string | null; lastName?: string | null },
+) {
+  const firstName = payloadValue(payload, "firstName");
+  const lastName = payloadValue(payload, "lastName");
+  const payloadName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  const fallbackName = [fallbackUser.firstName, fallbackUser.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return payloadName || fallbackName || fallbackUser.email;
+}
+
+const editableRequestFields = [
+  ["firstName", "Prenom", "text"],
+  ["lastName", "Nom", "text"],
+  ["phone", "Telephone", "text"],
+  ["parentPhone", "Telephone des parents", "text"],
+  ["birthDate", "Date de naissance", "date"],
+  ["nationality", "Nationalite", "text"],
+  ["passportNumber", "Numero passeport", "text"],
+  ["school", "Yeshiva / programme", "text"],
+  ["personStatus", "Statut visa : bahour-yeshiva ou massa", "text"],
+] as const;
+
+function requestedFieldsFromPayload(payload: unknown, type: ServiceRequestType) {
+  if (typeof payload !== "object" || payload === null) {
+    return editableRequestFields.filter(
+      ([field]) => type === ServiceRequestType.VISA_STUDENT || field !== "personStatus",
+    );
+  }
+
+  const fields = (payload as Record<string, unknown>).__requestedFields;
+  const requested = Array.isArray(fields)
+    ? new Set(fields.filter((field): field is string => typeof field === "string"))
+    : null;
+  const available = editableRequestFields.filter(
+    ([field]) => type === ServiceRequestType.VISA_STUDENT || field !== "personStatus",
+  );
+
+  if (!requested || requested.size === 0) {
+    return available;
+  }
+
+  return available.filter(([field]) => requested.has(field));
+}
+
+function finalDocuments(
+  documents: Array<{ id: string; label: string }>,
+  type: ServiceRequestType,
+) {
+  return documents.filter((document) =>
+    type === ServiceRequestType.VISA_STUDENT
+      ? document.label.toLowerCase().includes("visa recu")
+      : document.label.toLowerCase().includes("document final"),
+  );
+}
+
+export default async function ClientPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ donFrom?: string; donTo?: string }>;
+}) {
   const user = await requireBahourUser();
-  const [requests, registrations] = await Promise.all([
+  const params = await searchParams;
+  const [isBahour, donationCount] = await Promise.all([
+    hasBahourActivity(user),
+    countDonationsForEmail(user.email, user.id),
+  ]);
+
+  if (!isBahour && donationCount > 0) {
+    redirect("/donateur");
+  }
+
+  const [
+    requests,
+    registrations,
+    mivhanRegistrations,
+    mivhanSessions,
+    donations,
+  ] =
+    await Promise.all([
     prisma.serviceRequest.findMany({
       where: { userId: user.id },
       include: {
@@ -78,6 +196,7 @@ export default async function ClientPage() {
           orderBy: { createdAt: "desc" },
           take: 3,
         },
+        documents: { orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -85,6 +204,37 @@ export default async function ClientPage() {
       where: { userId: user.id },
       include: { event: true },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.mivhanRegistration.findMany({
+      where: { userId: user.id },
+      include: { session: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.mivhanSession.findMany({
+      where: {
+        date: { gte: new Date() },
+      },
+      orderBy: { date: "asc" },
+    }),
+    prisma.donation.findMany({
+      where: {
+        status: { not: PaymentStatus.PENDING },
+        OR: [
+          { donorEmail: user.email },
+          { userId: user.id },
+          {
+            metadata: {
+              path: ["receiptEmail"],
+              equals: user.email,
+            },
+          },
+        ],
+      },
+      include: {
+        payments: { orderBy: { createdAt: "desc" } },
+        receipt: true,
+      },
+      orderBy: { paidAt: "desc" },
     }),
   ]);
 
@@ -94,6 +244,55 @@ export default async function ClientPage() {
   const missingDocsCount = requests.filter(
     (item) => item.status === "MISSING_DOCUMENTS",
   ).length;
+  const gradedMivhanim = mivhanRegistrations.filter(
+    (item) => item.grade !== null,
+  );
+  const averageGrade =
+    gradedMivhanim.length > 0
+      ? Math.round(
+          gradedMivhanim.reduce((total, item) => total + (item.grade ?? 0), 0) /
+            gradedMivhanim.length,
+        )
+      : null;
+  const totalRewardCents = mivhanRegistrations.reduce(
+    (total, item) =>
+      item.rewardCurrency === "ILS"
+        ? total + (item.rewardAmountCents ?? 0)
+        : total,
+    0,
+  );
+  const registeredFutureSessionIds = new Set(
+    mivhanRegistrations
+      .filter((registration) => registration.session.date >= new Date())
+      .map((registration) => registration.sessionId),
+  );
+  const talmoudoSessionOptions = mivhanSessions
+    .filter((session) => !registeredFutureSessionIds.has(session.id))
+    .map((session) => ({
+      disabled: !isMivhanRegistrationOpen(session),
+      id: session.id,
+      title: session.title,
+      dateLabel: formatDateTime(session.date),
+      location: session.location,
+    }));
+  const from = readDate(params.donFrom);
+  const to = readDate(params.donTo);
+  const donationDate =
+    from || to
+      ? {
+          gte: from ?? undefined,
+          lt: to ? new Date(to.getTime() + 24 * 60 * 60 * 1000) : undefined,
+        }
+      : undefined;
+  const filteredDonations = donationDate
+    ? donations.filter((donation) => {
+        const date = donation.paidAt ?? donation.createdAt;
+        return (
+          (!donationDate.gte || date >= donationDate.gte) &&
+          (!donationDate.lt || date < donationDate.lt)
+        );
+      })
+    : donations;
 
   return (
     <PageShell>
@@ -127,12 +326,17 @@ export default async function ClientPage() {
                 )}
                 {missingDocsCount > 0 && (
                   <StatusBadge tone="gold">
-                    {missingDocsCount} document(s) manquant(s)
+                    {missingDocsCount} demande(s) a modifier
                   </StatusBadge>
                 )}
                 {registrations.length > 0 && (
                   <StatusBadge tone="green">
                     {registrations.length} inscription(s)
+                  </StatusBadge>
+                )}
+                {mivhanRegistrations.length > 0 && (
+                  <StatusBadge tone="blue">
+                    {mivhanRegistrations.length} mivhanim
                   </StatusBadge>
                 )}
                 {inReviewCount === 0 &&
@@ -145,7 +349,10 @@ export default async function ClientPage() {
               </div>
             )}
 
-            <Tabs defaultValue="requests" className="bahour-tabs mt-8">
+            <Tabs
+              defaultValue={params.donFrom || params.donTo ? "dons" : "requests"}
+              className="bahour-tabs mt-8"
+            >
               <TabsList
                 aria-label="Sections Espace Bahour"
                 className="bahour-tabs-list"
@@ -153,9 +360,12 @@ export default async function ClientPage() {
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
                 <TabsTrigger value="events">Evenements</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
+                {donations.length > 0 && (
+                  <TabsTrigger value="dons">Dons</TabsTrigger>
+                )}
               </TabsList>
 
-              <TabsContent value="requests" className="grid gap-5">
+              <TabsContent value="requests" className="grid gap-3">
                 {requests.length === 0 ? (
                   <Alert>
                     <CheckCircle2 />
@@ -166,37 +376,119 @@ export default async function ClientPage() {
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <div className="grid grid-3">
-                    {requests.map((request) => (
-                      <Card key={request.id}>
-                        <CardHeader>
-                          <FileText className="size-5 text-[var(--accent)]" />
-                          <CardTitle>{requestTypeLabels[request.type]}</CardTitle>
-                          <CardDescription>
-                            Creee le{" "}
-                            {request.createdAt.toLocaleDateString("fr-FR")}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-3">
-                          <StatusBadge tone={requestTone(request.status)}>
-                            {requestStatusLabels[request.status]}
-                          </StatusBadge>
-                          {request.publicNote && (
-                            <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-base text-[var(--primary)]">
-                              {request.publicNote}
-                            </p>
-                          )}
-                          {request.messages.map((message) => (
-                            <p
-                              className="text-sm leading-6 text-[var(--muted)]"
-                              key={message.id}
-                            >
-                              {message.body}
-                            </p>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <div className="grid gap-2">
+                    {requests.map((request) => {
+                      const documents = finalDocuments(request.documents, request.type);
+                      const subjectName = requestSubjectName(request.payload, user);
+
+                      return (
+                        <Card key={request.id} size="sm" className="rounded-xl py-3 shadow-sm">
+                          <CardContent className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                            <div className="flex min-w-0 items-start gap-3">
+                              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[var(--accent)]">
+                                <FileText className="size-4" />
+                              </span>
+                              <div className="grid min-w-0 gap-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <CardTitle className="text-base leading-tight">
+                                    {requestTypeLabels[request.type]}
+                                  </CardTitle>
+                                  <StatusBadge tone={requestTone(request.status)}>
+                                    {requestStatusLabels[request.status]}
+                                  </StatusBadge>
+                                </div>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs leading-5 text-[var(--muted)]">
+                                  <span>
+                                    Creee le {request.createdAt.toLocaleDateString("fr-FR")}
+                                  </span>
+                                  <span>
+                                    <span className="font-bold text-[var(--primary)]">
+                                      Pour :
+                                    </span>{" "}
+                                    {subjectName}
+                                  </span>
+                                </div>
+                                {request.publicNote ? (
+                                  <p className="text-sm leading-5 text-[var(--primary)]">
+                                    {request.publicNote}
+                                  </p>
+                                ) : null}
+                                {request.messages.map((message) => (
+                                  <p
+                                    className="text-xs leading-5 text-[var(--muted)]"
+                                    key={message.id}
+                                  >
+                                    {message.body}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                            {documents.length > 0 ? (
+                              <div className="flex flex-wrap gap-2 md:justify-end">
+                                {documents.map((document) => (
+                                  <Button
+                                    asChild
+                                    key={document.id}
+                                    size="sm"
+                                    variant="secondary"
+                                  >
+                                    <a href={`/api/requests/documents/${document.id}/download`}>
+                                      <Download className="size-4" />
+                                      Telecharger
+                                    </a>
+                                  </Button>
+                                ))}
+                              </div>
+                            ) : null}
+                            {request.status === ServiceRequestStatus.MISSING_DOCUMENTS ? (
+                              <form
+                                action={updateBahourServiceRequest}
+                                className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3 md:col-span-2"
+                              >
+                              <input
+                                name="requestId"
+                                type="hidden"
+                                value={request.id}
+                              />
+                              <div className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--primary)]">
+                                A modifier :{" "}
+                                {requestedFieldsFromPayload(
+                                  request.payload,
+                                  request.type,
+                                )
+                                  .map(([, label]) => label)
+                                  .join(", ")}
+                              </div>
+                              <div className="grid gap-3 md:grid-cols-2">
+                                {requestedFieldsFromPayload(
+                                  request.payload,
+                                  request.type,
+                                ).map(([field, label, inputType]) => (
+                                  <Input
+                                    defaultValue={payloadValue(request.payload, field)}
+                                    key={field}
+                                    name={field}
+                                    placeholder={label}
+                                    type={inputType}
+                                  />
+                                ))}
+                              </div>
+                              <Textarea
+                                disabled
+                                value={
+                                  request.publicNote ||
+                                  "Modifiez uniquement les informations demandees par l'equipe."
+                                }
+                              />
+                              <Button type="submit">
+                                Envoyer mes modifications
+                              </Button>
+                              </form>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
@@ -237,15 +529,68 @@ export default async function ClientPage() {
                 )}
               </TabsContent>
 
-              <TabsContent value="mivhanim" className="grid gap-5">
-                <Alert>
-                  <Trophy />
-                  <AlertTitle>Mivhanim</AlertTitle>
-                  <AlertDescription>
-                    Les notes de mivhan seront rattachees a ce meme espace.
-                  </AlertDescription>
-                </Alert>
+              <TabsContent value="mivhanim" className="grid gap-4">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-[var(--border)] py-3">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="size-4 text-[var(--accent)]" />
+                    <span className="text-2xl font-bold text-[var(--primary)]">
+                      {mivhanRegistrations.length}
+                    </span>
+                    <span className="text-sm text-[var(--muted)]">mivhanim</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[var(--primary)]">
+                      {averageGrade === null ? "-" : `${averageGrade} / 100`}
+                    </span>
+                    <span className="text-sm text-[var(--muted)]">moyenne</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[var(--primary)]">
+                      {formatReward(totalRewardCents, "ILS")}
+                    </span>
+                    <span className="text-sm text-[var(--muted)]">recues</span>
+                  </div>
+                </div>
+
+                <BahourMivhanSignupCards
+                  initialUser={user}
+                  sessions={talmoudoSessionOptions}
+                />
+
+                {mivhanRegistrations.length === 0 ? (
+                  <Alert>
+                    <Trophy />
+                    <AlertTitle>Aucun mivhan pour le moment</AlertTitle>
+                    <AlertDescription>
+                      Vos inscriptions, notes et recompenses Talmoudo Beyado
+                      apparaitront ici.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="grid gap-2">
+                    {mivhanRegistrations.map((registration) => (
+                      <BahourMivhanRegistrationCard
+                        canEdit={isMivhanRegistrationOpen(registration.session)}
+                        dateLabel={formatDateTime(registration.session.date)}
+                        key={registration.id}
+                        registration={registration}
+                      />
+                    ))}
+                  </div>
+                )}
               </TabsContent>
+
+              {donations.length > 0 && (
+                <TabsContent value="dons" className="grid gap-5">
+                  <DonorDonationsTable
+                    actionPath="/client"
+                    donations={filteredDonations}
+                    from={params.donFrom}
+                    title="Mes dons"
+                    to={params.donTo}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </section>

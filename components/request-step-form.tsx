@@ -1,15 +1,20 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { type FormEvent, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Download,
   FileCheck,
   Flag,
 } from "lucide-react";
 import { DocumentAttachmentCard } from "@/components/document-attachment-card";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -188,18 +193,20 @@ type RequestSubmitResult = {
   issues?: { message: string }[];
 };
 
-type UploadPlanItem = {
-  fieldName: string;
-  label: string;
-  file: File;
-};
-
 type PresignedUpload = {
   fieldName: string;
   label: string;
   fileKey: string;
   mimeType: string;
   uploadUrl: string;
+};
+
+type UploadedDocument = {
+  fieldName: string;
+  label: string;
+  fileKey: string;
+  mimeType: string;
+  originalName: string;
 };
 
 const documentLabels: Record<string, string> = {
@@ -209,6 +216,28 @@ const documentLabels: Record<string, string> = {
   studentCertificateFile: "Certificat d'etudiant ou Massa",
   identityFile: "Document d'identite / visa",
 };
+
+const koupatFormDownloads = [
+  {
+    label: "Formulaire Meuhedet en francais",
+    href: "/formulaires/formulaire-meuhedet-francais.pdf",
+  },
+  {
+    label: "Formulaire Meuhedet en hebreu",
+    href: "/formulaires/formulaire-meuhedet-hebreu.pdf",
+  },
+  {
+    label: "Formulaire Meuhedet en anglais",
+    href: "/formulaires/formulaire-meuhedet-anglais.pdf",
+  },
+] as const;
+
+const visaFormDownloads = [
+  {
+    label: "Formulaire visa etudiant",
+    href: "/formulaires/formulaire-visa.pdf",
+  },
+] as const;
 
 function putFileToS3(
   upload: PresignedUpload,
@@ -260,6 +289,36 @@ async function createRequestPayload(
   }
 
   return result;
+}
+
+function FormDownloadCard({
+  forms,
+}: {
+  forms: ReadonlyArray<{ label: string; href: string }>;
+}) {
+  return (
+    <div className="grid gap-2 rounded-2xl border border-[var(--border)] bg-[var(--subtle)] p-4">
+      <div>
+        <strong className="text-base text-[var(--primary)]">
+          Formulaire a remplir
+        </strong>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Telechargez le formulaire, remplissez-le, puis uploadez le fichier
+          complete juste en dessous.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {forms.map((form) => (
+          <Button asChild key={form.href} size="sm" type="button" variant="secondary">
+            <a href={form.href} download>
+              <Download className="size-4" />
+              {form.label}
+            </a>
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function NationalityCombobox({ id, name }: { id: string; name: string }) {
@@ -342,15 +401,19 @@ export type RequestFormInitialUser = {
   lastName?: string | null;
   email?: string | null;
   phone?: string | null;
+  parentPhone?: string | null;
 };
 
 export function RequestStepForm({
+  adminMode = false,
   type,
   initialUser,
 }: {
+  adminMode?: boolean;
   type: "visa" | "koupat";
   initialUser?: RequestFormInitialUser | null;
 }) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState(0);
   const [personStatus, setPersonStatus] = useState("");
@@ -362,11 +425,20 @@ export function RequestStepForm({
     message: string;
   }>({ status: "idle", message: "" });
   const [sendProgress, setSendProgress] = useState(0);
+  const [fileUploadProgress, setFileUploadProgress] = useState<Record<string, number>>({});
+  const [uploadedDocuments, setUploadedDocuments] = useState<
+    Record<string, UploadedDocument>
+  >({});
+  const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
   const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
   const isSubmitting = submitState.status === "loading";
+  const isUploadingDocuments = Object.values(uploadingFields).some(Boolean);
+  const successTitle = isVisa
+    ? "Demande de visa envoyee"
+    : "Demande Koupat Holim envoyee";
 
   function validateStep(stepIndex: number) {
     const form = formRef.current;
@@ -381,10 +453,7 @@ export function RequestStepForm({
       return false;
     };
     const hasText = (name: string) => String(formData.get(name) ?? "").trim().length > 0;
-    const hasFile = (name: string) => {
-      const file = formData.get(name);
-      return file instanceof File && file.size > 0;
-    };
+    const hasUploadedFile = (name: string) => Boolean(uploadedDocuments[name]);
 
     if (stepIndex === 0) {
       if (
@@ -392,6 +461,7 @@ export function RequestStepForm({
         !hasText("lastName") ||
         !hasText("email") ||
         !hasText("phone") ||
+        !hasText("parentPhone") ||
         !hasText("birthDate") ||
         !hasText("nationality")
       ) {
@@ -407,12 +477,16 @@ export function RequestStepForm({
 
     if (stepIndex === 2) {
       if (
-        !hasFile("passportFile") ||
-        !hasFile("formFile") ||
-        (isVisa && !hasFile("birthCertificateFile")) ||
-        !hasFile("studentCertificateFile")
+        !hasUploadedFile("passportFile") ||
+        !hasUploadedFile("formFile") ||
+        (isVisa && !hasUploadedFile("birthCertificateFile")) ||
+        !hasUploadedFile("studentCertificateFile")
       ) {
         return missing("Ajoutez toutes les pieces demandees avant de continuer.");
+      }
+
+      if (isUploadingDocuments) {
+        return missing("Attendez la fin de l'upload des pieces avant de continuer.");
       }
     }
 
@@ -436,10 +510,118 @@ export function RequestStepForm({
     }
   }
 
+  async function deleteUploadedDocument(fieldName: string) {
+    const current = uploadedDocuments[fieldName];
+
+    if (!current) {
+      return;
+    }
+
+    setUploadedDocuments((documents) => {
+      const next = { ...documents };
+      delete next[fieldName];
+      return next;
+    });
+    setFileUploadProgress((progressByField) => {
+      const next = { ...progressByField };
+      delete next[fieldName];
+      return next;
+    });
+
+    await fetch("/api/requests/upload-url", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: type, fileKey: current.fileKey }),
+    }).catch(() => undefined);
+  }
+
+  async function handleDocumentFileChange(
+    fieldName: string,
+    label: string,
+    file: File | null,
+  ) {
+    setStepError("");
+
+    if (!file) {
+      await deleteUploadedDocument(fieldName);
+      return;
+    }
+
+    await deleteUploadedDocument(fieldName);
+    setUploadingFields((current) => ({ ...current, [fieldName]: true }));
+    setFileUploadProgress((current) => ({ ...current, [fieldName]: 1 }));
+
+    try {
+      const presignResponse = await fetch("/api/requests/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: type,
+          files: [
+            {
+              fieldName,
+              label,
+              fileName: file.name,
+              mimeType: file.type || "application/octet-stream",
+              size: file.size,
+            },
+          ],
+        }),
+      });
+      const presignResult = (await presignResponse.json().catch(() => ({
+        ok: false,
+        message: "Impossible de preparer l'upload du document.",
+      }))) as {
+        ok: boolean;
+        message?: string;
+        uploads?: PresignedUpload[];
+      };
+      const upload = presignResult.uploads?.[0];
+
+      if (!presignResponse.ok || !presignResult.ok || !upload) {
+        throw new Error(
+          presignResult.message ?? "Impossible de preparer l'upload du document.",
+        );
+      }
+
+      await putFileToS3(upload, file, (loaded) => {
+        setFileUploadProgress((current) => ({
+          ...current,
+          [fieldName]: Math.max(1, Math.round((loaded / file.size) * 100)),
+        }));
+      });
+
+      setUploadedDocuments((documents) => ({
+        ...documents,
+        [fieldName]: {
+          fieldName,
+          label,
+          fileKey: upload.fileKey,
+          mimeType: upload.mimeType,
+          originalName: file.name,
+        },
+      }));
+      setFileUploadProgress((current) => ({ ...current, [fieldName]: 100 }));
+    } catch (error) {
+      setStepError(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'uploader le document.",
+      );
+      setFileUploadProgress((current) => {
+        const next = { ...current };
+        delete next[fieldName];
+        return next;
+      });
+    } finally {
+      setUploadingFields((current) => ({ ...current, [fieldName]: false }));
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!validateStep(3)) {
+    if (!validateStep(2) || !validateStep(3)) {
       return;
     }
 
@@ -454,94 +636,26 @@ export function RequestStepForm({
       const payload = Object.fromEntries(
         Array.from(formData.entries()).filter(([, value]) => !(value instanceof File)),
       );
-      const files = Object.keys(documentLabels)
-        .map((fieldName) => {
-          const file = formData.get(fieldName);
-
-          if (!(file instanceof File) || file.size === 0) {
-            return null;
-          }
-
-          return {
-            fieldName,
-            file,
-            label: documentLabels[fieldName],
-          };
-        })
-        .filter((file): file is UploadPlanItem => Boolean(file));
-      const totalBytes = files.reduce((total, item) => total + item.file.size, 0);
-      const loadedByField = new Map<string, number>();
-      const updateUploadProgress = (fieldName: string, loaded: number) => {
-        loadedByField.set(fieldName, loaded);
-        const uploadedBytes = Array.from(loadedByField.values()).reduce(
-          (total, value) => total + value,
-          0,
-        );
-        const uploadPart = totalBytes > 0 ? (uploadedBytes / totalBytes) * 92 : 92;
-        setSendProgress(Math.max(1, Math.min(92, Math.round(uploadPart))));
-      };
-
-      const presignResponse = await fetch("/api/requests/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: type,
-          files: files.map(({ fieldName, file, label }) => ({
-            fieldName,
-            label,
-            fileName: file.name,
-            mimeType: file.type || "application/octet-stream",
-            size: file.size,
-          })),
-        }),
-      });
-      const presignResult = (await presignResponse.json().catch(() => ({
-        ok: false,
-        message: "Impossible de preparer l'upload des documents.",
-      }))) as {
-        ok: boolean;
-        message?: string;
-        uploads?: PresignedUpload[];
-      };
-
-      if (!presignResponse.ok || !presignResult.ok || !presignResult.uploads) {
-        throw {
-          ok: false,
-          message:
-            presignResult.message ??
-            "Impossible de preparer l'upload des documents.",
-        };
-      }
-
-      await Promise.all(
-        presignResult.uploads.map((upload) => {
-          const file = files.find((item) => item.fieldName === upload.fieldName)?.file;
-
-          if (!file) {
-            throw new Error("Fichier introuvable pendant l'upload.");
-          }
-
-          return putFileToS3(upload, file, (loaded) =>
-            updateUploadProgress(upload.fieldName, loaded),
-          );
-        }),
-      );
-
-      setSendProgress(96);
+      setSendProgress(80);
       const result = await createRequestPayload({
         ...payload,
-        documents: presignResult.uploads.map(({ label, fileKey, mimeType }) => ({
-          label,
-          fileKey,
-          mimeType,
-        })),
+        documents: Object.values(uploadedDocuments).map(
+          ({ label, fileKey, mimeType }) => ({
+            label,
+            fileKey,
+            mimeType,
+          }),
+        ),
       });
 
       setSendProgress(100);
       setSubmitState({
         status: "success",
-        message: `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
+        message: adminMode
+          ? `Demande creee avec succes (reference ${result.requestId}). Le dossier apparait dans la liste admin et l'utilisateur a ete notifie par email.`
+          : `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
       });
+      router.refresh();
     } catch (error) {
       const result = error as RequestSubmitResult;
       setSubmitState({
@@ -552,7 +666,34 @@ export function RequestStepForm({
           "Impossible d'envoyer la demande. Reessayez.",
       });
       setSendProgress(0);
+      setFileUploadProgress({});
     }
+  }
+
+  if (submitState.status === "success") {
+    return (
+      <Card className="relative z-20 max-w-[760px] overflow-hidden">
+        <CardContent className="grid gap-6 p-7 text-center sm:p-9">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">
+            <CheckCircle2 className="size-8" />
+          </div>
+          <div className="grid gap-2">
+            <CardTitle className="text-2xl">{successTitle}</CardTitle>
+            <CardDescription className="mx-auto max-w-[560px] text-base leading-7">
+              {submitState.message}
+            </CardDescription>
+          </div>
+          <div className="mx-auto grid w-full max-w-[420px] gap-3 sm:grid-cols-2">
+            <Button asChild variant="secondary">
+              <Link href="/">Accueil</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/client">Mon espace</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -628,14 +769,23 @@ export function RequestStepForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={`${type}-phone`}>
-                Telephone / WhatsApp
-              </FieldLabel>
-              <Input
+              <FieldLabel htmlFor={`${type}-phone`}>Telephone</FieldLabel>
+              <PhoneInputGroup
                 defaultValue={initialUser?.phone ?? ""}
                 id={`${type}-phone`}
                 name="phone"
-                placeholder="+972 ..."
+                required
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${type}-parent-phone`}>
+                Telephone des parents
+              </FieldLabel>
+              <PhoneInputGroup
+                autoComplete="tel"
+                defaultValue={initialUser?.parentPhone ?? ""}
+                id={`${type}-parent-phone`}
+                name="parentPhone"
                 required
               />
             </Field>
@@ -786,6 +936,18 @@ export function RequestStepForm({
                   title="Photo du passeport non israelien"
                   status="missing"
                   disabled={isSubmitting}
+                  fileName={uploadedDocuments.passportFile?.originalName ?? ""}
+                  onFileChange={(file) =>
+                    handleDocumentFileChange(
+                      "passportFile",
+                      documentLabels.passportFile,
+                      file,
+                    )
+                  }
+                  uploadProgress={fileUploadProgress.passportFile}
+                />
+                <FormDownloadCard
+                  forms={isVisa ? visaFormDownloads : koupatFormDownloads}
                 />
                 <DocumentAttachmentCard
                   name="formFile"
@@ -797,6 +959,17 @@ export function RequestStepForm({
                   }
                   status="missing"
                   disabled={isSubmitting}
+                  fileName={uploadedDocuments.formFile?.originalName ?? ""}
+                  onFileChange={(file) =>
+                    handleDocumentFileChange(
+                      "formFile",
+                      isVisa
+                        ? "Formulaire de visa rempli"
+                        : "Formulaire koupat holim rempli",
+                      file,
+                    )
+                  }
+                  uploadProgress={fileUploadProgress.formFile}
                 />
                 {isVisa && (
                   <DocumentAttachmentCard
@@ -805,6 +978,15 @@ export function RequestStepForm({
                     title="Acte de naissance"
                     status="missing"
                     disabled={isSubmitting}
+                    fileName={uploadedDocuments.birthCertificateFile?.originalName ?? ""}
+                    onFileChange={(file) =>
+                      handleDocumentFileChange(
+                        "birthCertificateFile",
+                        documentLabels.birthCertificateFile,
+                        file,
+                      )
+                    }
+                    uploadProgress={fileUploadProgress.birthCertificateFile}
                   />
                 )}
                 <DocumentAttachmentCard
@@ -813,17 +995,46 @@ export function RequestStepForm({
                   title="Certificat d'etudiant ou Massa"
                   status="missing"
                   disabled={isSubmitting}
+                  fileName={uploadedDocuments.studentCertificateFile?.originalName ?? ""}
+                  onFileChange={(file) =>
+                    handleDocumentFileChange(
+                      "studentCertificateFile",
+                      documentLabels.studentCertificateFile,
+                      file,
+                    )
+                  }
+                  uploadProgress={fileUploadProgress.studentCertificateFile}
                 />
               </>
             ) : (
               <>
-                <DocumentAttachmentCard disabled={isSubmitting} name="passportFile" required title="Passeport" status="missing" />
+                <DocumentAttachmentCard
+                  disabled={isSubmitting}
+                  name="passportFile"
+                  required
+                  title="Passeport"
+                  status="missing"
+                  fileName={uploadedDocuments.passportFile?.originalName ?? ""}
+                  onFileChange={(file) =>
+                    handleDocumentFileChange("passportFile", "Passeport", file)
+                  }
+                  uploadProgress={fileUploadProgress.passportFile}
+                />
                 <DocumentAttachmentCard
                   name="identityFile"
                   required
                   title="Document d'identite / visa"
                   status="missing"
                   disabled={isSubmitting}
+                  fileName={uploadedDocuments.identityFile?.originalName ?? ""}
+                  onFileChange={(file) =>
+                    handleDocumentFileChange(
+                      "identityFile",
+                      documentLabels.identityFile,
+                      file,
+                    )
+                  }
+                  uploadProgress={fileUploadProgress.identityFile}
                 />
               </>
             )}
@@ -878,9 +1089,7 @@ export function RequestStepForm({
             className={
               submitState.status === "error"
                 ? "rounded-xl border border-red-200 bg-red-50 p-4 text-base text-red-900"
-                : submitState.status === "success"
-                  ? "rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-emerald-900"
-                  : "rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--primary)]"
+                : "rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--primary)]"
             }
           >
             {submitState.message}
@@ -909,14 +1118,17 @@ export function RequestStepForm({
           {step < steps.length - 1 ? (
             <Button
               onClick={() => goToStep(step + 1)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploadingDocuments}
               type="button"
             >
               Continuer
               <ChevronRight />
             </Button>
           ) : (
-            <Button disabled={submitState.status === "loading"} type="submit">
+            <Button
+              disabled={submitState.status === "loading" || isUploadingDocuments}
+              type="submit"
+            >
               {submitState.status === "loading" ? (
                 <>
                   <Spinner />

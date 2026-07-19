@@ -44,6 +44,9 @@ export default async function AdminPage() {
           <Button asChild variant="secondary">
             <Link href="/admin/evenements">Gestion evenements</Link>
           </Button>
+          <Button asChild variant="secondary">
+            <Link href="/admin/boutique">Gestion boutique</Link>
+          </Button>
         </CardContent>
       </Card>
     </AdminShell>

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pdfkit"],
   experimental: {
     serverActions: {
       // Les images d'evenement sont uploadees via server action : la limite
