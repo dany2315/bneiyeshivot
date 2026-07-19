@@ -8,6 +8,7 @@ import {
   EventRegistrationStatus,
   HomeGalleryItemType,
   PaymentStatus,
+  Prisma,
   ReceiptStatus,
   ServiceRequestStatus,
   StoreReservationStatus,
@@ -21,9 +22,13 @@ import {
 } from "@/lib/donations";
 import { ensureCerfaReceiptForDonation } from "@/lib/cerfa";
 import { requireAdminUser } from "@/lib/session";
-import { sendEmail, storeReservationStatusEmail } from "@/lib/email";
+import {
+  sendEmail,
+  serviceRequestStatusEmail,
+  storeReservationStatusEmail,
+} from "@/lib/email";
 import { prisma } from "@/lib/prisma";
-import { deleteFilesFromS3, uploadFilesToS3 } from "@/lib/uploads";
+import { deleteFilesFromS3, uploadFileToS3, uploadFilesToS3 } from "@/lib/uploads";
 import { ensureDefaultStorefront, readStorePrice } from "@/lib/store";
 
 function slugify(value: string) {
@@ -48,6 +53,43 @@ const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
   COLLECTED: "Recuperee",
   CANCELED: "Annulee",
 };
+
+const serviceRequestStatusLabels: Record<ServiceRequestStatus, string> = {
+  SUBMITTED: "Deposee",
+  IN_REVIEW: "En traitement",
+  MISSING_DOCUMENTS: "Elements a modifier",
+  APPROVED: "Approuvee",
+  REJECTED: "Refusee",
+  COMPLETED: "Terminee",
+};
+
+function serviceRequestTypeLabel(type: string) {
+  return type === "VISA_STUDENT"
+    ? "visa etudiant"
+    : type === "KOUPAT_HOLIM"
+      ? "koupat holim"
+      : "demande";
+}
+
+function serviceRequestAdminPath(type: string) {
+  return type === "VISA_STUDENT"
+    ? "visa"
+    : type === "KOUPAT_HOLIM"
+      ? "koupat-holim"
+      : "contact";
+}
+
+const editableServiceRequestFields = [
+  "firstName",
+  "lastName",
+  "phone",
+  "parentPhone",
+  "birthDate",
+  "nationality",
+  "passportNumber",
+  "school",
+  "personStatus",
+] as const;
 
 function splitLines(value: string) {
   return value
@@ -129,14 +171,38 @@ export async function updateServiceRequest(formData: FormData) {
   const status = readString(formData, "status") as ServiceRequestStatus;
   const publicNote = readString(formData, "publicNote");
   const internalNote = readString(formData, "internalNote");
+  const requestedFields = formData
+    .getAll("requestedFields")
+    .map(String)
+    .filter((field): field is (typeof editableServiceRequestFields)[number] =>
+      editableServiceRequestFields.includes(
+        field as (typeof editableServiceRequestFields)[number],
+      ),
+    );
 
   if (!id || !Object.values(ServiceRequestStatus).includes(status)) {
     throw new Error("Demande ou statut invalide.");
   }
 
-  await prisma.serviceRequest.update({
+  const existingRequest = await prisma.serviceRequest.findUnique({
+    where: { id },
+    select: { payload: true },
+  });
+  const nextPayload =
+    typeof existingRequest?.payload === "object" && existingRequest.payload !== null
+      ? ({ ...(existingRequest.payload as Record<string, unknown>) } as Record<string, unknown>)
+      : {};
+
+  if (status === ServiceRequestStatus.MISSING_DOCUMENTS) {
+    nextPayload.__requestedFields = requestedFields;
+  } else {
+    delete nextPayload.__requestedFields;
+  }
+
+  const request = await prisma.serviceRequest.update({
     where: { id },
     data: {
+      payload: nextPayload as Prisma.JsonObject,
       status,
       publicNote: publicNote || null,
       internalNote: internalNote || null,
@@ -150,7 +216,20 @@ export async function updateServiceRequest(formData: FormData) {
           }
         : undefined,
     },
+    include: { user: true },
   });
+
+  if (request.user?.email) {
+    const email = serviceRequestStatusEmail({
+      actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
+      firstName: request.user.firstName,
+      note: publicNote || null,
+      statusLabel: serviceRequestStatusLabels[request.status],
+      typeLabel: serviceRequestTypeLabel(request.type),
+    });
+
+    await sendEmail({ to: request.user.email, ...email });
+  }
 
   await prisma.auditLog.create({
     data: {
@@ -163,6 +242,80 @@ export async function updateServiceRequest(formData: FormData) {
   });
 
   revalidatePath("/admin");
+  revalidatePath("/client");
+}
+
+export async function uploadServiceRequestFinalDocument(formData: FormData) {
+  const admin = await requireAdminUser();
+  const requestId = readString(formData, "requestId");
+  const label = readString(formData, "label") || "Visa recu";
+  const file = formData.get("file");
+
+  if (!requestId || !(file instanceof File) || file.size === 0) {
+    throw new Error("Fichier obligatoire.");
+  }
+
+  const request = await prisma.serviceRequest.findUnique({
+    where: { id: requestId },
+    include: { user: true },
+  });
+
+  if (!request) {
+    throw new Error("Demande introuvable.");
+  }
+
+  const uploaded = await uploadFileToS3(file, `requests/final/${requestId}`);
+
+  if (!uploaded) {
+    throw new Error("Upload impossible.");
+  }
+
+  await prisma.requestDocument.create({
+    data: {
+      requestId,
+      label,
+      fileKey: uploaded.key,
+      mimeType: uploaded.mimeType,
+    },
+  });
+
+  await prisma.serviceRequest.update({
+    where: { id: requestId },
+    data: {
+      status: ServiceRequestStatus.COMPLETED,
+      publicNote:
+        label === "Visa recu"
+          ? "Votre visa recu est disponible dans votre espace."
+          : "Un document final est disponible dans votre espace.",
+      messages: {
+        create: {
+          authorId: admin.id,
+          body:
+            label === "Visa recu"
+              ? "Votre visa recu est disponible en telechargement."
+              : "Un document final est disponible en telechargement.",
+          isInternal: false,
+        },
+      },
+    },
+  });
+
+  if (request.user?.email) {
+    const email = serviceRequestStatusEmail({
+      actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
+      firstName: request.user.firstName,
+      note:
+        label === "Visa recu"
+          ? "Votre visa recu est disponible en telechargement dans votre espace Bahour."
+          : "Un document final est disponible dans votre espace Bahour.",
+      statusLabel: serviceRequestStatusLabels.COMPLETED,
+      typeLabel: serviceRequestTypeLabel(request.type),
+    });
+
+    await sendEmail({ to: request.user.email, ...email });
+  }
+
+  revalidatePath(`/admin/${serviceRequestAdminPath(request.type)}`);
   revalidatePath("/client");
 }
 

@@ -128,6 +128,80 @@ export async function requestConfirmationEmail(params: {
   };
 }
 
+function paragraph(text: string) {
+  return `<p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#17324d">${text}</p>`;
+}
+
+function serviceRequestEmailHtml({
+  actionHref,
+  actionLabel,
+  body,
+  title,
+}: {
+  actionHref?: string;
+  actionLabel?: string;
+  body: string[];
+  title: string;
+}) {
+  return `
+    <div style="font-family:Arial,sans-serif;background:#f6f8fb;padding:24px">
+      <div style="max-width:620px;margin:0 auto;background:white;border-radius:16px;padding:24px;border:1px solid #e6edf4">
+        <p style="margin:0 0 8px;color:#f26300;font-weight:700">Bnei Yeshivot</p>
+        <h1 style="margin:0 0 18px;color:#062846;font-size:24px">${title}</h1>
+        ${body.map(paragraph).join("")}
+        ${
+          actionHref && actionLabel
+            ? `<p style="margin:22px 0"><a href="${actionHref}" style="display:inline-block;background:#062846;color:#fff;text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700">${actionLabel}</a></p>`
+            : ""
+        }
+        <p style="margin:24px 0 0;color:#6b7b8f;font-size:13px">L'equipe Bnei Yeshivot</p>
+      </div>
+    </div>
+  `;
+}
+
+export function serviceRequestStatusEmail(params: {
+  actionHref: string;
+  firstName?: string | null;
+  note?: string | null;
+  statusLabel: string;
+  typeLabel: string;
+}) {
+  const greeting = params.firstName ? `Bonjour ${params.firstName},` : "Bonjour,";
+
+  return {
+    subject: `Bnei Yeshivot - Mise a jour de votre demande ${params.typeLabel}`,
+    html: serviceRequestEmailHtml({
+      actionHref: params.actionHref,
+      actionLabel: "Voir ma demande",
+      title: "Mise a jour de votre demande",
+      body: [
+        greeting,
+        `Votre demande ${params.typeLabel} est maintenant indiquee comme <strong>${params.statusLabel}</strong>.`,
+        ...(params.note ? [params.note] : []),
+      ],
+    }),
+  };
+}
+
+export function serviceRequestClientUpdatedAdminEmail(params: {
+  adminHref: string;
+  fullName: string;
+  typeLabel: string;
+}) {
+  return {
+    subject: `Demande mise a jour - ${params.typeLabel} - ${params.fullName}`,
+    html: serviceRequestEmailHtml({
+      actionHref: params.adminHref,
+      actionLabel: "Voir la demande",
+      title: "Demande mise a jour par l'utilisateur",
+      body: [
+        `${params.fullName} a complete les informations demandees pour sa demande ${params.typeLabel}.`,
+      ],
+    }),
+  };
+}
+
 export async function storeReservationAdminEmail(params: {
   customerName: string;
   customerEmail: string;

@@ -3,7 +3,10 @@ import {
   ServiceRequestType,
   type User,
 } from "@prisma/client";
-import { updateServiceRequest } from "@/app/admin/actions";
+import {
+  updateServiceRequest,
+  uploadServiceRequestFinalDocument,
+} from "@/app/admin/actions";
 import { StatusBadge } from "@/app/components";
 import { AdminCreateRequestDialog } from "@/components/admin-create-request-dialog";
 import { AdminShell } from "@/components/admin-sidebar";
@@ -29,7 +32,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Filter, Search } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Download, Filter, Search, Upload } from "lucide-react";
 
 const statusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
@@ -54,6 +58,31 @@ function requestDialogType(type: ServiceRequestType) {
   if (type === ServiceRequestType.VISA_STUDENT) return "visa";
   if (type === ServiceRequestType.KOUPAT_HOLIM) return "koupat";
   return null;
+}
+
+function originalNameFromKey(fileKey: string) {
+  const raw = fileKey.split("/").pop() ?? "";
+  return raw.replace(/^\d+-[a-f0-9-]+-/i, "") || raw;
+}
+
+const requestFieldLabels = [
+  ["firstName", "Prenom"],
+  ["lastName", "Nom"],
+  ["phone", "Telephone"],
+  ["parentPhone", "Telephone des parents"],
+  ["birthDate", "Date de naissance"],
+  ["nationality", "Nationalite"],
+  ["passportNumber", "Numero de passeport"],
+  ["school", "Yeshiva / programme"],
+  ["personStatus", "Statut visa"],
+] as const;
+
+function requestedFieldsFromPayload(payload: unknown) {
+  if (typeof payload !== "object" || payload === null) return new Set<string>();
+  const fields = (payload as Record<string, unknown>).__requestedFields;
+
+  if (!Array.isArray(fields)) return new Set<string>();
+  return new Set(fields.filter((field): field is string => typeof field === "string"));
 }
 
 export async function AdminServiceRequestsPage({
@@ -85,6 +114,7 @@ export async function AdminServiceRequestsPage({
             { user: { email: { contains: q, mode: "insensitive" } } },
             { user: { firstName: { contains: q, mode: "insensitive" } } },
             { user: { lastName: { contains: q, mode: "insensitive" } } },
+            { user: { phone: { contains: q, mode: "insensitive" } } },
           ]
         : undefined,
     },
@@ -95,6 +125,7 @@ export async function AdminServiceRequestsPage({
         orderBy: { createdAt: "desc" },
         take: 1,
       },
+      documents: { orderBy: { createdAt: "asc" } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -188,38 +219,132 @@ export async function AdminServiceRequestsPage({
               className="scroll-mt-24"
             >
               <form action={updateServiceRequest}>
+                {(() => {
+                  const requestedFields = requestedFieldsFromPayload(request.payload);
+
+                  return (
+                    <>
                 <CardHeader>
                   <CardTitle className="text-xl">
                     {userName(request.user)} - {request.user?.email}
                   </CardTitle>
                   <CardDescription>
-                    Modifier le statut, la note publique et la note interne.
+                    Modifier le statut, envoyer une consigne au Bahour et gerer
+                    les documents.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-3 md:grid-cols-[190px_1fr_1fr_auto]">
+                <CardContent className="grid gap-4">
                   <input name="requestId" type="hidden" value={request.id} />
-                  <NativeSelect
-                    className="w-full"
-                    defaultValue={request.status}
-                    name="status"
-                  >
-                    {Object.values(ServiceRequestStatus).map((status) => (
-                      <NativeSelectOption value={status} key={status}>
-                        {statusLabels[status]}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
-                  <Input
+                  <div className="grid gap-3 md:grid-cols-[190px_1fr]">
+                    <NativeSelect
+                      className="w-full"
+                      defaultValue={request.status}
+                      name="status"
+                    >
+                      {Object.values(ServiceRequestStatus).map((status) => (
+                        <NativeSelectOption value={status} key={status}>
+                          {statusLabels[status]}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
+                    <Input
+                      defaultValue={request.internalNote ?? ""}
+                      name="internalNote"
+                      placeholder="Note interne admin"
+                    />
+                  </div>
+                  <Textarea
                     defaultValue={request.publicNote ?? ""}
                     name="publicNote"
-                    placeholder="Note visible par le Bahour"
+                    placeholder="Message visible par le Bahour : indiquez precisement les donnees a modifier."
+                  />
+                  <div className="grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
+                    <strong className="text-sm text-[var(--primary)]">
+                      Donnees que le Bahour doit modifier
+                    </strong>
+                    <div className="grid gap-2 md:grid-cols-3">
+                      {requestFieldLabels
+                        .filter(([field]) =>
+                          request.type === ServiceRequestType.VISA_STUDENT
+                            ? true
+                            : field !== "personStatus",
+                        )
+                        .map(([field, label]) => (
+                          <label
+                            className="flex items-center gap-2 text-sm text-[var(--primary)]"
+                            key={field}
+                          >
+                            <input
+                              defaultChecked={requestedFields.has(field)}
+                              name="requestedFields"
+                              type="checkbox"
+                              value={field}
+                            />
+                            {label}
+                          </label>
+                        ))}
+                    </div>
+                    <p className="text-xs text-[var(--muted)]">
+                      Si le statut est Documents manquants, seuls ces champs
+                      apparaitront dans l&apos;espace Bahour.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <strong className="text-sm text-[var(--primary)]">
+                      Documents de la demande
+                    </strong>
+                    {request.documents.length > 0 ? (
+                      <div className="grid gap-2 md:grid-cols-2">
+                        {request.documents.map((document) => (
+                          <a
+                            className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm hover:bg-white"
+                            href={`/api/requests/documents/${document.id}/download`}
+                            key={document.id}
+                          >
+                            <span className="flex items-center gap-2 font-semibold text-[var(--primary)]">
+                              <Download className="size-4" />
+                              {document.label}
+                            </span>
+                            <span className="mt-1 block truncate text-[var(--muted)]">
+                              {originalNameFromKey(document.fileKey)}
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[var(--muted)]">
+                        Aucun document attache.
+                      </p>
+                    )}
+                  </div>
+                  <Button type="submit">Mettre a jour et notifier</Button>
+                </CardContent>
+                    </>
+                  );
+                })()}
+              </form>
+              <form action={uploadServiceRequestFinalDocument}>
+                <CardContent className="grid gap-3 border-t border-[var(--border)] pt-4 md:grid-cols-[1fr_1fr_auto]">
+                  <input name="requestId" type="hidden" value={request.id} />
+                  <Input
+                    name="label"
+                    defaultValue={
+                      request.type === ServiceRequestType.VISA_STUDENT
+                        ? "Visa recu"
+                        : "Document final"
+                    }
+                    placeholder="Nom du document"
                   />
                   <Input
-                    defaultValue={request.internalNote ?? ""}
-                    name="internalNote"
-                    placeholder="Note interne admin"
+                    accept="application/pdf,image/*"
+                    name="file"
+                    required
+                    type="file"
                   />
-                  <Button type="submit">Modifier</Button>
+                  <Button type="submit" variant="secondary">
+                    <Upload className="size-4" />
+                    Ajouter
+                  </Button>
                 </CardContent>
               </form>
             </Card>

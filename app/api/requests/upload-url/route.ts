@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createPresignedUploadUrl, createS3Key } from "@/lib/uploads";
+import {
+  createPresignedUploadUrl,
+  createS3Key,
+  deleteFileFromS3,
+} from "@/lib/uploads";
 
 const fileSchema = z.object({
   fieldName: z.string().min(1),
@@ -13,6 +17,11 @@ const fileSchema = z.object({
 const bodySchema = z.object({
   kind: z.enum(["visa", "koupat"]),
   files: z.array(fileSchema).min(1),
+});
+
+const deleteBodySchema = z.object({
+  fileKey: z.string().min(1),
+  kind: z.enum(["visa", "koupat"]),
 });
 
 const maxFileSize = 20 * 1024 * 1024;
@@ -54,6 +63,29 @@ export async function POST(request: Request) {
             ? error.message
             : "Impossible de preparer l'upload des documents.",
       },
+      { status: 400 },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const body = deleteBodySchema.parse(await request.json());
+    const prefix = `requests/${body.kind}/`;
+
+    if (!body.fileKey.startsWith(prefix)) {
+      return NextResponse.json(
+        { ok: false, message: "Cle de fichier invalide." },
+        { status: 400 },
+      );
+    }
+
+    await deleteFileFromS3(body.fileKey);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[requests/upload-url] delete failed", error);
+    return NextResponse.json(
+      { ok: false, message: "Impossible de supprimer le fichier." },
       { status: 400 },
     );
   }

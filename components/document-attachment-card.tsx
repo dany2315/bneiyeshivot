@@ -19,6 +19,8 @@ export function DocumentAttachmentCard({
   name,
   required,
   disabled,
+  fileName,
+  onFileChange,
   uploadProgress,
 }: {
   title: string;
@@ -26,10 +28,13 @@ export function DocumentAttachmentCard({
   name: string;
   required?: boolean;
   disabled?: boolean;
+  fileName?: string;
+  onFileChange?: (file: File | null) => void;
   uploadProgress?: number;
 }) {
   const id = useId();
-  const [fileName, setFileName] = useState("");
+  const [localFileName, setLocalFileName] = useState("");
+  const displayFileName = fileName ?? localFileName;
   const isUploading =
     typeof uploadProgress === "number" && uploadProgress > 0 && uploadProgress < 100;
 
@@ -41,7 +46,11 @@ export function DocumentAttachmentCard({
         id={id}
         disabled={disabled}
         name={name}
-        onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")}
+        onChange={(event) => {
+          const file = event.target.files?.[0] ?? null;
+          setLocalFileName(file?.name ?? "");
+          onFileChange?.(file);
+        }}
         required={required}
         type="file"
       />
@@ -51,25 +60,25 @@ export function DocumentAttachmentCard({
       >
         <Attachment
           className="w-full border-[var(--border)] bg-white"
-          state={isUploading ? "uploading" : fileName ? "done" : "idle"}
+          state={isUploading ? "uploading" : displayFileName ? "done" : "idle"}
         >
           <AttachmentMedia>
-            {fileName ? <FileText /> : <UploadCloud />}
+            {displayFileName ? <FileText /> : <UploadCloud />}
           </AttachmentMedia>
           <AttachmentContent>
-            <AttachmentTitle>{fileName || title}</AttachmentTitle>
+            <AttachmentTitle>{title}</AttachmentTitle>
             <AttachmentDescription>
               {isUploading
                 ? `Upload en cours... ${Math.round(uploadProgress ?? 0)}%`
-                : fileName
-                  ? "Fichier selectionne."
+                : displayFileName
+                  ? displayFileName
                   : "Cliquez pour ajouter la piece."}
             </AttachmentDescription>
           </AttachmentContent>
-          <Badge variant={fileName || status === "received" ? "success" : "warning"}>
-            {fileName || status === "received" ? "Pret" : "A ajouter"}
+          <Badge variant={displayFileName || status === "received" ? "success" : "warning"}>
+            {displayFileName || status === "received" ? "Pret" : "A ajouter"}
           </Badge>
-          {fileName && (
+          {displayFileName && (
             <AttachmentActions>
               <AttachmentAction
                 aria-label="Retirer le fichier"
@@ -81,7 +90,8 @@ export function DocumentAttachmentCard({
                   if (input) {
                     input.value = "";
                   }
-                  setFileName("");
+                  setLocalFileName("");
+                  onFileChange?.(null);
                 }}
               >
                 <X className="size-4" />

@@ -6,6 +6,7 @@ import {
   ServiceRequestType,
 } from "@prisma/client";
 import { PageShell, StatusBadge } from "../components";
+import { updateBahourServiceRequest } from "@/app/client/actions";
 import { DonorDonationsTable } from "@/components/donor-donations-table";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -27,15 +28,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CalendarCheck,
   CheckCircle2,
+  Download,
   FileText,
   Trophy,
 } from "lucide-react";
@@ -93,6 +97,57 @@ function readDate(value?: string) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function payloadValue(payload: unknown, key: string) {
+  if (typeof payload !== "object" || payload === null) return "";
+  const value = (payload as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
+}
+
+const editableRequestFields = [
+  ["firstName", "Prenom", "text"],
+  ["lastName", "Nom", "text"],
+  ["phone", "Telephone", "text"],
+  ["parentPhone", "Telephone des parents", "text"],
+  ["birthDate", "Date de naissance", "date"],
+  ["nationality", "Nationalite", "text"],
+  ["passportNumber", "Numero passeport", "text"],
+  ["school", "Yeshiva / programme", "text"],
+  ["personStatus", "Statut visa : bahour-yeshiva ou massa", "text"],
+] as const;
+
+function requestedFieldsFromPayload(payload: unknown, type: ServiceRequestType) {
+  if (typeof payload !== "object" || payload === null) {
+    return editableRequestFields.filter(
+      ([field]) => type === ServiceRequestType.VISA_STUDENT || field !== "personStatus",
+    );
+  }
+
+  const fields = (payload as Record<string, unknown>).__requestedFields;
+  const requested = Array.isArray(fields)
+    ? new Set(fields.filter((field): field is string => typeof field === "string"))
+    : null;
+  const available = editableRequestFields.filter(
+    ([field]) => type === ServiceRequestType.VISA_STUDENT || field !== "personStatus",
+  );
+
+  if (!requested || requested.size === 0) {
+    return available;
+  }
+
+  return available.filter(([field]) => requested.has(field));
+}
+
+function finalDocuments(
+  documents: Array<{ id: string; label: string }>,
+  type: ServiceRequestType,
+) {
+  return documents.filter((document) =>
+    type === ServiceRequestType.VISA_STUDENT
+      ? document.label.toLowerCase().includes("visa recu")
+      : document.label.toLowerCase().includes("document final"),
+  );
+}
+
 export default async function ClientPage({
   searchParams,
 }: {
@@ -125,6 +180,7 @@ export default async function ClientPage({
           orderBy: { createdAt: "desc" },
           take: 3,
         },
+        documents: { orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -303,7 +359,7 @@ export default async function ClientPage({
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <div className="grid grid-3">
+                  <div className="grid gap-4">
                     {requests.map((request) => (
                       <Card key={request.id}>
                         <CardHeader>
@@ -318,6 +374,16 @@ export default async function ClientPage({
                           <StatusBadge tone={requestTone(request.status)}>
                             {requestStatusLabels[request.status]}
                           </StatusBadge>
+                          {finalDocuments(request.documents, request.type).map(
+                            (document) => (
+                              <Button asChild key={document.id} variant="secondary">
+                                <a href={`/api/requests/documents/${document.id}/download`}>
+                                  <Download className="size-4" />
+                                  Telecharger {document.label.toLowerCase()}
+                                </a>
+                              </Button>
+                            ),
+                          )}
                           {request.publicNote && (
                             <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-base text-[var(--primary)]">
                               {request.publicNote}
@@ -331,6 +397,51 @@ export default async function ClientPage({
                               {message.body}
                             </p>
                           ))}
+                          {request.status === ServiceRequestStatus.MISSING_DOCUMENTS ? (
+                            <form
+                              action={updateBahourServiceRequest}
+                              className="mt-2 grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3"
+                            >
+                              <input
+                                name="requestId"
+                                type="hidden"
+                                value={request.id}
+                              />
+                              <div className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--primary)]">
+                                A modifier :{" "}
+                                {requestedFieldsFromPayload(
+                                  request.payload,
+                                  request.type,
+                                )
+                                  .map(([, label]) => label)
+                                  .join(", ")}
+                              </div>
+                              <div className="grid gap-3 md:grid-cols-2">
+                                {requestedFieldsFromPayload(
+                                  request.payload,
+                                  request.type,
+                                ).map(([field, label, inputType]) => (
+                                  <Input
+                                    defaultValue={payloadValue(request.payload, field)}
+                                    key={field}
+                                    name={field}
+                                    placeholder={label}
+                                    type={inputType}
+                                  />
+                                ))}
+                              </div>
+                              <Textarea
+                                disabled
+                                value={
+                                  request.publicNote ||
+                                  "Modifiez uniquement les informations demandees par l'equipe."
+                                }
+                              />
+                              <Button type="submit">
+                                Envoyer mes modifications
+                              </Button>
+                            </form>
+                          ) : null}
                         </CardContent>
                       </Card>
                     ))}
