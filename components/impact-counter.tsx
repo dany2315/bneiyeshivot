@@ -3,14 +3,14 @@
 import CountUp from "react-countup";
 import { Card, CardContent } from "@/components/ui/card";
 
-const statNumbers: Record<string, { end: number; suffix: string }> = {
-  "1 200+": { end: 1200, suffix: "+" },
-  "1 500+": { end: 1500, suffix: "+" },
-  "300+": { end: 300, suffix: "+" },
-  "400+": { end: 400, suffix: "+" },
-  "40+": { end: 40, suffix: "+" },
-  "100%": { end: 100, suffix: "%" },
-};
+// Extrait la valeur numerique et le suffixe (+, %, ...) depuis n'importe quel
+// libelle, en ignorant les espaces utilises comme separateurs de milliers.
+// Evite les NaN (donc les compteurs a 0) quand les chiffres changent.
+function parseStat(value: string): { end: number; suffix: string } {
+  const end = Number(value.replace(/[^\d]/g, "")) || 0;
+  const suffix = value.replace(/[\d\s]/g, "");
+  return { end, suffix };
+}
 
 export function ImpactCounter({
   value,
@@ -19,7 +19,7 @@ export function ImpactCounter({
   value: string;
   label: string;
 }) {
-  const stat = statNumbers[value] ?? { end: Number(value), suffix: "" };
+  const stat = parseStat(value);
 
   return (
     <Card className="stat impact-stat">
