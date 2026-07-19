@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  CheckCircle2,
   Download,
   Edit3,
   ExternalLink,
   Eye,
+  Loader2,
   Mail,
   MoreHorizontal,
   RotateCcw,
@@ -88,7 +90,59 @@ export function DonationActionsDropdown({
   const [refundOpen, setRefundOpen] = useState(false);
   const [fiscalOpen, setFiscalOpen] = useState(false);
   const [donorType, setDonorType] = useState(fiscalDefaults.donorType);
+  const [fiscalError, setFiscalError] = useState<string | null>(null);
+  const [fiscalUpdated, setFiscalUpdated] = useState(false);
+  const [isSendingCerfa, setIsSendingCerfa] = useState(false);
+  const [isUpdatingFiscal, setIsUpdatingFiscal] = useState(false);
+  const [sentCerfa, setSentCerfa] = useState(false);
   const receiptType = donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER";
+
+  function openFiscalDialog() {
+    setFiscalError(null);
+    setFiscalUpdated(false);
+    setSentCerfa(false);
+    setFiscalOpen(true);
+  }
+
+  async function handleFiscalSubmit(formData: FormData) {
+    setFiscalError(null);
+    setFiscalUpdated(false);
+    setSentCerfa(false);
+    setIsUpdatingFiscal(true);
+
+    try {
+      await updateDonationDetails(formData);
+      setFiscalUpdated(true);
+    } catch (error) {
+      setFiscalError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de mettre a jour les donnees fiscales.",
+      );
+    } finally {
+      setIsUpdatingFiscal(false);
+    }
+  }
+
+  async function handleSendCerfa() {
+    const formData = new FormData();
+    formData.set("donationId", donationId);
+    setFiscalError(null);
+    setIsSendingCerfa(true);
+
+    try {
+      await sendCerfaReceipt(formData);
+      setSentCerfa(true);
+    } catch (error) {
+      setFiscalError(
+        error instanceof Error
+          ? error.message
+          : "Impossible d'envoyer le Cerfa.",
+      );
+    } finally {
+      setIsSendingCerfa(false);
+    }
+  }
 
   return (
     <>
@@ -137,7 +191,7 @@ export function DonationActionsDropdown({
           {canEditFiscal ? (
             <button
               className={actionItemClassName}
-              onClick={() => setFiscalOpen(true)}
+              onClick={openFiscalDialog}
               type="button"
             >
               <Edit3 className="size-4" />
@@ -198,7 +252,17 @@ export function DonationActionsDropdown({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={fiscalOpen} onOpenChange={setFiscalOpen}>
+      <Dialog
+        open={fiscalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setFiscalError(null);
+            setFiscalUpdated(false);
+            setSentCerfa(false);
+          }
+          setFiscalOpen(open);
+        }}
+      >
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Modifier les donnees fiscales</DialogTitle>
@@ -207,7 +271,7 @@ export function DonationActionsDropdown({
               inchanges.
             </DialogDescription>
           </DialogHeader>
-          <form action={updateDonationDetails} className="grid gap-3">
+          <form action={handleFiscalSubmit} className="grid gap-3">
             <input name="donationId" type="hidden" value={donationId} />
             <input name="receiptType" type="hidden" value={receiptType} />
             <input name="firstName" type="hidden" value={fiscalDefaults.firstName} />
@@ -290,20 +354,67 @@ export function DonationActionsDropdown({
                 placeholder="Pays"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit">
-                Enregistrer et mettre a jour le Cerfa
+            {fiscalError ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
+                {fiscalError}
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button disabled={isUpdatingFiscal} type="submit">
+                {isUpdatingFiscal ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="size-4" />
+                )}
+                {isUpdatingFiscal
+                  ? "Mise a jour..."
+                  : "Enregistrer et mettre a jour le Cerfa"}
               </Button>
+              {fiscalUpdated ? (
+                <span className="inline-flex animate-in fade-in-0 zoom-in-95 items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-2 text-sm font-bold text-green-700">
+                  <CheckCircle2 className="size-4" />
+                  Donnees fiscales mises a jour
+                </span>
+              ) : null}
             </div>
           </form>
-          {hasCerfa ? (
-            <form action={sendCerfaReceipt} className="border-t border-[var(--border)] pt-3">
-              <input name="donationId" type="hidden" value={donationId} />
-              <Button type="submit" variant="secondary">
-                <Send className="size-4" />
-                Envoyer le Cerfa
-              </Button>
-            </form>
+          {hasCerfa && fiscalUpdated ? (
+            <div className="grid animate-in fade-in-0 slide-in-from-bottom-2 gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
+              <div className="grid gap-1">
+                <strong className="text-sm text-[var(--primary)]">
+                  Envoyer le Cerfa maintenant ?
+                </strong>
+                <span className="text-sm text-[var(--muted)]">
+                  Le PDF a ete regenere avec les nouvelles donnees fiscales.
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  disabled={isSendingCerfa || sentCerfa}
+                  onClick={handleSendCerfa}
+                  type="button"
+                  variant="secondary"
+                >
+                  {isSendingCerfa ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                  {sentCerfa
+                    ? "Cerfa envoye"
+                    : isSendingCerfa
+                      ? "Envoi..."
+                      : "Envoyer le Cerfa"}
+                </Button>
+                {sentCerfa ? (
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-green-700">
+                    <CheckCircle2 className="size-4" />
+                    Envoi effectue
+                  </span>
+                ) : null}
+              </div>
+            </div>
           ) : null}
         </DialogContent>
       </Dialog>
