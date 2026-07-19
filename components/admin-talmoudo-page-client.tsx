@@ -49,7 +49,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -505,9 +504,9 @@ function SessionActionsMenu({ session }: { session: AdminSession }) {
         <MoreHorizontal />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
-        <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
+        <div className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
           Actions du mivhan
-        </DropdownMenuLabel>
+        </div>
         <div>
           <EditMivhanDialog session={session} />
         </div>
@@ -538,9 +537,9 @@ function SessionActionsMenu({ session }: { session: AdminSession }) {
           </TalmoudoActionButton>
         </div>
         <DropdownMenuSeparator className="my-2" />
-        <DropdownMenuLabel className="px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
+        <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
           Zone sensible
-        </DropdownMenuLabel>
+        </div>
         <div>
           <DeleteMivhanDialog session={session} />
         </div>
