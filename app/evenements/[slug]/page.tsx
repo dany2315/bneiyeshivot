@@ -15,13 +15,14 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Camera, Film } from "lucide-react";
+import { Camera, Film, XIcon } from "lucide-react";
 
 export default async function EventDetailPage({
   params,
@@ -188,27 +189,45 @@ export default async function EventDetailPage({
                     </CardHeader>
                   </Card>
                 </DialogTrigger>
-                <DialogContent className="gallery-dialog-content max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+                <DialogContent
+                  showCloseButton={false}
+                  className="gallery-dialog-content max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl"
+                >
                   <DialogHeader className="gallery-dialog-header">
-                    <DialogTitle>{event.title}</DialogTitle>
-                    <DialogDescription>
-                      Galerie apres evenement - {galleryPhotos.length} photo(s)
-                    </DialogDescription>
+                    <div className="grid gap-2">
+                      <DialogTitle>{event.title}</DialogTitle>
+                      <DialogDescription>
+                        Galerie apres evenement - {galleryPhotos.length} photo(s)
+                      </DialogDescription>
+                    </div>
+                    <DialogClose
+                      render={
+                        <Button
+                          aria-label="Fermer"
+                          variant="ghost"
+                          size="icon-sm"
+                        />
+                      }
+                    >
+                      <XIcon className="size-4" />
+                    </DialogClose>
                   </DialogHeader>
-                  <div className="gallery-dialog-grid">
-                    {galleryPhotos.map((photo, photoIndex) => (
-                      <div
-                        className={
-                          photoIndex === 0
-                            ? "gallery-dialog-photo gallery-dialog-photo-featured"
-                            : "gallery-dialog-photo"
-                        }
-                        key={`${photo}-${photoIndex}`}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img alt="" src={photo} />
-                      </div>
-                    ))}
+                  <div className="gallery-dialog-scroll">
+                    <div className="gallery-dialog-grid">
+                      {galleryPhotos.map((photo, photoIndex) => (
+                        <div
+                          className={
+                            photoIndex === 0
+                              ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                              : "gallery-dialog-photo"
+                          }
+                          key={`${photo}-${photoIndex}`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img alt="" src={photo} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>

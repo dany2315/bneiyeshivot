@@ -16,24 +16,24 @@ export const services = [
   {
     title: "ETA-IL",
     description:
-      "Redirection vers la procedure officielle. Aucun dossier n'est gere dans l'admin pour ce service.",
-    href: "https://israel-entry.piba.gov.il/",
+      "Acces direct a la procedure officielle d'autorisation d'entree en Israel.",
+    href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     code: "ETA",
   },
   {
     title: "Boutique literie",
     description:
-      "Packs d'installation pour les etudiants qui arrivent en Israel, avec paiement et suivi commande.",
+      "Packs d'installation pour les etudiants qui arrivent en Israel, avec reservation sans paiement.",
     href: "/boutique",
     code: "STORE",
   },
 ];
 
 export const impactStats = [
-  ["1 500+", "jeunes accompagnes"],
-  ["300+", "demandes administratives"],
-  ["400+", "kits de lit distribues"],
-  ["300+", "participants aux yeshivot Ben Hazmanim"],
+  ["5 000+", "Jeunes accompagnés depuis notre création"],
+  ["300+", "Événements & programmes organisés"],
+  ["120 000+", "Heures de Torah étudiées chaque année"],
+  ["100 %", "Accompagnement gratuit et personnalisé"],
 ];
 
 export const adminMetrics = [
@@ -54,7 +54,7 @@ export const clientItems = [
   ["Demande visa", "Documents manquants", "Ajouter les pieces demandees"],
   ["Inscription mivhan", "Confirmee", "Session de juillet"],
   ["Don", "Recu disponible", "180 EUR - Stripe"],
-  ["Commande boutique", "En preparation", "Pack literie complet"],
+  ["Reservation boutique", "En preparation", "Pack literie complet"],
 ];
 
 export const bahourRequests = [

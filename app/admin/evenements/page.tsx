@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -45,6 +46,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { XIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -161,16 +163,33 @@ export default async function AdminEventsPage() {
                         </Button>
                       }
                     />
-                    <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Inscriptions - {event.title}</DialogTitle>
-                        <DialogDescription>
-                          {event._count.registrations} inscription(s) pour cet
-                          evenement.
-                        </DialogDescription>
+                    <DialogContent
+                      showCloseButton={false}
+                      className="max-h-[92vh] overflow-hidden p-0 sm:max-w-2xl"
+                    >
+                      <DialogHeader className="sticky top-0 z-20 grid grid-cols-[1fr_auto] items-start gap-3 border-b border-[var(--border)] bg-popover p-4">
+                        <div className="grid gap-2">
+                          <DialogTitle>Inscriptions - {event.title}</DialogTitle>
+                          <DialogDescription>
+                            {event._count.registrations} inscription(s) pour cet
+                            evenement.
+                          </DialogDescription>
+                        </div>
+                        <DialogClose
+                          render={
+                            <Button
+                              aria-label="Fermer"
+                              variant="ghost"
+                              size="icon-sm"
+                            />
+                          }
+                        >
+                          <XIcon className="size-4" />
+                        </DialogClose>
                       </DialogHeader>
-                      {event.registrations.length > 0 ? (
-                        <div className="table-wrap">
+                      <div className="max-h-[calc(92vh-96px)] overflow-y-auto p-4">
+                        {event.registrations.length > 0 ? (
+                          <div className="table-wrap">
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -243,6 +262,7 @@ export default async function AdminEventsPage() {
                           Aucune inscription pour le moment.
                         </p>
                       )}
+                      </div>
                     </DialogContent>
                   </Dialog>
                   )}

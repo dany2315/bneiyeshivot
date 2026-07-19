@@ -130,7 +130,7 @@ export const serviceDetails: ServiceDetail[] = [
     intro:
       "L'ETA-IL est une autorisation de voyage electronique a obtenir avant le depart pour pouvoir embarquer vers Israel dans certaines situations.",
     actionLabel: "Faire ma demande ETA-IL",
-    actionHref: "https://israel-entry.piba.gov.il/",
+    actionHref: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     external: true,
     sections: [
       {

@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   EventRegistrationStatus,
   ServiceRequestStatus,
   ServiceRequestType,
 } from "@prisma/client";
 import { PageShell, StatusBadge } from "../components";
+import { DonorDonationsTable } from "@/components/donor-donations-table";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { countDonationsForEmail, hasBahourActivity } from "@/lib/donor-access";
 import { formatDateTime } from "@/lib/event-content";
+import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
+import { BahourMivhanRegistrationCard } from "@/components/bahour-mivhan-registration-card";
+import { BahourMivhanSignupCards } from "@/components/bahour-mivhan-signup-cards";
 import {
   Alert,
   AlertDescription,
@@ -27,7 +33,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { CalendarCheck, CheckCircle2, FileText, Trophy } from "lucide-react";
+import {
+  CalendarCheck,
+  CheckCircle2,
+  FileText,
+  Trophy,
+} from "lucide-react";
 
 export const metadata = {
   title: "Espace Bahour",
@@ -67,9 +78,45 @@ function registrationTone(status: EventRegistrationStatus) {
   return "blue";
 }
 
-export default async function ClientPage() {
+function formatReward(amountCents: number | null, currency: string) {
+  if (amountCents === null) return "0";
+
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency,
+  }).format(amountCents / 100);
+}
+
+function readDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export default async function ClientPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ donFrom?: string; donTo?: string }>;
+}) {
   const user = await requireBahourUser();
-  const [requests, registrations] = await Promise.all([
+  const params = await searchParams;
+  const [isBahour, donationCount] = await Promise.all([
+    hasBahourActivity(user),
+    countDonationsForEmail(user.email, user.id),
+  ]);
+
+  if (!isBahour && donationCount > 0) {
+    redirect("/donateur");
+  }
+
+  const [
+    requests,
+    registrations,
+    mivhanRegistrations,
+    mivhanSessions,
+    donations,
+  ] =
+    await Promise.all([
     prisma.serviceRequest.findMany({
       where: { userId: user.id },
       include: {
@@ -86,6 +133,33 @@ export default async function ClientPage() {
       include: { event: true },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.mivhanRegistration.findMany({
+      where: { userId: user.id },
+      include: { session: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.mivhanSession.findMany({
+      where: {
+        date: { gte: new Date() },
+      },
+      orderBy: { date: "asc" },
+    }),
+    prisma.donation.findMany({
+      where: {
+        OR: [
+          { donorEmail: user.email },
+          { userId: user.id },
+          {
+            metadata: {
+              path: ["receiptEmail"],
+              equals: user.email,
+            },
+          },
+        ],
+      },
+      include: { receipt: true },
+      orderBy: { paidAt: "desc" },
+    }),
   ]);
 
   const inReviewCount = requests.filter(
@@ -94,6 +168,55 @@ export default async function ClientPage() {
   const missingDocsCount = requests.filter(
     (item) => item.status === "MISSING_DOCUMENTS",
   ).length;
+  const gradedMivhanim = mivhanRegistrations.filter(
+    (item) => item.grade !== null,
+  );
+  const averageGrade =
+    gradedMivhanim.length > 0
+      ? Math.round(
+          gradedMivhanim.reduce((total, item) => total + (item.grade ?? 0), 0) /
+            gradedMivhanim.length,
+        )
+      : null;
+  const totalRewardCents = mivhanRegistrations.reduce(
+    (total, item) =>
+      item.rewardCurrency === "ILS"
+        ? total + (item.rewardAmountCents ?? 0)
+        : total,
+    0,
+  );
+  const registeredFutureSessionIds = new Set(
+    mivhanRegistrations
+      .filter((registration) => registration.session.date >= new Date())
+      .map((registration) => registration.sessionId),
+  );
+  const talmoudoSessionOptions = mivhanSessions
+    .filter((session) => !registeredFutureSessionIds.has(session.id))
+    .map((session) => ({
+      disabled: !isMivhanRegistrationOpen(session),
+      id: session.id,
+      title: session.title,
+      dateLabel: formatDateTime(session.date),
+      location: session.location,
+    }));
+  const from = readDate(params.donFrom);
+  const to = readDate(params.donTo);
+  const donationDate =
+    from || to
+      ? {
+          gte: from ?? undefined,
+          lt: to ? new Date(to.getTime() + 24 * 60 * 60 * 1000) : undefined,
+        }
+      : undefined;
+  const filteredDonations = donationDate
+    ? donations.filter((donation) => {
+        const date = donation.paidAt ?? donation.createdAt;
+        return (
+          (!donationDate.gte || date >= donationDate.gte) &&
+          (!donationDate.lt || date < donationDate.lt)
+        );
+      })
+    : donations;
 
   return (
     <PageShell>
@@ -135,6 +258,11 @@ export default async function ClientPage() {
                     {registrations.length} inscription(s)
                   </StatusBadge>
                 )}
+                {mivhanRegistrations.length > 0 && (
+                  <StatusBadge tone="blue">
+                    {mivhanRegistrations.length} mivhanim
+                  </StatusBadge>
+                )}
                 {inReviewCount === 0 &&
                   missingDocsCount === 0 &&
                   registrations.length === 0 && (
@@ -145,7 +273,10 @@ export default async function ClientPage() {
               </div>
             )}
 
-            <Tabs defaultValue="requests" className="bahour-tabs mt-8">
+            <Tabs
+              defaultValue={params.donFrom || params.donTo ? "dons" : "requests"}
+              className="bahour-tabs mt-8"
+            >
               <TabsList
                 aria-label="Sections Espace Bahour"
                 className="bahour-tabs-list"
@@ -153,6 +284,9 @@ export default async function ClientPage() {
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
                 <TabsTrigger value="events">Evenements</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
+                {donations.length > 0 && (
+                  <TabsTrigger value="dons">Dons</TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="requests" className="grid gap-5">
@@ -238,14 +372,71 @@ export default async function ClientPage() {
               </TabsContent>
 
               <TabsContent value="mivhanim" className="grid gap-5">
-                <Alert>
-                  <Trophy />
-                  <AlertTitle>Mivhanim</AlertTitle>
-                  <AlertDescription>
-                    Les notes de mivhan seront rattachees a ce meme espace.
-                  </AlertDescription>
-                </Alert>
+                <div className="grid grid-3">
+                  <Card>
+                    <CardHeader>
+                      <Trophy className="size-5 text-[var(--accent)]" />
+                      <CardTitle>{mivhanRegistrations.length}</CardTitle>
+                      <CardDescription>Mivhanim Talmoudo Beyado</CardDescription>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <Trophy className="size-5 text-[var(--accent)]" />
+                      <CardTitle>
+                        {averageGrade === null ? "-" : `${averageGrade} / 100`}
+                      </CardTitle>
+                      <CardDescription>Moyenne des notes</CardDescription>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <Trophy className="size-5 text-[var(--accent)]" />
+                      <CardTitle>{formatReward(totalRewardCents, "ILS")}</CardTitle>
+                      <CardDescription>Recompenses recues</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </div>
+
+                <BahourMivhanSignupCards
+                  initialUser={user}
+                  sessions={talmoudoSessionOptions}
+                />
+
+                {mivhanRegistrations.length === 0 ? (
+                  <Alert>
+                    <Trophy />
+                    <AlertTitle>Aucun mivhan pour le moment</AlertTitle>
+                    <AlertDescription>
+                      Vos inscriptions, notes et recompenses Talmoudo Beyado
+                      apparaitront ici.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="grid grid-3">
+                    {mivhanRegistrations.map((registration) => (
+                      <BahourMivhanRegistrationCard
+                        canEdit={isMivhanRegistrationOpen(registration.session)}
+                        dateLabel={formatDateTime(registration.session.date)}
+                        key={registration.id}
+                        registration={registration}
+                      />
+                    ))}
+                  </div>
+                )}
               </TabsContent>
+
+              {donations.length > 0 && (
+                <TabsContent value="dons" className="grid gap-5">
+                  <DonorDonationsTable
+                    actionPath="/client"
+                    donations={filteredDonations}
+                    from={params.donFrom}
+                    title="Mes dons"
+                    to={params.donTo}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </section>

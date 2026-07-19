@@ -77,6 +77,37 @@ export async function uploadFileToS3(file: File, prefix: string) {
   };
 }
 
+export async function uploadBufferToS3({
+  body,
+  contentType,
+  fileName,
+  prefix,
+}: {
+  body: Buffer;
+  contentType: string;
+  fileName: string;
+  prefix: string;
+}) {
+  const config = requireS3Config();
+  const key = createS3Key(prefix, fileName);
+
+  await config.s3Client.send(
+    new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType || "application/octet-stream",
+    }),
+  );
+
+  return {
+    key,
+    url: publicUrlForKey(key),
+    mimeType: contentType || "application/octet-stream",
+    size: body.byteLength,
+  };
+}
+
 export async function uploadFilesToS3(files: File[], prefix: string) {
   const uploaded = await Promise.all(
     files
@@ -102,6 +133,14 @@ export async function deleteFileFromS3(key: string) {
   } catch (error) {
     console.error("[s3] suppression echouee", key, error);
   }
+}
+
+export async function deleteStoreProductImageFromS3(key: string) {
+  if (!key.startsWith("store/products/")) {
+    throw new Error("Cle image produit invalide.");
+  }
+
+  await deleteFileFromS3(key);
 }
 
 export async function deleteFilesFromS3(keys: string[]) {

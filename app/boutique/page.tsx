@@ -1,52 +1,49 @@
 import { PageShell } from "../components";
-import { storePacks } from "../data";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { StorefrontClient } from "@/components/storefront-client";
+import { prisma } from "@/lib/prisma";
+import { ensureDefaultStorefront } from "@/lib/store";
 
 export const metadata = {
   title: "Boutique",
 };
 
-export default function StorePage() {
+export default async function StorePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reservation?: string }>;
+}) {
+  const params = await searchParams;
+  const storefront = await ensureDefaultStorefront();
+  const products = await prisma.storeProduct.findMany({
+    where: { storefrontId: storefront.id, active: true },
+    orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
+  });
+
   return (
     <PageShell>
       <main>
-        <section className="page-hero">
-          <div className="container">
-            <span className="eyebrow">Installation en Israel</span>
-            <h1>Boutique literie</h1>
-            <p>
-              Premiere base pour vendre des packs d&apos;installation sans
-              compte, avec suivi commande dans l&apos;Espace Bahour et gestion
-              admin.
-            </p>
-          </div>
-        </section>
-        <section className="section">
-          <div className="container grid grid-3">
-            {storePacks.map(([pack, description, price]) => (
-              <Card key={pack}>
-                <CardHeader>
-                  <Badge variant="warning">KIT</Badge>
-                  <CardTitle>{pack}</CardTitle>
-                  <CardDescription>{description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between gap-4">
-                  <strong className="text-2xl text-[var(--primary)]">
-                    {price}
-                  </strong>
-                  <Button>Commander</Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <section className="section pt-0">
+          <StorefrontClient
+            products={products.map((product) => ({
+              id: product.id,
+              title: product.title,
+              slug: product.slug,
+              description: product.description,
+              priceCents: product.priceCents,
+              currency: product.currency,
+              imageUrl: product.imageUrl,
+              imageUrls: product.imageUrls,
+              stockQuantity: product.stockQuantity,
+              featured: product.featured,
+            }))}
+            reservationOk={params.reservation === "ok"}
+            storefront={{
+              active: storefront.active,
+              description: storefront.description,
+              name: storefront.name,
+              pickupDetails: storefront.pickupDetails,
+            }}
+          />
         </section>
       </main>
     </PageShell>

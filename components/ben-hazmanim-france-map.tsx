@@ -1,38 +1,86 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import Image from "next/image";
 import CountUp from "react-countup";
-import { CalendarDays, Clock3, MapPin, Users } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const cities = [
-  { name: "Le Raincy", region: "Seine-Saint-Denis", x: 53, y: 28 },
-  { name: "Epinay", region: "Seine-Saint-Denis", x: 49, y: 27 },
-  { name: "Paris 19eme", region: "Paris", x: 51, y: 30 },
-  { name: "Sarcelles", region: "Val-d'Oise", x: 48, y: 25 },
-  { name: "Neuilly", region: "Hauts-de-Seine", x: 49, y: 31 },
-  { name: "Bonneuil", region: "Val-de-Marne", x: 54, y: 33 },
-  { name: "Clichy", region: "Hauts-de-Seine", x: 48, y: 29 },
-  { name: "Marseille", region: "Bouches-du-Rhone", x: 67, y: 84 },
-  { name: "Aix-les-Bains", region: "Savoie", x: 74, y: 64 },
-  { name: "Strasbourg", region: "Alsace", x: 82, y: 34 },
+type RegionMap = {
+  name: string;
+  subtitle: string;
+  map?: string;
+  cities: Array<{
+    name: string;
+    area: string;
+    x: number;
+    y: number;
+  }>;
+};
+
+const regions: RegionMap[] = [
+  {
+    name: "Ile-de-France",
+    subtitle: "Paris et region parisienne",
+    map: "/maps/regions/ile-de-france.svg",
+    cities: [
+      { name: "Le Raincy", area: "Seine-Saint-Denis", x: 50.83, y: 32.46 },
+      { name: "Épinay-sur-Seine", area: "Seine-Saint-Denis", x: 42.48, y: 27.95 },
+      { name: "Paris 19", area: "Paris", x: 45.22, y: 33.77 },
+      { name: "Sarcelles", area: "Val-d'Oise", x: 45.07, y: 24.56 },
+      { name: "Centre Alef", area: "Paris", x: 43.9, y: 35.7 },
+      { name: "Bonneuil-sur-Marne", area: "Val-de-Marne", x: 49.42, y: 42.43 },
+      { name: "Clichy-sous-Bois", area: "Seine-Saint-Denis", x: 53.3, y: 32.1 },
+    ],
+  },
+  {
+    name: "Provence-Alpes-Cote d'Azur",
+    subtitle: "Marseille",
+    map: "/maps/regions/paca.svg",
+    cities: [{ name: "Marseille", area: "Bouches-du-Rhone", x: 36.33, y: 81.61 }],
+  },
+  {
+    name: "Grand Est",
+    subtitle: "Strasbourg",
+    map: "/maps/regions/grand-est.svg",
+    cities: [{ name: "Strasbourg", area: "Alsace", x: 81.57, y: 57.66 }],
+  },
+  {
+    name: "Auvergne-Rhone-Alpes",
+    subtitle: "Aix-les-Bains",
+    map: "/maps/regions/auvergne-rhone-alpes.svg",
+    cities: [{ name: "Aix-les-Bains", area: "Savoie", x: 72.78, y: 42.96 }],
+  },
+  {
+    name: "Israël",
+    subtitle: "Jérusalem",
+    cities: [{ name: "Jérusalem - Kiryat Yovel", area: "Israël", x: 52, y: 46 }],
+  },
 ];
 
-const years = 10;
-const totalParticipants = 300;
+const allCities = regions.flatMap((region) =>
+  region.cities.map((city) => ({ ...city, region: region.name })),
+);
+const participantsPerYear = 300;
+const totalParticipants = 3000;
 const daysPerYear = 30;
 const hoursPerDay = 3;
-const averageParticipantsPerYear = totalParticipants / years;
-const yearlyHours = averageParticipantsPerYear * daysPerYear * hoursPerDay;
+const yearlyHours = participantsPerYear * daysPerYear * hoursPerDay;
 const decadeHours = totalParticipants * daysPerYear * hoursPerDay;
+const logoFiles = [
+  "4bb0c924-11b4-4d32-88b3-37de6b6da11e.jpg",
+  "906f2a23-5a3d-41b6-a670-622727bc425b.jpeg",
+  "87894877-bbf0-4bdd-bfb3-7c05410a6ae1.jpeg",
+  "476dd32c-973f-41c4-9cdf-26b7855c96b3.jpeg",
+  "d2465f0f-c5a5-4522-84c6-90c1728b1e8a.jpeg",
+  "bb7765c2-14d1-44b3-adb9-2160b8eaf41a.jpeg",
+  "dd034949-264f-4079-b26a-14716c37d0b2.jpeg",
+  "IMG_1684.jpeg",
+];
 
 export function BenHazmanimFranceMap() {
-  const [activeCity, setActiveCity] = useState(cities[0]);
-  const selectedIndex = useMemo(
-    () => cities.findIndex((city) => city.name === activeCity.name),
-    [activeCity],
-  );
+  const [activeCity, setActiveCity] = useState(allCities[0]);
 
   return (
     <section className="section ben-map-section">
@@ -40,64 +88,83 @@ export function BenHazmanimFranceMap() {
         <div className="section-header">
           <div>
             <span className="eyebrow">France</span>
-            <h2>Un reseau vivant de programmes Ben Hazmanim</h2>
+            <h2>Les regions ou les programmes ont pris vie</h2>
           </div>
           <p>
-            Des points d&apos;etude installes dans les villes ou Bnei Yeshivot a
-            organise des programmes, avec un impact qui se mesure en heures de
-            Torah.
+            Un reseau de lieux d&apos;etude qui a grandi avec les communautes
+            locales, de la region parisienne jusqu&apos;a Jerusalem.
           </p>
         </div>
 
-        <div className="ben-map-layout">
-          <Card className="ben-map-card">
-            <CardContent>
-              <div className="ben-map-shell" aria-label="Carte des programmes en France">
-                <svg
-                  className="ben-france-svg"
-                  viewBox="0 0 420 480"
-                  role="img"
-                  aria-label="Carte stylisee de la France"
+        <div className="ben-region-layout">
+          <div className="ben-region-main">
+            <div className="ben-region-grid">
+              {regions.map((region) => (
+                <Card
+                  className={cn(
+                    "ben-region-card",
+                    region.name === activeCity.region && "ben-region-card-active",
+                  )}
+                  key={region.name}
                 >
-                  <path
-                    d="M207 25 319 56 386 142 361 263 317 360 207 446 91 392 39 284 53 143 113 61Z"
-                    className="ben-france-shape"
-                  />
-                  <path
-                    d="M113 61 158 117 208 106 260 137 319 56M53 143 142 181 207 163 278 197 386 142M39 284 124 268 202 298 285 268 361 263M91 392 174 352 247 376 317 360"
-                    className="ben-france-lines"
-                  />
-                </svg>
+                  <CardContent>
+                    <div className="ben-region-card-header">
+                      <strong>{region.name}</strong>
+                      <span>{region.subtitle}</span>
+                    </div>
 
-                {cities.map((city, index) => (
-                  <button
-                    className={cn(
-                      "ben-map-point",
-                      city.name === activeCity.name && "ben-map-point-active",
-                    )}
-                    key={city.name}
-                    onClick={() => setActiveCity(city)}
-                    style={{
-                      "--point-x": `${city.x}%`,
-                      "--point-y": `${city.y}%`,
-                      "--point-delay": `${index * 90}ms`,
-                    } as CSSProperties}
-                    type="button"
-                    aria-label={`Voir ${city.name}`}
-                  >
-                    <span />
-                  </button>
-                ))}
-              </div>
+                    <div className="ben-region-map" aria-label={`Carte ${region.name}`}>
+                      {region.map ? (
+                        <Image
+                          alt=""
+                          className="ben-region-map-img"
+                          fill
+                          priority={region.name === "Ile-de-France"}
+                          sizes="(max-width: 980px) 100vw, 32vw"
+                          src={region.map}
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="ben-region-map-fallback">
+                          <strong>Israël</strong>
+                          <span>Jérusalem</span>
+                        </div>
+                      )}
 
-              <div className="ben-city-rail">
-                {cities.map((city) => (
+                      {region.cities.map((city, index) => (
+                        <button
+                          className={cn(
+                            "ben-map-point",
+                            city.name === activeCity.name && "ben-map-point-active",
+                          )}
+                          key={city.name}
+                          onClick={() => setActiveCity({ ...city, region: region.name })}
+                          style={{
+                            "--point-x": `${city.x}%`,
+                            "--point-y": `${city.y}%`,
+                            "--point-delay": `${index * 90}ms`,
+                          } as CSSProperties}
+                          type="button"
+                          aria-label={`Voir ${city.name}`}
+                        >
+                          <span />
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="ben-city-rail" aria-label="Lieux Ben Hazmanim">
+              <div className="ben-city-track">
+                {[...allCities, ...allCities].map((city, index) => (
                   <button
                     className={cn(
                       "ben-city-pill",
                       city.name === activeCity.name && "ben-city-pill-active",
                     )}
-                    key={city.name}
+                    key={`${city.region}-${city.name}-${index}`}
                     onClick={() => setActiveCity(city)}
                     type="button"
                   >
@@ -105,35 +172,11 @@ export function BenHazmanimFranceMap() {
                   </button>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-
-          <div className="ben-map-insight">
-            <Card className="ben-map-active-card">
-              <CardContent>
-                <span className="icon-box">
-                  <MapPin className="size-5" />
-                </span>
-                <small>Point selectionne</small>
-                <strong>{activeCity.name}</strong>
-                <p>
-                  Programme organise dans la zone {activeCity.region}. Ce point
-                  fait partie des {cities.length} implantations actives du reseau.
-                </p>
-                <p className="ben-map-formula">
-                  Calcul en heures-personnes : 30 participants x 30 jours x 3
-                  heures = 2 700 heures etudiees cette annee.
-                </p>
-                <div className="ben-map-progress" style={{ "--active-index": selectedIndex + 1 } as CSSProperties}>
-                  <span />
-                </div>
-              </CardContent>
-            </Card>
+            </div>
 
             <div className="ben-map-stats">
               <Card className="ben-map-stat ben-map-stat-main">
                 <CardContent>
-                  <Clock3 className="size-5" />
                   <strong>
                     <CountUp
                       end={yearlyHours}
@@ -180,6 +223,25 @@ export function BenHazmanimFranceMap() {
                 </CardContent>
               </Card>
             </div>
+
+            <div className="ben-logo-rail" aria-label="Logos Bnei Yeshivot">
+              <div className="ben-logo-track">
+                {[...logoFiles, ...logoFiles].map((file, index) => (
+                  <div className="ben-logo-item" key={`${file}-${index}`}>
+                    <Image
+                      alt=""
+                      fill
+                      sizes="120px"
+                      src={`/logobneiyeshivot/${file}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="ben-map-source">
+              Cartes regionales: france-geojson, donnees ouvertes IGN/INSEE.
+            </p>
           </div>
         </div>
       </div>

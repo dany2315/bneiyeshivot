@@ -59,6 +59,8 @@ export async function createServiceRequest(
 ): Promise<ServiceRequest> {
   const input = normalizeRequestInput(rawInput);
   const fullName = `${input.firstName} ${input.lastName}`.trim();
+  const programType =
+    input.kind === "visa" ? input.personStatus : input.school;
 
   return prisma.$transaction(async (tx) => {
     const user = await tx.user.upsert({
@@ -69,12 +71,16 @@ export async function createServiceRequest(
         firstName: input.firstName,
         lastName: input.lastName,
         phone: input.phone,
+        parentPhone: input.parentPhone,
+        programType,
       },
       update: {
         name: fullName,
         firstName: input.firstName,
         lastName: input.lastName,
         phone: input.phone,
+        parentPhone: input.parentPhone,
+        programType,
       },
     });
 

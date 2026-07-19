@@ -10,6 +10,7 @@ import {
   Flag,
 } from "lucide-react";
 import { DocumentAttachmentCard } from "@/components/document-attachment-card";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -342,6 +343,7 @@ export type RequestFormInitialUser = {
   lastName?: string | null;
   email?: string | null;
   phone?: string | null;
+  parentPhone?: string | null;
 };
 
 export function RequestStepForm({
@@ -392,6 +394,7 @@ export function RequestStepForm({
         !hasText("lastName") ||
         !hasText("email") ||
         !hasText("phone") ||
+        !hasText("parentPhone") ||
         !hasText("birthDate") ||
         !hasText("nationality")
       ) {
@@ -628,14 +631,23 @@ export function RequestStepForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={`${type}-phone`}>
-                Telephone / WhatsApp
-              </FieldLabel>
-              <Input
+              <FieldLabel htmlFor={`${type}-phone`}>Telephone</FieldLabel>
+              <PhoneInputGroup
                 defaultValue={initialUser?.phone ?? ""}
                 id={`${type}-phone`}
                 name="phone"
-                placeholder="+972 ..."
+                required
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor={`${type}-parent-phone`}>
+                Telephone des parents
+              </FieldLabel>
+              <PhoneInputGroup
+                autoComplete="tel"
+                defaultValue={initialUser?.parentPhone ?? ""}
+                id={`${type}-parent-phone`}
+                name="parentPhone"
                 required
               />
             </Field>

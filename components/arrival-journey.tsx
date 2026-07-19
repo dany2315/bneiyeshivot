@@ -34,8 +34,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// TODO: remplacer par le lien du groupe WhatsApp de l'association.
-const WHATSAPP_URL = "https://chat.whatsapp.com/";
+const WHATSAPP_URL =
+  "https://chat.whatsapp.com/EJr8re5PAc6B3hTYuwEp7J?s=cl&p=i&ilr=1";
 const STORAGE_KEY = "arrival-journey-progress-v1";
 
 /**

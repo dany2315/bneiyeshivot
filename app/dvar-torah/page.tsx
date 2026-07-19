@@ -62,8 +62,8 @@ export default async function DvarTorahPage() {
             <h1>Feuillets a telecharger, ouvrir ou partager</h1>
             <p>
               Retrouvez les feuillets mis a disposition par Bnei Yeshivot pour
-              les Chabbatot et les fetes. Les prochains fichiers seront ajoutes
-              depuis l&apos;interface admin.
+              les Chabbatot et les fetes. De nouveaux contenus seront ajoutes
+              regulierement pour accompagner l&apos;etude de la semaine.
             </p>
           </div>
         </section>
