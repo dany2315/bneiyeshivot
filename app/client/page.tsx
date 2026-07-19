@@ -527,31 +527,27 @@ export default async function ClientPage({
                 )}
               </TabsContent>
 
-              <TabsContent value="mivhanim" className="grid gap-5">
-                <div className="grid grid-3">
-                  <Card>
-                    <CardHeader>
-                      <Trophy className="size-5 text-[var(--accent)]" />
-                      <CardTitle>{mivhanRegistrations.length}</CardTitle>
-                      <CardDescription>Mivhanim Talmoudo Beyado</CardDescription>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <Trophy className="size-5 text-[var(--accent)]" />
-                      <CardTitle>
-                        {averageGrade === null ? "-" : `${averageGrade} / 100`}
-                      </CardTitle>
-                      <CardDescription>Moyenne des notes</CardDescription>
-                    </CardHeader>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <Trophy className="size-5 text-[var(--accent)]" />
-                      <CardTitle>{formatReward(totalRewardCents, "ILS")}</CardTitle>
-                      <CardDescription>Recompenses recues</CardDescription>
-                    </CardHeader>
-                  </Card>
+              <TabsContent value="mivhanim" className="grid gap-4">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-y border-[var(--border)] py-3">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="size-4 text-[var(--accent)]" />
+                    <span className="text-2xl font-bold text-[var(--primary)]">
+                      {mivhanRegistrations.length}
+                    </span>
+                    <span className="text-sm text-[var(--muted)]">mivhanim</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[var(--primary)]">
+                      {averageGrade === null ? "-" : `${averageGrade} / 100`}
+                    </span>
+                    <span className="text-sm text-[var(--muted)]">moyenne</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-[var(--primary)]">
+                      {formatReward(totalRewardCents, "ILS")}
+                    </span>
+                    <span className="text-sm text-[var(--muted)]">recues</span>
+                  </div>
                 </div>
 
                 <BahourMivhanSignupCards
@@ -569,7 +565,7 @@ export default async function ClientPage({
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <div className="grid grid-3">
+                  <div className="grid gap-2">
                     {mivhanRegistrations.map((registration) => (
                       <BahourMivhanRegistrationCard
                         canEdit={isMivhanRegistrationOpen(registration.session)}

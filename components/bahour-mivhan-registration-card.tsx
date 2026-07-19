@@ -5,14 +5,7 @@ import { TalmoudoDialogActionForm } from "@/components/talmoudo-action-form";
 import { StatusBadge } from "@/app/components";
 import { updateBahourTalmoudoRegistrationState } from "@/app/client/actions";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Edit3, Trophy } from "lucide-react";
+import { CalendarDays, Edit3, Trophy } from "lucide-react";
 import { dapimRangesToHebrew } from "@/lib/shas";
 
 type BahourMivhanRegistration = {
@@ -56,14 +49,44 @@ export function BahourMivhanRegistrationCard({
       : "Dapim a confirmer";
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <Trophy className="mb-2 size-5 text-[var(--accent)]" />
-            <CardTitle>{registration.session.title}</CardTitle>
-            <CardDescription>{dateLabel}</CardDescription>
+    <div className="rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-md bg-[var(--subtle)] text-[var(--accent)]">
+            <Trophy className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <strong className="truncate text-sm text-[var(--primary)]">
+                {registration.session.title}
+              </strong>
+              <StatusBadge tone={registration.grade === null ? "blue" : "green"}>
+                {registration.grade === null
+                  ? "Inscrit"
+                  : `${registration.grade} / 100`}
+              </StatusBadge>
+            </div>
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
+              <span className="inline-flex items-center gap-1">
+                <CalendarDays className="size-3.5" />
+                {dateLabel}
+              </span>
+              <span className="font-medium text-[var(--primary)]">
+                {registration.massehet ?? "Massehet"}
+              </span>
+              <span>{dapimLabel}</span>
+            </div>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+          <span className="rounded-md bg-[var(--subtle)] px-2 py-1">
+            {formatReward(
+              registration.rewardAmountCents,
+              registration.rewardCurrency,
+            )}
+          </span>
+          <span>{registration.rewardPaid ? "Donnee" : "En attente"}</span>
           {canEdit ? (
             <TalmoudoDialogActionForm
               action={updateBahourTalmoudoRegistrationState}
@@ -72,9 +95,8 @@ export function BahourMivhanRegistrationCard({
               submitLabel="Enregistrer"
               title="Modifier mon inscription"
               trigger={
-                <Button size="sm" variant="secondary">
+                <Button size="icon-sm" variant="secondary" aria-label="Modifier">
                   <Edit3 />
-                  Modifier
                 </Button>
               }
             >
@@ -88,33 +110,7 @@ export function BahourMivhanRegistrationCard({
             </TalmoudoDialogActionForm>
           ) : null}
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-3">
-        <StatusBadge tone={registration.grade === null ? "blue" : "green"}>
-          {registration.grade === null
-            ? "Inscrit"
-            : `${registration.grade} / 100`}
-        </StatusBadge>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
-          <strong className="text-[var(--primary)]">
-            {registration.massehet ?? "Massehet"}
-          </strong>
-          <p className="text-sm text-[var(--muted)]">{dapimLabel}</p>
-        </div>
-        <div className="grid gap-1 text-sm text-[var(--muted)]">
-          <span>
-            Recompense :{" "}
-            {formatReward(
-              registration.rewardAmountCents,
-              registration.rewardCurrency,
-            )}
-          </span>
-          <span>
-            Statut :{" "}
-            {registration.rewardPaid ? "recompense donnee" : "en attente"}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

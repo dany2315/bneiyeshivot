@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { StatusBadge } from "@/app/components";
@@ -42,6 +42,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -61,6 +66,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   CalendarPlus,
+  BookOpen,
   ClipboardCheck,
   Edit3,
   Lock,
@@ -167,6 +173,28 @@ function registrationSearchText(registration: AdminRegistration) {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+}
+
+function sessionStats(session: AdminSession) {
+  const total = session.registrations.length;
+  const graded = session.registrations.filter((item) => item.grade !== null).length;
+  const paid = session.registrations.filter((item) => item.rewardPaid).length;
+  const unpaid = session.registrations.filter((item) => !item.rewardPaid).length;
+
+  return { total, graded, paid, unpaid };
+}
+
+function masechtotStats(registrations: AdminRegistration[]) {
+  const counts = new Map<string, number>();
+
+  registrations.forEach((registration) => {
+    const key = registration.massehet?.trim() || "Non renseignee";
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 function EditMivhanDialog({ session }: { session: AdminSession }) {
@@ -528,17 +556,28 @@ export function AdminTalmoudoPageClient({
     sessions[0]?.id ?? null,
   );
   const [query, setQuery] = useState("");
+  const [registrationView, setRegistrationView] = useState("all");
   const selectedSession = sessions.find((session) => session.id === selectedSessionId);
-  const filteredRegistrations = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-
-    if (!selectedSession) return [];
-    if (!normalized) return selectedSession.registrations;
-
-    return selectedSession.registrations.filter((registration) =>
-      registrationSearchText(registration).includes(normalized),
-    );
-  }, [query, selectedSession]);
+  const selectedStats = selectedSession ? sessionStats(selectedSession) : null;
+  const selectedMasechtotStats = selectedSession
+    ? masechtotStats(selectedSession.registrations)
+    : [];
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredRegistrations = selectedSession
+    ? selectedSession.registrations
+        .filter((registration) => {
+          if (registrationView === "paid") return registration.rewardPaid;
+          if (registrationView === "unpaid") return !registration.rewardPaid;
+          if (registrationView === "graded") return registration.grade !== null;
+          if (registrationView === "pending-grade") return registration.grade === null;
+          return true;
+        })
+        .filter((registration) =>
+          normalizedQuery
+            ? registrationSearchText(registration).includes(normalizedQuery)
+            : true,
+        )
+    : [];
 
   return (
     <>
@@ -644,33 +683,37 @@ export function AdminTalmoudoPageClient({
           </Card>
         ) : (
           <div className="grid gap-6">
-            <div className="grid grid-3">
+            <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-3">
               {sessions.map((session) => {
                 const open = isOpen(session);
+                const stats = sessionStats(session);
 
                 return (
                   <Card
                     className={
                       selectedSessionId === session.id
-                        ? "border-[var(--accent)] shadow-[0_18px_45px_rgba(242,99,0,0.16)]"
-                        : ""
+                        ? "min-w-[280px] border-[var(--accent)] shadow-[0_14px_34px_rgba(242,99,0,0.14)]"
+                        : "min-w-[280px]"
                     }
                     key={session.id}
                   >
                     <CardHeader
-                      className="cursor-pointer"
+                      className="cursor-pointer gap-2 p-4"
                       onClick={() => {
                         setSelectedSessionId(session.id);
                         setQuery("");
+                        setRegistrationView("all");
                       }}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                        <CardTitle>{session.title}</CardTitle>
-                        <CardDescription>
-                          {formatDate(session.date)}
-                          {session.location ? ` - ${session.location}` : ""}
-                        </CardDescription>
+                        <div className="min-w-0">
+                          <CardTitle className="truncate text-base">
+                            {session.title}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            {formatDate(session.date)}
+                            {session.location ? ` - ${session.location}` : ""}
+                          </CardDescription>
                         </div>
                         <div onClick={(event) => event.stopPropagation()}>
                           <SessionActionsMenu session={session} />
@@ -678,10 +721,11 @@ export function AdminTalmoudoPageClient({
                       </div>
                     </CardHeader>
                     <CardContent
-                      className="grid cursor-pointer gap-3"
+                      className="grid cursor-pointer gap-3 px-4 pb-4 pt-0"
                       onClick={() => {
                         setSelectedSessionId(session.id);
                         setQuery("");
+                        setRegistrationView("all");
                       }}
                     >
                       <div className="flex flex-wrap gap-2">
@@ -689,11 +733,31 @@ export function AdminTalmoudoPageClient({
                           {open ? "Ouvert" : "Ferme"}
                         </StatusBadge>
                         <StatusBadge tone="blue">
-                          {session.registrations.length} inscrit(s)
+                          {stats.total} inscrit(s)
                         </StatusBadge>
                       </div>
-                      <p className="text-sm text-[var(--muted)]">
-                        Fermeture automatique : {formatDate(getCloseDate(session))}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-md bg-[var(--subtle)] px-2 py-1">
+                          <strong className="block text-sm text-[var(--primary)]">
+                            {stats.graded}
+                          </strong>
+                          <span className="text-[11px] text-[var(--muted)]">notes</span>
+                        </div>
+                        <div className="rounded-md bg-[var(--subtle)] px-2 py-1">
+                          <strong className="block text-sm text-[var(--primary)]">
+                            {stats.paid}
+                          </strong>
+                          <span className="text-[11px] text-[var(--muted)]">payes</span>
+                        </div>
+                        <div className="rounded-md bg-[var(--subtle)] px-2 py-1">
+                          <strong className="block text-sm text-[var(--primary)]">
+                            {stats.unpaid}
+                          </strong>
+                          <span className="text-[11px] text-[var(--muted)]">a payer</span>
+                        </div>
+                      </div>
+                      <p className="truncate text-xs text-[var(--muted)]">
+                        Ferme le {formatDate(getCloseDate(session))}
                       </p>
                     </CardContent>
                   </Card>
@@ -714,14 +778,105 @@ export function AdminTalmoudoPageClient({
                   </div>
                 </CardHeader>
                 <CardContent className="grid gap-5">
-                  <div className="relative max-w-xl">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
-                    <Input
-                      className="pl-9"
-                      onChange={(event) => setQuery(event.currentTarget.value)}
-                      placeholder="Rechercher un Bahour, email, yeshiva, massehet..."
-                      value={query}
-                    />
+                  {selectedStats ? (
+                    <div className="grid gap-4 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-4">
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <div>
+                          <span className="text-xs font-semibold uppercase text-[var(--muted)]">
+                            Inscriptions
+                          </span>
+                          <p className="mt-1 text-2xl font-bold text-[var(--primary)]">
+                            {selectedStats.total}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-semibold uppercase text-[var(--muted)]">
+                            Notes saisies
+                          </span>
+                          <p className="mt-1 text-2xl font-bold text-[var(--primary)]">
+                            {selectedStats.graded}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-semibold uppercase text-[var(--muted)]">
+                            Payes
+                          </span>
+                          <p className="mt-1 text-2xl font-bold text-[var(--primary)]">
+                            {selectedStats.paid}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-xs font-semibold uppercase text-[var(--muted)]">
+                            A payer
+                          </span>
+                          <p className="mt-1 text-2xl font-bold text-[var(--primary)]">
+                            {selectedStats.unpaid}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2">
+                        <div className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
+                          <BookOpen className="size-4 text-[var(--accent)]" />
+                          Repartition par massehet
+                        </div>
+                        {selectedMasechtotStats.length > 0 ? (
+                          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                            {selectedMasechtotStats.map((item) => (
+                              <div
+                                className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm"
+                                key={item.name}
+                              >
+                                <span className="truncate font-medium text-[var(--primary)]">
+                                  {item.name}
+                                </span>
+                                <span className="rounded-full bg-[var(--subtle)] px-2 py-0.5 text-xs font-bold text-[var(--muted)]">
+                                  {item.count}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-[var(--muted)]">
+                            Aucune massehet renseignee pour ce mivhan.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <Tabs
+                      value={registrationView}
+                      onValueChange={setRegistrationView}
+                    >
+                      <TabsList className="w-full flex-wrap justify-start">
+                        <TabsTrigger value="all">
+                          Inscriptions ({selectedStats?.total ?? 0})
+                        </TabsTrigger>
+                        <TabsTrigger value="graded">
+                          Notes ({selectedStats?.graded ?? 0})
+                        </TabsTrigger>
+                        <TabsTrigger value="pending-grade">
+                          A noter ({(selectedStats?.total ?? 0) - (selectedStats?.graded ?? 0)})
+                        </TabsTrigger>
+                        <TabsTrigger value="paid">
+                          Payes ({selectedStats?.paid ?? 0})
+                        </TabsTrigger>
+                        <TabsTrigger value="unpaid">
+                          A payer ({selectedStats?.unpaid ?? 0})
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <div className="relative w-full lg:max-w-md">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
+                      <Input
+                        className="pl-9"
+                        onChange={(event) => setQuery(event.currentTarget.value)}
+                        placeholder="Rechercher Bahour, email, yeshiva, massehet..."
+                        value={query}
+                      />
+                    </div>
                   </div>
 
                   <div className="table-wrap">
