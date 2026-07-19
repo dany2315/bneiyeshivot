@@ -30,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -407,6 +406,8 @@ export function DonationCheckoutForm({
   const afterTaxAmount = effectiveAmount * 0.34;
   const isNedarimPayment = currency === "ILS";
   const receiptAvailable = currency === "EUR";
+  const ActiveStepIcon = steps[activeStep]?.icon ?? BadgeEuro;
+  const activeStepTitle = steps[activeStep]?.title ?? "Don";
 
   useEffect(() => {
     if (!didMountRef.current) {
@@ -554,14 +555,12 @@ export function DonationCheckoutForm({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
-              <BadgeEuro className="size-5" />
+              <ActiveStepIcon className="size-5" />
             </span>
             <div>
-              <CardTitle className="text-xl sm:text-2xl">Finaliser mon don</CardTitle>
-              <CardDescription>
-                Avancez etape par etape. Le recu Cerfa est genere automatiquement
-                pour chaque don confirme.
-              </CardDescription>
+              <CardTitle className="text-xl sm:text-2xl">
+                {activeStepTitle}
+              </CardTitle>
             </div>
           </div>
           <Badge variant="info" className="gap-2 px-3 py-2">
