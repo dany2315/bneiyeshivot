@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AddressElement,
@@ -82,35 +82,6 @@ function moneyLabel(amount: number, currency: string) {
     currency,
     maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
   }).format(amount);
-}
-
-function StepHeader({
-  description,
-  icon,
-  number,
-  title,
-}: {
-  description: string;
-  icon: ReactNode;
-  number: string;
-  title: string;
-}) {
-  return (
-    <div className="flex gap-3">
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--primary)] text-sm font-black text-white">
-        {number}
-      </span>
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-[var(--accent)]">{icon}</span>
-          <h2 className="text-lg font-bold text-[var(--primary)]">{title}</h2>
-        </div>
-        <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-          {description}
-        </p>
-      </div>
-    </div>
-  );
 }
 
 function EmbeddedPaymentForm({
@@ -406,8 +377,29 @@ export function DonationCheckoutForm({
   const afterTaxAmount = effectiveAmount * 0.34;
   const isNedarimPayment = currency === "ILS";
   const receiptAvailable = currency === "EUR";
-  const ActiveStepIcon = steps[activeStep]?.icon ?? BadgeEuro;
-  const activeStepTitle = steps[activeStep]?.title ?? "Don";
+  const activeStepHeading =
+    activeStep === 0
+      ? {
+          description: "Choisissez une proposition ou entrez un montant libre.",
+          icon: BadgeEuro,
+          title: "Montant et frequence",
+        }
+      : activeStep === 1
+        ? {
+            description: receiptAvailable
+              ? "Une seule saisie pour le paiement, le donateur et le recu Cerfa."
+              : "Une seule saisie pour le paiement et la confirmation du don.",
+            icon: User,
+            title: receiptAvailable ? "Donateur et Cerfa" : "Donateur",
+          }
+        : {
+            description: isNedarimPayment
+              ? "Saisissez votre carte bancaire dans le module securise pour les paiements en shekel."
+              : "Saisissez votre carte bancaire dans un module Stripe securise, sans quitter la page.",
+            icon: ShieldCheck,
+            title: "Paiement securise",
+          };
+  const ActiveStepIcon = activeStepHeading.icon;
 
   useEffect(() => {
     if (!didMountRef.current) {
@@ -557,10 +549,13 @@ export function DonationCheckoutForm({
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
               <ActiveStepIcon className="size-5" />
             </span>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-xl sm:text-2xl">
-                {activeStepTitle}
+                {activeStepHeading.title}
               </CardTitle>
+              <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                {activeStepHeading.description}
+              </p>
             </div>
           </div>
           <Badge variant="info" className="gap-2 px-3 py-2">
@@ -667,14 +662,7 @@ export function DonationCheckoutForm({
                 : "hidden"
             }
           >
-            <StepHeader
-              description="Choisissez une proposition ou entrez un montant libre."
-              icon={<BadgeEuro className="size-5" />}
-              number="1"
-              title="Montant et frequence"
-            />
-
-            <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
               {donationAmountOptions.map((amount) => (
                 <button
                   className="grid min-h-16 place-items-center rounded-xl border border-[var(--border)] bg-white font-serif text-xl font-bold text-[var(--primary)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)] sm:min-h-20 sm:text-2xl"
@@ -831,18 +819,7 @@ export function DonationCheckoutForm({
                 : "hidden"
             }
           >
-            <StepHeader
-              description={
-                isNedarimPayment
-                  ? "Saisissez votre carte bancaire dans le module securise pour les paiements en shekel."
-                  : "Saisissez votre carte bancaire dans un module Stripe securise, sans quitter la page."
-              }
-              icon={<ShieldCheck className="size-5" />}
-              number="3"
-              title="Paiement securise"
-            />
-
-            <div className="mt-5 grid gap-4">
+            <div className="grid gap-4">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
@@ -897,18 +874,7 @@ export function DonationCheckoutForm({
                 : "hidden"
             }
           >
-            <StepHeader
-              description={
-                receiptAvailable
-                  ? "Une seule saisie pour le paiement, le donateur et le recu Cerfa."
-                  : "Une seule saisie pour le paiement et la confirmation du don."
-              }
-              icon={<User className="size-5" />}
-              number="2"
-              title={receiptAvailable ? "Donateur et Cerfa" : "Donateur"}
-            />
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <button
                 className="flex min-h-14 items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 text-left transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)]"
                 data-selected={donorType === "PARTICULIER"}
