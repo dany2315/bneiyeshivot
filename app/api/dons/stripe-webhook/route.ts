@@ -329,7 +329,9 @@ async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
         paidAt: donation.paidAt ?? new Date(),
       },
     });
-    await upsertDonationPaymentFromIntent(donation.id, intent, "PAID");
+    if (donation.frequency !== DonationFrequency.MONTHLY) {
+      await upsertDonationPaymentFromIntent(donation.id, intent, "PAID");
+    }
     await handleDonationConfirmation(updatedDonation.id);
   }
 
@@ -341,7 +343,9 @@ async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
         canceledAt: new Date(),
       },
     });
-    await upsertDonationPaymentFromIntent(donation.id, intent, "CANCELED");
+    if (donation.frequency !== DonationFrequency.MONTHLY) {
+      await upsertDonationPaymentFromIntent(donation.id, intent, "CANCELED");
+    }
   }
 
   if (intent.status === "requires_payment_method") {
@@ -352,7 +356,9 @@ async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
         failureReason: intent.last_payment_error?.message ?? null,
       },
     });
-    await upsertDonationPaymentFromIntent(donation.id, intent, "FAILED");
+    if (donation.frequency !== DonationFrequency.MONTHLY) {
+      await upsertDonationPaymentFromIntent(donation.id, intent, "FAILED");
+    }
   }
 }
 
@@ -893,6 +899,14 @@ async function updateChargeRefund(charge: Stripe.Charge) {
       status,
       refundedAmountCents: refundedAmount,
       refundedAt: refundedAmount > 0 ? new Date() : null,
+    },
+  });
+  await prisma.donationPayment.updateMany({
+    where: { stripePaymentIntentId: charge.payment_intent },
+    data: {
+      refundedAmountCents: refundedAmount,
+      refundedAt: refundedAmount > 0 ? new Date() : null,
+      status,
     },
   });
 }

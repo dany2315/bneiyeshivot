@@ -228,10 +228,9 @@ export async function POST(request: Request) {
       });
       let { clientSecret, paymentIntent, paymentIntentId } =
         stripeInvoicePaymentConfirmation(subscriptionLatestInvoice(subscription));
+      const latestInvoiceId = subscriptionLatestInvoiceId(subscription);
 
       if (!clientSecret || !paymentIntentId) {
-        const latestInvoiceId = subscriptionLatestInvoiceId(subscription);
-
         if (latestInvoiceId) {
           const invoice = await stripe.invoices.retrieve(latestInvoiceId, {
             expand: ["confirmation_secret", "payment_intent"],
@@ -266,6 +265,7 @@ export async function POST(request: Request) {
             recurringMonths && recurringMonths > 0 ? recurringMonths : null,
           billingReason: "subscription_create",
           status: paymentIntent?.status === "succeeded" ? "PAID" : "PENDING",
+          stripeInvoiceId: latestInvoiceId,
           stripePaymentIntentId: paymentIntentId,
           metadata: { subscriptionId: subscription.id } as Prisma.InputJsonObject,
         },

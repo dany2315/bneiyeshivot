@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   CerfaReceiptType,
   DonationSource,
+  PaymentProvider,
   PaymentStatus,
   Prisma,
   ReceiptStatus,
@@ -10,13 +11,10 @@ import {
   createManualDonation,
   deleteManualDonation,
   refundDonation,
-  saveDonationReceipt,
   sendCerfaReceipt,
   sendPaymentReceipt,
   updateDonationDetails,
   updateDonationAdminNote,
-  updateDonationReceiptStatus,
-  updateDonationStatus,
 } from "./actions";
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
@@ -38,6 +36,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import {
   NativeSelect,
   NativeSelectOption,
@@ -65,12 +72,14 @@ import { requireAdminUser } from "@/lib/session";
 import {
   Banknote,
   Download,
+  Eye,
   ExternalLink,
   FileText,
   Mail,
-  ReceiptText,
+  MoreHorizontal,
   RotateCcw,
   Search,
+  Send,
   Trash2,
 } from "lucide-react";
 
@@ -87,12 +96,36 @@ const receiptStatusLabels: Record<ReceiptStatus, string> = {
   SENT: "Envoye",
 };
 
+const donationProviderLabels: Record<PaymentProvider, string> = {
+  STRIPE: "Stripe",
+  NEDARIM_PLUS: "Nedarim Plus",
+};
+
 function donationTone(status: PaymentStatus) {
   if (status === "PAID") return "green";
   if (status === "FAILED" || status === "REFUNDED" || status === "CANCELED") {
     return "gold";
   }
   return "blue";
+}
+
+function rowPaymentStatus(donation: AdminDonation) {
+  if (
+    donation.status === "REFUNDED" ||
+    donation.status === "PARTIALLY_REFUNDED"
+  ) {
+    return PaymentStatus.PAID;
+  }
+
+  return donation.status;
+}
+
+function donationOriginLabel(donation: AdminDonation) {
+  if (donation.source !== DonationSource.ONLINE) return "Manuel";
+
+  return donation.provider === PaymentProvider.NEDARIM_PLUS
+    ? "Nedarim Plus"
+    : "Stripe";
 }
 
 function dateLabel(date: Date | null) {
@@ -135,10 +168,18 @@ function metadataNestedText(metadata: unknown, parent: string, key: string) {
   return typeof value === "string" ? value : null;
 }
 
+function metadataNestedRecord(metadata: unknown, key: string) {
+  return metadataObject(metadataObject(metadata)[key]);
+}
+
 function stripePaymentUrl(donation: AdminDonation) {
   if (!donation.stripePaymentIntentId) return null;
 
   return `https://dashboard.stripe.com/test/payments/${donation.stripePaymentIntentId}`;
+}
+
+function canShowCerfaControls(donation: AdminDonation) {
+  return donation.provider !== PaymentProvider.NEDARIM_PLUS && donation.currency === "EUR";
 }
 
 function installmentLabel(payment: AdminDonation["payments"][number]) {
@@ -149,10 +190,45 @@ function installmentLabel(payment: AdminDonation["payments"][number]) {
   }`;
 }
 
+function currentInstallmentLabel(donation: AdminDonation) {
+  if (donation.frequency !== "MONTHLY") return null;
+
+  const payment = [...donation.payments]
+    .filter((item) => item.installmentNumber)
+    .sort(
+      (left, right) =>
+        (right.installmentNumber ?? 0) - (left.installmentNumber ?? 0),
+    )[0];
+
+  if (!payment) {
+    return donation.recurringMonths ? `0 / ${donation.recurringMonths}` : "0 / sans limite";
+  }
+
+  return installmentLabel(payment);
+}
+
+function paymentRowStatusLabel(status: PaymentStatus) {
+  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") {
+    return "Rembourse";
+  }
+
+  return paymentStatusLabels[status];
+}
+
+function isReceiptSent(donation: AdminDonation) {
+  const metadata = metadataObject(donation.metadata);
+
+  return (
+    donation.receiptStatus === ReceiptStatus.SENT ||
+    typeof metadata.cerfaEmailSentAt === "string"
+  );
+}
+
 function buildWhere(params: Record<string, string | undefined>) {
   const where: Prisma.DonationWhereInput = {};
   const status = params.status;
   const receipt = params.receipt;
+  const origin = params.origin;
   const source = params.source;
   const q = params.q?.trim();
 
@@ -162,6 +238,20 @@ function buildWhere(params: Record<string, string | undefined>) {
 
   if (source && Object.values(DonationSource).includes(source as DonationSource)) {
     where.source = source as DonationSource;
+  }
+
+  if (origin === "MANUAL") {
+    where.source = { not: DonationSource.ONLINE };
+  }
+
+  if (origin === PaymentProvider.STRIPE) {
+    where.source = DonationSource.ONLINE;
+    where.provider = PaymentProvider.STRIPE;
+  }
+
+  if (origin === PaymentProvider.NEDARIM_PLUS) {
+    where.source = DonationSource.ONLINE;
+    where.provider = PaymentProvider.NEDARIM_PLUS;
   }
 
   if (receipt && Object.values(ReceiptStatus).includes(receipt as ReceiptStatus)) {
@@ -175,6 +265,7 @@ function buildWhere(params: Record<string, string | undefined>) {
 
   if (q) {
     where.OR = [
+      { id: { contains: q, mode: "insensitive" } },
       { donorEmail: { contains: q, mode: "insensitive" } },
       { donorName: { contains: q, mode: "insensitive" } },
       { donorPhone: { contains: q, mode: "insensitive" } },
@@ -218,7 +309,7 @@ function ManualDonationDialog() {
           <DialogTitle>Don manuel</DialogTitle>
           <DialogDescription>
             Especes, cheque, virement ou autre. Le don est cree comme paye et
-            peut generer directement un recu Cerfa.
+            peut generer directement un recu Cerfa pour les dons eligibles.
           </DialogDescription>
         </DialogHeader>
         <form action={createManualDonation} className="grid gap-3">
@@ -315,83 +406,13 @@ function ManualDonationDialog() {
   );
 }
 
-function ReceiptForm({ donation }: { donation: AdminDonation }) {
-  return (
-    <form action={saveDonationReceipt} className="grid gap-3">
-      <input name="donationId" type="hidden" value={donation.id} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <NativeSelect
-          defaultValue={donation.receipt?.type ?? CerfaReceiptType.PARTICULIER}
-          name="receiptType"
-        >
-          {Object.values(CerfaReceiptType).map((type) => (
-            <NativeSelectOption key={type} value={type}>
-              {receiptTypeLabels[type]}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-        <Input
-          defaultValue={donation.receipt?.fiscalYear ?? new Date().getFullYear()}
-          name="fiscalYear"
-          placeholder="Annee fiscale"
-          type="number"
-        />
-        <Input
-          className="sm:col-span-2"
-          defaultValue={
-            donation.receipt?.donorName ??
-            donation.donorName ??
-            donation.donorEmail
-          }
-          name="receiptDonorName"
-          placeholder="Nom sur le recu"
-        />
-        <Input
-          className="sm:col-span-2"
-          defaultValue={donation.receipt?.donorAddress ?? ""}
-          name="receiptAddress"
-          placeholder="Adresse"
-        />
-        <Input
-          defaultValue={donation.receipt?.donorZip ?? ""}
-          name="receiptZip"
-          placeholder="Code postal"
-        />
-        <Input
-          defaultValue={donation.receipt?.donorCity ?? ""}
-          name="receiptCity"
-          placeholder="Ville"
-        />
-        <Input
-          defaultValue={donation.receipt?.donorCountry ?? "France"}
-          name="receiptCountry"
-          placeholder="Pays"
-        />
-        <Input
-          defaultValue={donation.receipt?.donorTaxId ?? ""}
-          name="receiptTaxId"
-          placeholder="SIREN / identifiant fiscal"
-        />
-      </div>
-      <Textarea
-        defaultValue={donation.receipt?.legalNote ?? ""}
-        name="legalNote"
-        placeholder="Note interne ou correction du recu"
-      />
-      <Button type="submit">
-        <ReceiptText className="size-4" />
-        Enregistrer le recu Cerfa
-      </Button>
-    </form>
-  );
-}
-
 function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
   const metadata = metadataObject(donation.metadata);
   const stripeUrl = stripePaymentUrl(donation);
   const stripeReceiptUrl = metadataText(donation.metadata, "stripeReceiptUrl");
   const cerfaUrl = fileUrl(donation.receipt?.fileKey);
   const isManual = donation.source !== DonationSource.ONLINE;
+  const hasCerfa = canShowCerfaControls(donation);
   const receiptEmail = metadataText(donation.metadata, "receiptEmail") ?? "";
   const receiptAddress = metadataNestedText(donation.metadata, "receipt", "address");
   const receiptZip = metadataNestedText(donation.metadata, "receipt", "zip");
@@ -414,6 +435,16 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/70 p-3">
+          <div className="grid gap-1 text-sm">
+            <strong className="text-[var(--primary)]">Actions rapides</strong>
+            <span className="text-[var(--muted)]">
+              Recu, Cerfa, historique du donateur et liens paiement.
+            </span>
+          </div>
+          <DonationActionsDropdown donation={donation} />
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader>
@@ -428,14 +459,22 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>{paymentStatusLabels[donation.status]}</CardTitle>
-              <CardDescription>{donationSourceLabels[donation.source]}</CardDescription>
+              <CardTitle>{paymentStatusLabels[rowPaymentStatus(donation)]}</CardTitle>
+              <CardDescription>{donationOriginLabel(donation)}</CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>{receiptStatusLabels[donation.receiptStatus]}</CardTitle>
-              <CardDescription>{donation.receipt?.number ?? "Sans numero"}</CardDescription>
+              <CardTitle>
+                {hasCerfa
+                  ? isReceiptSent(donation)
+                    ? "Cerfa envoye"
+                    : "Cerfa non envoye"
+                  : "Sans Cerfa"}
+              </CardTitle>
+              <CardDescription>
+                {hasCerfa ? donation.receipt?.number ?? "Sans numero" : "Non applicable"}
+              </CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -455,28 +494,6 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           </CardContent>
         </Card>
 
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="secondary">
-            <Link href={`/admin/dons?q=${encodeURIComponent(donation.donorEmail)}`}>
-              Voir les dons du donateur
-            </Link>
-          </Button>
-          <form action={sendPaymentReceipt}>
-            <input name="donationId" type="hidden" value={donation.id} />
-            <Button type="submit" variant="secondary">
-              <Mail className="size-4" />
-              Envoyer / renvoyer recu
-            </Button>
-          </form>
-          <form action={sendCerfaReceipt}>
-            <input name="donationId" type="hidden" value={donation.id} />
-            <Button type="submit" variant="secondary">
-              <ReceiptText className="size-4" />
-              Envoyer / renvoyer Cerfa
-            </Button>
-          </form>
-        </div>
-
         {donation.dedication && (
           <Card>
             <CardHeader>
@@ -489,16 +506,27 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
         {donation.source === DonationSource.ONLINE && (
         <Card>
           <CardHeader>
-            <CardTitle>Stripe</CardTitle>
+            <CardTitle>Paiement en ligne</CardTitle>
             <CardDescription>
-              Checkout, payment intent, subscription et client Stripe.
+              {donationProviderLabels[donation.provider]}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2 text-sm">
-            <span>Checkout: {donation.stripeCheckoutSessionId ?? "-"}</span>
-            <span>Payment intent: {donation.stripePaymentIntentId ?? "-"}</span>
-            <span>Subscription: {donation.stripeSubscriptionId ?? "-"}</span>
-            <span>Customer: {donation.stripeCustomerId ?? "-"}</span>
+            {donation.provider === PaymentProvider.STRIPE ? (
+              <>
+                <span>Checkout: {donation.stripeCheckoutSessionId ?? "-"}</span>
+                <span>Payment intent: {donation.stripePaymentIntentId ?? "-"}</span>
+                <span>Subscription: {donation.stripeSubscriptionId ?? "-"}</span>
+                <span>Customer: {donation.stripeCustomerId ?? "-"}</span>
+              </>
+            ) : (
+              <span>
+                Transaction:{" "}
+                {String(
+                  metadataNestedRecord(metadata, "nedarimPlus").transactionId ?? "-",
+                )}
+              </span>
+            )}
             {stripeUrl && (
               <Button asChild className="w-fit" variant="secondary">
                 <a href={stripeUrl} rel="noreferrer" target="_blank">
@@ -524,7 +552,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             <CardHeader>
               <CardTitle>Historique des paiements</CardTitle>
               <CardDescription>
-                Suivi paiement par paiement, y compris les mensualites Stripe.
+                Suivi paiement par paiement, y compris les mensualites.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -536,7 +564,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                       <TableHead>Montant</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Date</TableHead>
-                      <TableHead>Stripe</TableHead>
+                      <TableHead>Recu</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -549,9 +577,16 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                           {formatMoney(payment.amountCents, payment.currency)}
                         </TableCell>
                         <TableCell>
-                          <StatusBadge tone={donationTone(payment.status)}>
-                            {paymentStatusLabels[payment.status]}
-                          </StatusBadge>
+                          {payment.status === "REFUNDED" ||
+                          payment.status === "PARTIALLY_REFUNDED" ? (
+                            <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700">
+                              {paymentRowStatusLabel(payment.status)}
+                            </span>
+                          ) : (
+                            <StatusBadge tone={donationTone(payment.status)}>
+                              {paymentStatusLabels[payment.status]}
+                            </StatusBadge>
+                          )}
                           {payment.failureReason ? (
                             <p className="mt-1 text-xs text-red-700">
                               {payment.failureReason}
@@ -617,28 +652,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           </Card>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Statut Cerfa</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form action={updateDonationReceiptStatus} className="flex gap-2">
-                <input name="donationId" type="hidden" value={donation.id} />
-                <NativeSelect defaultValue={donation.receiptStatus} name="receiptStatus">
-                  {Object.values(ReceiptStatus).map((status) => (
-                    <NativeSelectOption key={status} value={status}>
-                      {receiptStatusLabels[status]}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-                <Button type="submit" variant="secondary">
-                  OK
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
+        <div className="grid gap-4">
           <Card>
             <CardHeader>
               <CardTitle>Note interne</CardTitle>
@@ -666,12 +680,18 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
         <Card>
           <CardHeader>
             <CardTitle>
-              {isManual ? "Modifier le don manuel" : "Modifier les donnees fiscales"}
+              {isManual
+                ? "Modifier le don manuel"
+                : hasCerfa
+                  ? "Modifier les donnees fiscales"
+                  : "Modifier les donnees du don"}
             </CardTitle>
             <CardDescription>
               {isManual
                 ? "Tous les champs du don manuel peuvent etre ajustes."
-                : "Le montant et les donnees du paiement en ligne restent verrouilles."}
+                : hasCerfa
+                  ? "Le montant et les donnees du paiement en ligne restent verrouilles."
+                  : "Le montant et les donnees du paiement en ligne restent verrouilles. Aucun Cerfa n'est genere pour ce don."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -753,16 +773,18 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                   <NativeSelectOption value="PARTICULIER">Particulier</NativeSelectOption>
                   <NativeSelectOption value="ENTREPRISE">Entreprise</NativeSelectOption>
                 </NativeSelect>
-                <NativeSelect
-                  defaultValue={donation.receipt?.type ?? CerfaReceiptType.PARTICULIER}
-                  name="receiptType"
-                >
-                  {Object.values(CerfaReceiptType).map((type) => (
-                    <NativeSelectOption key={type} value={type}>
-                      {receiptTypeLabels[type]}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                {hasCerfa ? (
+                  <NativeSelect
+                    defaultValue={donation.receipt?.type ?? CerfaReceiptType.PARTICULIER}
+                    name="receiptType"
+                  >
+                    {Object.values(CerfaReceiptType).map((type) => (
+                      <NativeSelectOption key={type} value={type}>
+                        {receiptTypeLabels[type]}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                ) : null}
                 <Input
                   defaultValue={metadataText(donation.metadata, "companyName") ?? ""}
                   name="companyName"
@@ -825,7 +847,9 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                 name="adminNote"
                 placeholder="Note interne"
               />
-              <Button type="submit">Enregistrer et mettre a jour le Cerfa</Button>
+              <Button type="submit">
+                {hasCerfa ? "Enregistrer et mettre a jour le Cerfa" : "Enregistrer"}
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -876,58 +900,114 @@ function RefundDialog({ donation }: { donation: AdminDonation }) {
   );
 }
 
+function DonationActionsDropdown({ donation }: { donation: AdminDonation }) {
+  const hasCerfa = canShowCerfaControls(donation);
+  const cerfaUrl = fileUrl(donation.receipt?.fileKey);
+  const stripeReceiptUrl = metadataText(donation.metadata, "stripeReceiptUrl");
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button size="sm" variant="secondary" />}>
+        <MoreHorizontal className="size-4" />
+        Actions
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuLabel>Don</DropdownMenuLabel>
+        <DropdownMenuItem render={<Link href={`/admin/dons?q=${encodeURIComponent(donation.donorEmail)}`} />}>
+          <Eye className="size-4" />
+          Voir les dons du donateur
+        </DropdownMenuItem>
+        {stripeReceiptUrl ? (
+          <DropdownMenuItem render={<a href={stripeReceiptUrl} rel="noreferrer" target="_blank" />}>
+            <ExternalLink className="size-4" />
+            Voir le recu Stripe
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem render={<form action={sendPaymentReceipt} />}>
+          <input name="donationId" type="hidden" value={donation.id} />
+          <button className="flex w-full items-center gap-2" type="submit">
+            <Mail className="size-4" />
+            Envoyer le recu
+          </button>
+        </DropdownMenuItem>
+        {hasCerfa ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Cerfa</DropdownMenuLabel>
+            <DropdownMenuItem render={<form action={sendCerfaReceipt} />}>
+              <input name="donationId" type="hidden" value={donation.id} />
+              <button className="flex w-full items-center gap-2" type="submit">
+                <Send className="size-4" />
+                Envoyer le Cerfa
+              </button>
+            </DropdownMenuItem>
+            {cerfaUrl ? (
+              <>
+                <DropdownMenuItem render={<a href={cerfaUrl} rel="noreferrer" target="_blank" />}>
+                  <Eye className="size-4" />
+                  Voir le Cerfa
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<a download href={cerfaUrl} />}>
+                  <Download className="size-4" />
+                  Telecharger le Cerfa
+                </DropdownMenuItem>
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function FilterBar({
   params,
 }: {
   params: Record<string, string | undefined>;
 }) {
   return (
-    <Card className="mt-5">
-      <CardContent className="p-4">
-        <form className="grid gap-3 lg:grid-cols-[1fr_170px_170px_170px_auto_auto]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
-            <Input
-              className="pl-9"
-              defaultValue={params.q ?? ""}
-              name="q"
-              placeholder="Nom, email, telephone, recu, Stripe..."
-            />
-          </div>
-          <NativeSelect defaultValue={params.status ?? ""} name="status">
-            <NativeSelectOption value="">Tous statuts</NativeSelectOption>
-            {Object.values(PaymentStatus).map((status) => (
-              <NativeSelectOption key={status} value={status}>
-                {paymentStatusLabels[status]}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          <NativeSelect defaultValue={params.receipt ?? ""} name="receipt">
-            <NativeSelectOption value="">Tous recus</NativeSelectOption>
-            <NativeSelectOption value="MISSING">A creer</NativeSelectOption>
-            {Object.values(ReceiptStatus).map((status) => (
-              <NativeSelectOption key={status} value={status}>
-                {receiptStatusLabels[status]}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          <NativeSelect defaultValue={params.source ?? ""} name="source">
-            <NativeSelectOption value="">Toutes origines</NativeSelectOption>
-            {Object.values(DonationSource).map((source) => (
-              <NativeSelectOption key={source} value={source}>
-                {donationSourceLabels[source]}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-          <Button type="submit" variant="secondary">
-            Filtrer
-          </Button>
-          <Button asChild variant="secondary">
-            <Link href="/admin/dons">Reset</Link>
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <form className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/70 p-3 lg:grid-cols-[minmax(260px,1fr)_150px_160px_170px_auto_auto]">
+      <InputGroup className="h-10 bg-white">
+        <Search className="ml-3 size-4 text-[var(--muted)]" />
+        <InputGroupInput
+          defaultValue={params.q ?? ""}
+          name="q"
+          placeholder="Nom, email, telephone, recu, Stripe..."
+        />
+      </InputGroup>
+      <NativeSelect defaultValue={params.status ?? ""} name="status">
+        <NativeSelectOption value="">Statut</NativeSelectOption>
+        {Object.values(PaymentStatus).map((status) => (
+          <NativeSelectOption key={status} value={status}>
+            {paymentStatusLabels[status]}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+      <NativeSelect defaultValue={params.receipt ?? ""} name="receipt">
+        <NativeSelectOption value="">Recu / Cerfa</NativeSelectOption>
+        <NativeSelectOption value="MISSING">Cerfa a creer</NativeSelectOption>
+        {Object.values(ReceiptStatus).map((status) => (
+          <NativeSelectOption key={status} value={status}>
+            {receiptStatusLabels[status]}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+      <NativeSelect defaultValue={params.origin ?? ""} name="origin">
+        <NativeSelectOption value="">Origine</NativeSelectOption>
+        <NativeSelectOption value="MANUAL">Manuel</NativeSelectOption>
+        <NativeSelectOption value={PaymentProvider.STRIPE}>Stripe</NativeSelectOption>
+        <NativeSelectOption value={PaymentProvider.NEDARIM_PLUS}>
+          Nedarim Plus
+        </NativeSelectOption>
+      </NativeSelect>
+      <Button type="submit">
+        <Search className="size-4" />
+        Filtrer
+      </Button>
+      <Button asChild variant="secondary">
+        <Link href="/admin/dons">Reset</Link>
+      </Button>
+    </form>
   );
 }
 
@@ -1033,7 +1113,6 @@ export default async function AdminDonationsPage({
       </section>
 
       <ReceiptBulkDownloadCard />
-      <FilterBar params={params} />
 
       <Card className="mt-5">
         <CardHeader>
@@ -1041,7 +1120,7 @@ export default async function AdminDonationsPage({
             <div>
               <CardTitle>Suivi des dons</CardTitle>
               <CardDescription>
-                Paiements Stripe, dons manuels, Cerfa, remboursements, notes et
+                Paiements en ligne, dons manuels, Cerfa, remboursements, notes et
                 recherche.
               </CardDescription>
             </div>
@@ -1050,7 +1129,8 @@ export default async function AdminDonationsPage({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-4">
+          <FilterBar params={params} />
           <div className="table-wrap">
             <Table>
               <TableHeader>
@@ -1065,79 +1145,61 @@ export default async function AdminDonationsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {donations.map((donation) => (
-                  <TableRow key={donation.id}>
-                    <TableCell>
-                      <div className="grid">
-                        <strong>{donation.donorName || donation.donorEmail}</strong>
-                        <span className="text-sm text-[var(--muted)]">
-                          {donation.donorEmail}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="grid">
-                        <strong>
-                          {formatMoney(donation.amountCents, donation.currency)}
-                        </strong>
-                        <span className="text-sm text-[var(--muted)]">
-                          {formatDonationFrequency(
-                            donation.frequency,
-                            donation.recurringMonths,
-                          )}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge tone={donationTone(donation.status)}>
-                        {paymentStatusLabels[donation.status]}
-                      </StatusBadge>
-                    </TableCell>
-                    <TableCell>{donationSourceLabels[donation.source]}</TableCell>
-                    <TableCell>
-                      <div className="grid">
-                        <strong>
-                          {donation.receipt?.number ??
-                            receiptStatusLabels[donation.receiptStatus]}
-                        </strong>
-                        <span className="text-sm text-[var(--muted)]">
-                          {donation.receiptNeeded ? "Demande" : "Non demande"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{dateLabel(donation.paidAt ?? donation.createdAt)}</TableCell>
-                    <TableCell>
-                      <div className="admin-table-actions">
-                        <DonationDetailsDialog donation={donation} />
+                {donations.map((donation) => {
+                  const rowStatus = rowPaymentStatus(donation);
+                  const recurringPayment = currentInstallmentLabel(donation);
 
-                        <form action={updateDonationStatus} className="flex gap-2">
-                          <input
-                            name="donationId"
-                            type="hidden"
-                            value={donation.id}
-                          />
-                          <NativeSelect
-                            className="w-36"
-                            defaultValue={donation.status}
-                            name="status"
-                            size="sm"
-                          >
-                            {Object.values(PaymentStatus).map((status) => (
-                              <NativeSelectOption key={status} value={status}>
-                                {paymentStatusLabels[status]}
-                              </NativeSelectOption>
-                            ))}
-                          </NativeSelect>
-                          <Button size="sm" type="submit" variant="secondary">
-                            OK
-                          </Button>
-                        </form>
-
-                        <RefundDialog donation={donation} />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                  return (
+                    <TableRow key={donation.id}>
+                      <TableCell>
+                        <div className="grid gap-1">
+                          <strong>{donation.donorName || donation.donorEmail}</strong>
+                          <span className="text-sm text-[var(--muted)]">
+                            {donation.donorEmail}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="grid gap-1">
+                          <strong>
+                            {formatMoney(donation.amountCents, donation.currency)}
+                          </strong>
+                          <span className="text-sm text-[var(--muted)]">
+                            {donation.frequency === "MONTHLY"
+                              ? `Mensuel ${recurringPayment ?? ""}`.trim()
+                              : "Ponctuel"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge tone={donationTone(rowStatus)}>
+                          {paymentStatusLabels[rowStatus]}
+                        </StatusBadge>
+                      </TableCell>
+                      <TableCell>{donationOriginLabel(donation)}</TableCell>
+                      <TableCell>
+                        {canShowCerfaControls(donation) ? (
+                          <div className="grid gap-1">
+                            <strong>{donation.receipt?.number ?? "A creer"}</strong>
+                            <span className="text-sm text-[var(--muted)]">
+                              {isReceiptSent(donation) ? "Envoye" : "Non envoye"}
+                            </span>
+                          </div>
+                        ) : (
+                          "Sans Cerfa"
+                        )}
+                      </TableCell>
+                      <TableCell>{dateLabel(donation.paidAt ?? donation.createdAt)}</TableCell>
+                      <TableCell>
+                        <div className="admin-table-actions">
+                          <DonationDetailsDialog donation={donation} />
+                          <DonationActionsDropdown donation={donation} />
+                          <RefundDialog donation={donation} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
