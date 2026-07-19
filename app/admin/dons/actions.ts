@@ -47,6 +47,11 @@ function receiptEmailForDonation(donation: {
     : donation.donorEmail;
 }
 
+function revalidateDonationAdminPages() {
+  revalidatePath("/admin/dons");
+  revalidatePath("/admin/recus");
+}
+
 function paidAtFromForm(formData: FormData, fallback = new Date()) {
   const value = readString(formData, "paidAt");
 
@@ -286,7 +291,7 @@ export async function createManualDonation(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function upsertReceiptForDonation(
@@ -376,7 +381,7 @@ export async function saveDonationReceipt(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function updateDonationStatus(formData: FormData) {
@@ -412,7 +417,7 @@ export async function updateDonationStatus(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function updateDonationDetails(formData: FormData) {
@@ -490,7 +495,7 @@ export async function updateDonationDetails(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function sendPaymentReceipt(formData: FormData) {
@@ -498,7 +503,7 @@ export async function sendPaymentReceipt(formData: FormData) {
   const donationId = readString(formData, "donationId");
 
   await sendDonationPaymentReceiptEmail(donationId, admin.id);
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function sendCerfaReceipt(formData: FormData) {
@@ -506,7 +511,7 @@ export async function sendCerfaReceipt(formData: FormData) {
   const donationId = readString(formData, "donationId");
 
   await sendDonationCerfaEmail(donationId, admin.id);
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function deleteManualDonation(formData: FormData) {
@@ -533,7 +538,7 @@ export async function deleteManualDonation(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function updateDonationReceiptStatus(formData: FormData) {
@@ -563,7 +568,7 @@ export async function updateDonationReceiptStatus(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function updateDonationAdminNote(formData: FormData) {
@@ -607,7 +612,7 @@ export async function updateDonationAdminNote(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
 
 export async function refundDonation(formData: FormData) {
@@ -661,5 +666,5 @@ export async function refundDonation(formData: FormData) {
     },
   });
 
-  revalidatePath("/admin/dons");
+  revalidateDonationAdminPages();
 }
