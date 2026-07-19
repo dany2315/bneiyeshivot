@@ -19,15 +19,19 @@ export function DocumentAttachmentCard({
   name,
   required,
   disabled,
+  uploadProgress,
 }: {
   title: string;
   status: "missing" | "received";
   name: string;
   required?: boolean;
   disabled?: boolean;
+  uploadProgress?: number;
 }) {
   const id = useId();
   const [fileName, setFileName] = useState("");
+  const isUploading =
+    typeof uploadProgress === "number" && uploadProgress > 0 && uploadProgress < 100;
 
   return (
     <div className="grid gap-2">
@@ -47,7 +51,7 @@ export function DocumentAttachmentCard({
       >
         <Attachment
           className="w-full border-[var(--border)] bg-white"
-          state={fileName ? "done" : "idle"}
+          state={isUploading ? "uploading" : fileName ? "done" : "idle"}
         >
           <AttachmentMedia>
             {fileName ? <FileText /> : <UploadCloud />}
@@ -55,7 +59,11 @@ export function DocumentAttachmentCard({
           <AttachmentContent>
             <AttachmentTitle>{fileName || title}</AttachmentTitle>
             <AttachmentDescription>
-              {fileName ? "Fichier selectionne." : "Cliquez pour ajouter la piece."}
+              {isUploading
+                ? `Upload en cours... ${Math.round(uploadProgress ?? 0)}%`
+                : fileName
+                  ? "Fichier selectionne."
+                  : "Cliquez pour ajouter la piece."}
             </AttachmentDescription>
           </AttachmentContent>
           <Badge variant={fileName || status === "received" ? "success" : "warning"}>
@@ -82,6 +90,14 @@ export function DocumentAttachmentCard({
           )}
         </Attachment>
       </label>
+      {typeof uploadProgress === "number" && uploadProgress > 0 ? (
+        <div className="h-2 overflow-hidden rounded-full bg-[var(--subtle)]">
+          <div
+            className="h-full rounded-full bg-[var(--accent)] transition-all"
+            style={{ width: `${Math.max(0, Math.min(100, uploadProgress))}%` }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

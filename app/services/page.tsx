@@ -55,8 +55,8 @@ const pageServices = [
     description:
       "Retrouvez toutes les informations essentielles pour préparer sereinement votre arrivée en Israël.",
     action: "Préparer mon arrivée",
-    href: "/services",
-    learnMoreHref: "/services",
+    href: "/venir-etudier",
+    learnMoreHref: "/venir-etudier",
     image:
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
   },

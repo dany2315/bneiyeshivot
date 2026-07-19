@@ -6,6 +6,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Download,
   FileCheck,
   Flag,
 } from "lucide-react";
@@ -211,6 +212,28 @@ const documentLabels: Record<string, string> = {
   identityFile: "Document d'identite / visa",
 };
 
+const koupatFormDownloads = [
+  {
+    label: "Formulaire Meuhedet en francais",
+    href: "/formulaires/formulaire-meuhedet-francais.pdf",
+  },
+  {
+    label: "Formulaire Meuhedet en hebreu",
+    href: "/formulaires/formulaire-meuhedet-hebreu.pdf",
+  },
+  {
+    label: "Formulaire Meuhedet en anglais",
+    href: "/formulaires/formulaire-meuhedet-anglais.pdf",
+  },
+] as const;
+
+const visaFormDownloads = [
+  {
+    label: "Formulaire visa etudiant",
+    href: "/formulaires/formulaire-visa.pdf",
+  },
+] as const;
+
 function putFileToS3(
   upload: PresignedUpload,
   file: File,
@@ -261,6 +284,36 @@ async function createRequestPayload(
   }
 
   return result;
+}
+
+function FormDownloadCard({
+  forms,
+}: {
+  forms: ReadonlyArray<{ label: string; href: string }>;
+}) {
+  return (
+    <div className="grid gap-2 rounded-2xl border border-[var(--border)] bg-[var(--subtle)] p-4">
+      <div>
+        <strong className="text-base text-[var(--primary)]">
+          Formulaire a remplir
+        </strong>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Telechargez le formulaire, remplissez-le, puis uploadez le fichier
+          complete juste en dessous.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {forms.map((form) => (
+          <Button asChild key={form.href} size="sm" type="button" variant="secondary">
+            <a href={form.href} download>
+              <Download className="size-4" />
+              {form.label}
+            </a>
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function NationalityCombobox({ id, name }: { id: string; name: string }) {
@@ -364,6 +417,7 @@ export function RequestStepForm({
     message: string;
   }>({ status: "idle", message: "" });
   const [sendProgress, setSendProgress] = useState(0);
+  const [fileUploadProgress, setFileUploadProgress] = useState<Record<string, number>>({});
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
@@ -451,6 +505,7 @@ export function RequestStepForm({
       message: "Envoi de votre dossier en cours...",
     });
     setSendProgress(1);
+    setFileUploadProgress({});
 
     try {
       const formData = new FormData(event.currentTarget);
@@ -475,7 +530,12 @@ export function RequestStepForm({
       const totalBytes = files.reduce((total, item) => total + item.file.size, 0);
       const loadedByField = new Map<string, number>();
       const updateUploadProgress = (fieldName: string, loaded: number) => {
+        const fileSize = files.find((item) => item.fieldName === fieldName)?.file.size ?? 0;
         loadedByField.set(fieldName, loaded);
+        setFileUploadProgress((current) => ({
+          ...current,
+          [fieldName]: fileSize > 0 ? Math.round((loaded / fileSize) * 100) : 100,
+        }));
         const uploadedBytes = Array.from(loadedByField.values()).reduce(
           (total, value) => total + value,
           0,
@@ -533,14 +593,22 @@ export function RequestStepForm({
       setSendProgress(96);
       const result = await createRequestPayload({
         ...payload,
-        documents: presignResult.uploads.map(({ label, fileKey, mimeType }) => ({
-          label,
-          fileKey,
-          mimeType,
-        })),
+        documents: presignResult.uploads.map(({ fieldName, label, fileKey, mimeType }) => {
+          const originalName =
+            files.find((item) => item.fieldName === fieldName)?.file.name.trim() ?? "";
+
+          return {
+            label: originalName ? `${label} - ${originalName}` : label,
+            fileKey,
+            mimeType,
+          };
+        }),
       });
 
       setSendProgress(100);
+      setFileUploadProgress((current) =>
+        Object.fromEntries(Object.keys(current).map((fieldName) => [fieldName, 100])),
+      );
       setSubmitState({
         status: "success",
         message: `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
@@ -555,6 +623,7 @@ export function RequestStepForm({
           "Impossible d'envoyer la demande. Reessayez.",
       });
       setSendProgress(0);
+      setFileUploadProgress({});
     }
   }
 
@@ -798,6 +867,10 @@ export function RequestStepForm({
                   title="Photo du passeport non israelien"
                   status="missing"
                   disabled={isSubmitting}
+                  uploadProgress={fileUploadProgress.passportFile}
+                />
+                <FormDownloadCard
+                  forms={isVisa ? visaFormDownloads : koupatFormDownloads}
                 />
                 <DocumentAttachmentCard
                   name="formFile"
@@ -809,6 +882,7 @@ export function RequestStepForm({
                   }
                   status="missing"
                   disabled={isSubmitting}
+                  uploadProgress={fileUploadProgress.formFile}
                 />
                 {isVisa && (
                   <DocumentAttachmentCard
@@ -817,6 +891,7 @@ export function RequestStepForm({
                     title="Acte de naissance"
                     status="missing"
                     disabled={isSubmitting}
+                    uploadProgress={fileUploadProgress.birthCertificateFile}
                   />
                 )}
                 <DocumentAttachmentCard
@@ -825,17 +900,26 @@ export function RequestStepForm({
                   title="Certificat d'etudiant ou Massa"
                   status="missing"
                   disabled={isSubmitting}
+                  uploadProgress={fileUploadProgress.studentCertificateFile}
                 />
               </>
             ) : (
               <>
-                <DocumentAttachmentCard disabled={isSubmitting} name="passportFile" required title="Passeport" status="missing" />
+                <DocumentAttachmentCard
+                  disabled={isSubmitting}
+                  name="passportFile"
+                  required
+                  title="Passeport"
+                  status="missing"
+                  uploadProgress={fileUploadProgress.passportFile}
+                />
                 <DocumentAttachmentCard
                   name="identityFile"
                   required
                   title="Document d'identite / visa"
                   status="missing"
                   disabled={isSubmitting}
+                  uploadProgress={fileUploadProgress.identityFile}
                 />
               </>
             )}

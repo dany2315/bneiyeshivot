@@ -1,6 +1,7 @@
 import { PageShell } from "../components";
 import { StorefrontClient } from "@/components/storefront-client";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
 import { ensureDefaultStorefront } from "@/lib/store";
 
 export const metadata = {
@@ -13,7 +14,10 @@ export default async function StorePage({
   searchParams: Promise<{ reservation?: string }>;
 }) {
   const params = await searchParams;
-  const storefront = await ensureDefaultStorefront();
+  const [storefront, user] = await Promise.all([
+    ensureDefaultStorefront(),
+    getCurrentUser(),
+  ]);
   const products = await prisma.storeProduct.findMany({
     where: { storefrontId: storefront.id, active: true },
     orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
@@ -24,6 +28,17 @@ export default async function StorePage({
       <main>
         <section className="section pt-0">
           <StorefrontClient
+            initialUser={
+              user
+                ? {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phone: user.phone,
+                    yeshiva: user.yeshiva,
+                  }
+                : null
+            }
             products={products.map((product) => ({
               id: product.id,
               title: product.title,

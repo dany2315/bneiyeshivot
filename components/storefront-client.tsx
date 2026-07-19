@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { createStoreReservation } from "@/app/boutique/actions";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,14 @@ type ProductView = {
   featured: boolean;
 };
 
+export type StoreInitialUser = {
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  yeshiva?: string | null;
+};
+
 function formatPrice(cents: number, currency = "EUR") {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -54,10 +63,12 @@ function formatPrice(cents: number, currency = "EUR") {
 }
 
 export function StorefrontClient({
+  initialUser,
   products,
   reservationOk,
   storefront,
 }: {
+  initialUser?: StoreInitialUser | null;
   products: ProductView[];
   reservationOk: boolean;
   storefront: StorefrontView;
@@ -86,7 +97,7 @@ export function StorefrontClient({
 
   return (
     <>
-      <div className="fixed inset-x-0 top-[74px] z-20 border-b border-[var(--border)] bg-white/92 shadow-sm backdrop-blur">
+      <div className="fixed inset-x-0 top-[70px] z-20 border-b border-[var(--border)] bg-white/92 shadow-sm backdrop-blur md:top-[74px]">
         <div className="container flex min-h-16 items-center justify-between gap-4">
           <div className="min-w-0">
             <strong className="block truncate text-base text-[var(--primary)]">
@@ -103,6 +114,7 @@ export function StorefrontClient({
             quantities={quantities}
             storefront={storefront}
             totalCents={totalCents}
+            initialUser={initialUser}
           />
         </div>
       </div>
@@ -115,6 +127,17 @@ export function StorefrontClient({
             <AlertDescription>
               Nous avons bien recu votre reservation. L&apos;equipe vous
               recontactera pour confirmer la disponibilite.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {!storefront.active ? (
+          <Alert className="border-amber-200 bg-amber-50 text-amber-950">
+            <ShoppingBag className="size-4" />
+            <AlertTitle>Boutique fermee</AlertTitle>
+            <AlertDescription>
+              Les reservations sont momentanement fermees. Vous pouvez consulter les produits,
+              mais il n&apos;est pas possible de reserver pour le moment.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -153,6 +176,7 @@ export function StorefrontClient({
                     {formatPrice(product.priceCents, product.currency)}
                   </strong>
                   <QuantityControl
+                    disabled={!storefront.active}
                     onChange={(quantity) => setQuantity(product.id, quantity)}
                     quantity={quantities[product.id] ?? 0}
                   />
@@ -178,6 +202,7 @@ export function StorefrontClient({
 function CartSheet({
   cartItems,
   currency,
+  initialUser,
   products,
   quantities,
   storefront,
@@ -185,6 +210,7 @@ function CartSheet({
 }: {
   cartItems: Array<{ product: ProductView; quantity: number }>;
   currency: string;
+  initialUser?: StoreInitialUser | null;
   products: ProductView[];
   quantities: Record<string, number>;
   storefront: StorefrontView;
@@ -248,11 +274,10 @@ function CartSheet({
             </strong>
           </div>
 
-          <Input name="customerName" placeholder="Nom et prenom" required />
-          <Input name="customerEmail" placeholder="Email" required type="email" />
-          <Input name="customerPhone" placeholder="Telephone" />
-          <Input name="yeshiva" placeholder="Yeshiva" />
-          <Input name="arrivalDate" type="date" aria-label="Date d'arrivee" />
+          <StoreReservationCustomerFields
+            disabled={!storefront.active}
+            initialUser={initialUser}
+          />
           <Textarea
             name="note"
             placeholder="Note pour l'equipe : livraison, adresse, besoin particulier..."
@@ -268,11 +293,62 @@ function CartSheet({
             disabled={!storefront.active || products.length === 0 || cartItems.length === 0}
           >
             <ShoppingBag className="size-4" />
-            Envoyer la reservation
+            {storefront.active ? "Envoyer la reservation" : "Reservations fermees"}
           </Button>
         </form>
       </SheetContent>
     </Sheet>
+  );
+}
+
+export function StoreReservationCustomerFields({
+  disabled,
+  initialUser,
+}: {
+  disabled?: boolean;
+  initialUser?: StoreInitialUser | null;
+}) {
+  const isConnected = Boolean(initialUser?.email);
+  const fullName = [initialUser?.firstName, initialUser?.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  if (!isConnected) {
+    return (
+      <>
+        <Input disabled={disabled} name="customerName" placeholder="Nom et prenom" required />
+        <Input disabled={disabled} name="customerEmail" placeholder="Email" required type="email" />
+        <PhoneInputGroup
+          disabled={disabled}
+          id="store-phone"
+          name="customerPhone"
+          placeholder="6 12 34 56 78"
+        />
+        <Input disabled={disabled} name="yeshiva" placeholder="Yeshiva" />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <input name="customerEmail" type="hidden" value={initialUser?.email ?? ""} />
+      <input name="customerName" type="hidden" value={fullName} />
+      {initialUser?.phone ? (
+        <input name="customerPhone" type="hidden" value={initialUser.phone} />
+      ) : (
+        <PhoneInputGroup
+          disabled={disabled}
+          id="store-connected-phone"
+          name="customerPhone"
+          placeholder="6 12 34 56 78"
+        />
+      )}
+      {initialUser?.yeshiva ? (
+        <input name="yeshiva" type="hidden" value={initialUser.yeshiva} />
+      ) : (
+        <Input disabled={disabled} name="yeshiva" placeholder="Yeshiva" />
+      )}
+    </>
   );
 }
 
@@ -282,9 +358,11 @@ function useProductQuantities(products: ProductView[]) {
 }
 
 function QuantityControl({
+  disabled,
   onChange,
   quantity,
 }: {
+  disabled?: boolean;
   onChange: (quantity: number) => void;
   quantity: number;
 }) {
@@ -293,6 +371,7 @@ function QuantityControl({
       <Button
         aria-label="Retirer"
         onClick={() => onChange(quantity - 1)}
+        disabled={disabled}
         size="icon-xs"
         type="button"
         variant="ghost"
@@ -303,12 +382,14 @@ function QuantityControl({
         className="h-8 w-12 border-0 p-0 text-center"
         min="0"
         onChange={(event) => onChange(Number(event.target.value) || 0)}
+        disabled={disabled}
         type="number"
         value={quantity}
       />
       <Button
         aria-label="Ajouter"
         onClick={() => onChange(quantity + 1)}
+        disabled={disabled}
         size="icon-xs"
         type="button"
         variant="ghost"

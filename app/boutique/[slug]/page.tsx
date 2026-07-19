@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { PageShell } from "@/app/components";
 import { createStoreReservation } from "@/app/boutique/actions";
+import { StoreReservationCustomerFields } from "@/components/storefront-client";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
 import { ensureDefaultStorefront, formatStorePrice } from "@/lib/store";
 
 export async function generateMetadata({
@@ -41,7 +44,10 @@ export default async function StoreProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const storefront = await ensureDefaultStorefront();
+  const [storefront, user] = await Promise.all([
+    ensureDefaultStorefront(),
+    getCurrentUser(),
+  ]);
   const product = await prisma.storeProduct.findUnique({
     where: { slug },
   });
@@ -112,25 +118,46 @@ export default async function StoreProductPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {!storefront.active ? (
+                    <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-950">
+                      <ShoppingBag className="size-4" />
+                      <AlertTitle>Boutique fermee</AlertTitle>
+                      <AlertDescription>
+                        Les reservations sont momentanement fermees. Il n&apos;est
+                        pas possible de reserver ce produit pour le moment.
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
                   <form action={createStoreReservation} className="grid gap-4">
                     <Input
                       min="1"
                       name={`quantity-${product.id}`}
                       type="number"
                       defaultValue="1"
+                      disabled={!storefront.active}
                     />
-                    <Input name="customerName" placeholder="Nom et prenom" required />
-                    <Input name="customerEmail" placeholder="Email" required type="email" />
-                    <Input name="customerPhone" placeholder="Telephone" />
-                    <Input name="yeshiva" placeholder="Yeshiva" />
-                    <Input name="arrivalDate" type="date" aria-label="Date d'arrivee" />
+                    <StoreReservationCustomerFields
+                      disabled={!storefront.active}
+                      initialUser={
+                        user
+                          ? {
+                              email: user.email,
+                              firstName: user.firstName,
+                              lastName: user.lastName,
+                              phone: user.phone,
+                              yeshiva: user.yeshiva,
+                            }
+                          : null
+                      }
+                    />
                     <Textarea
                       name="note"
                       placeholder="Note pour l'equipe : livraison, adresse, besoin particulier..."
+                      disabled={!storefront.active}
                     />
                     <Button disabled={!storefront.active}>
                       <ShoppingBag className="size-4" />
-                      Envoyer la reservation
+                      {storefront.active ? "Envoyer la reservation" : "Reservations fermees"}
                     </Button>
                   </form>
                 </CardContent>

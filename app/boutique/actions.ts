@@ -18,8 +18,16 @@ function readString(formData: FormData, key: string) {
 export async function createStoreReservation(formData: FormData) {
   const user = await getCurrentUser();
   const storefront = await ensureDefaultStorefront();
-  const customerName = readString(formData, "customerName");
-  const customerEmail = readString(formData, "customerEmail").toLowerCase();
+  const customerName =
+    readString(formData, "customerName") ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+    user?.name ||
+    user?.email ||
+    "";
+  const customerEmail =
+    (readString(formData, "customerEmail") || user?.email || "").toLowerCase();
+  const customerPhone = readString(formData, "customerPhone") || user?.phone || null;
+  const yeshiva = readString(formData, "yeshiva") || user?.yeshiva || null;
 
   if (!storefront.active) {
     throw new Error("La boutique n'est pas ouverte aux reservations.");
@@ -67,11 +75,8 @@ export async function createStoreReservation(formData: FormData) {
       userId: user?.id,
       customerName,
       customerEmail,
-      customerPhone: readString(formData, "customerPhone") || null,
-      yeshiva: readString(formData, "yeshiva") || null,
-      arrivalDate: readString(formData, "arrivalDate")
-        ? new Date(readString(formData, "arrivalDate"))
-        : null,
+      customerPhone,
+      yeshiva,
       note: readString(formData, "note") || null,
       totalCents,
       currency,
@@ -86,6 +91,13 @@ export async function createStoreReservation(formData: FormData) {
     },
     include: { items: true },
   });
+
+  if (user?.id && yeshiva && !user.yeshiva) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { yeshiva },
+    });
+  }
 
   const itemLines = reservation.items.map(
     (item) =>

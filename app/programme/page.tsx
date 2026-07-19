@@ -81,7 +81,7 @@ export default function ProgrammePage() {
                 </span>
                 <div>
                   <strong>Accompagnement</strong>
-                  <small>Bayit Neeman, Chidoukhim</small>
+                  <small>Binian Adei Ad, Chidoukhim</small>
                 </div>
               </div>
             </div>

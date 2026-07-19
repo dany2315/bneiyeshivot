@@ -168,7 +168,7 @@ export const programmes: Program[] = [
   },
   {
     slug: "bayit-neeman",
-    title: "Bayit Neeman",
+    title: "Binian Adei Ad",
     eyebrow: "Foyer",
     description:
       "Accompagner les jeunes dans la construction d'un foyer fondé sur les valeurs de la Torah.",
