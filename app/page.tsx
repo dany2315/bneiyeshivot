@@ -253,7 +253,7 @@ export default async function Home() {
               </p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
-                  <Link href="/demandes/visa">Je viens etudier en Israel</Link>
+                  <Link href="/venir-etudier">Je viens etudier en Israel</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
                   <Link href="/dons">Faire un don</Link>

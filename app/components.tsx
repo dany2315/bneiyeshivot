@@ -48,6 +48,7 @@ export function SiteFooter() {
         </div>
         <div>
           <h4>Services</h4>
+          <Link href="/venir-etudier">Je viens etudier en Israel</Link>
           <Link href="/a-propos">A propos</Link>
           <Link href="/services">Tous les services</Link>
           <Link href="/demandes/visa">Visa etudiant</Link>

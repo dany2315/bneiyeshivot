@@ -13,6 +13,7 @@ import {
   Mail,
   Menu,
   BookOpenText,
+  Plane,
   ShoppingBag,
   Sparkles,
   Trophy,
@@ -46,6 +47,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks: Array<[string, string, LucideIcon]> = [
   ["Accueil", "/", House],
+  ["Venir en Israel", "/venir-etudier", Plane],
   ["A propos", "/a-propos", CircleHelp],
   ["Services", "/services", Sparkles],
   ["Evenements", "/evenements", CalendarDays],
