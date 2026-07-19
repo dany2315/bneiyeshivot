@@ -76,6 +76,13 @@ type DonationCurrency = (typeof donationCurrencyOptions)[number]["value"];
 
 type NedarimFields = Record<string, string>;
 
+const nedarimFrameUrl =
+  "https://www.matara.pro/nedarimplus/iframe/?language=en&Picture=Hide";
+const nedarimFrameOrigins = new Set([
+  "https://matara.pro",
+  "https://www.matara.pro",
+]);
+
 function moneyLabel(amount: number, currency: string) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -215,12 +222,15 @@ function NedarimPaymentFrame({
   const [isPaid, setIsPaid] = useState(false);
 
   function postToNedarim(data: unknown) {
-    iframeRef.current?.contentWindow?.postMessage(data, "https://matara.pro");
+    iframeRef.current?.contentWindow?.postMessage(
+      data,
+      "https://www.matara.pro",
+    );
   }
 
   useEffect(() => {
     function readPostMessage(event: MessageEvent) {
-      if (event.origin !== "https://matara.pro") return;
+      if (!nedarimFrameOrigins.has(event.origin)) return;
 
       const data = event.data as
         | { Name?: string; Value?: unknown }
@@ -294,7 +304,7 @@ function NedarimPaymentFrame({
         onLoad={() => postToNedarim({ Name: "GetHeight" })}
         ref={iframeRef}
         scrolling="no"
-        src="https://matara.pro/nedarimplus/iframe?language=en&Picture=Hide"
+        src={nedarimFrameUrl}
         style={{ height: `${frameHeight}px` }}
         title="Paiement securise"
       />
@@ -541,7 +551,7 @@ export function DonationCheckoutForm({
     <Card
       id="don-form"
       ref={checkoutCardRef}
-      className="scroll-mt-24 overflow-hidden border-[var(--border)] bg-white/95 shadow-[0_18px_48px_rgba(6,40,70,0.08)]"
+      className="scroll-mt-24 overflow-hidden border-[var(--border)] bg-white/95 shadow-[0_18px_48px_rgba(6,40,70,0.08)] py-0"
     >
       <CardHeader className="border-b border-[var(--border)] bg-[var(--subtle)]/70 px-4 py-3 sm:px-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

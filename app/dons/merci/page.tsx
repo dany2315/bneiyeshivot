@@ -12,6 +12,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+function metadataObject(metadata: unknown) {
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : {};
+}
+
+function metadataText(metadata: unknown, key: string) {
+  const value = metadataObject(metadata)[key];
+
+  return typeof value === "string" && value ? value : null;
+}
+
 export const metadata = {
   title: "Merci pour votre don",
 };
@@ -33,6 +45,12 @@ export default async function DonationThanksPage({
           include: { payments: { orderBy: { createdAt: "desc" } }, receipt: true },
         })
       : null;
+  const paymentReceiptUrl = donation
+    ? metadataText(donation.metadata, "paymentReceiptUrl") ||
+      donation.payments.find((payment) => payment.stripeReceiptUrl)
+        ?.stripeReceiptUrl ||
+      null
+    : null;
 
   return (
     <PageShell>
@@ -73,6 +91,13 @@ export default async function DonationThanksPage({
                         Paiement: {donation.payments[0].installmentNumber} /{" "}
                         {donation.payments[0].installmentTotal ?? "sans limite"}
                       </span>
+                    ) : null}
+                    {paymentReceiptUrl ? (
+                      <Button asChild variant="secondary" className="mt-2 w-fit">
+                        <Link href={paymentReceiptUrl} target="_blank">
+                          Voir le recu de paiement
+                        </Link>
+                      </Button>
                     ) : null}
                   </div>
                 )}
