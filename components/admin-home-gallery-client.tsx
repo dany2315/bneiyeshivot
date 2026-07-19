@@ -688,7 +688,7 @@ function AlbumDialog({
           )
         }
       />
-      <DialogContent showCloseButton={false} className="max-h-[92vh] overflow-hidden p-0 sm:max-w-6xl">
+      <DialogContent showCloseButton={false} className="max-h-[92vh] w-[calc(100vw-2rem)] overflow-hidden p-0 sm:max-w-6xl">
         <DialogHeader className="sticky top-0 z-20 grid grid-cols-[1fr_auto] items-start gap-3 border-b border-[var(--border)] bg-popover p-4">
           <div className="grid gap-2">
             <DialogTitle>{mode === "edit" ? "Modifier la galerie" : "Nouvelle galerie"}</DialogTitle>
@@ -701,9 +701,9 @@ function AlbumDialog({
           </DialogClose>
         </DialogHeader>
 
-        <div className="max-h-[calc(92vh-96px)] overflow-y-auto p-4">
-          <form className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]" onSubmit={submit}>
-            <fieldset className="m-0 grid gap-4 border-0 p-0 disabled:opacity-60" disabled={isPending}>
+        <div className="max-h-[calc(92vh-96px)] overflow-x-hidden overflow-y-auto p-4">
+          <form className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]" onSubmit={submit}>
+            <fieldset className="m-0 grid min-w-0 gap-4 border-0 p-0 disabled:opacity-60" disabled={isPending}>
               {album && <input name="albumId" type="hidden" value={album.id} />}
               <div className="grid gap-4 md:grid-cols-[1fr_140px]">
                 <Field label="Titre de la galerie" required>
@@ -751,7 +751,7 @@ function AlbumDialog({
 
               <div className="grid gap-3">
                 {slots.map((slot, index) => (
-                  <div className="grid gap-3 rounded-xl border border-[var(--border)] p-3 md:grid-cols-[132px_1fr_auto]" key={slot.id}>
+                  <div className="grid min-w-0 gap-3 rounded-xl border border-[var(--border)] p-3 md:grid-cols-[132px_minmax(0,1fr)_auto]" key={slot.id}>
                     <div className="relative aspect-square overflow-hidden rounded-lg bg-[var(--subtle)]">
                       <Media
                         description={slot.description}
@@ -780,16 +780,16 @@ function AlbumDialog({
                         </div>
                       )}
                     </div>
-                    <div className="grid gap-2">
+                    <div className="grid min-w-0 gap-2">
                       <Badge variant={slot.type === "YOUTUBE" ? "warning" : "info"}>
                         {slot.type === "YOUTUBE" ? "YouTube" : slot.type === "VIDEO" ? "Video" : "Image"}
                       </Badge>
-                      <div className="grid gap-1 rounded-lg border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm text-[var(--muted)]">
-                        <span>
+                      <div className="grid min-w-0 gap-1 rounded-lg border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm text-[var(--muted)]">
+                        <span className="min-w-0 [overflow-wrap:anywhere]">
                           <strong className="text-[var(--primary)]">Fichier:</strong>{" "}
                           {slotDisplayName(slot)}
                         </span>
-                        <span>
+                        <span className="min-w-0 [overflow-wrap:anywhere]">
                           <strong className="text-[var(--primary)]">Type:</strong>{" "}
                           {mediaTypeLabel(slot)}
                           {formatFileSize(slot.size)
@@ -797,7 +797,7 @@ function AlbumDialog({
                             : ""}
                         </span>
                         {slot.status === "error" ? (
-                          <span className="font-semibold text-destructive">
+                          <span className="min-w-0 [overflow-wrap:anywhere] font-semibold text-destructive">
                             Erreur: {slot.uploadError || "Upload echoue."}
                           </span>
                         ) : null}
@@ -848,7 +848,7 @@ function AlbumDialog({
               </Button>
             </fieldset>
 
-            <div className="grid h-fit gap-4 rounded-2xl bg-[var(--subtle)] p-4">
+            <div className="grid h-fit min-w-0 gap-4 rounded-2xl bg-[var(--subtle)] p-4">
               <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
                 <Eye className="size-4" />
                 Preview page d&apos;accueil
