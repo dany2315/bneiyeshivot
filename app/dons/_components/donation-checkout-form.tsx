@@ -130,9 +130,11 @@ function StepHeader({
 function EmbeddedPaymentForm({
   amount,
   donationId,
+  donorName,
 }: {
   amount: string;
   donationId: string;
+  donorName: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -198,7 +200,15 @@ function EmbeddedPaymentForm({
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-4 rounded-xl border border-[var(--border)] bg-white p-4 shadow-sm">
+      <AddressElement
+        options={{
+          mode: "billing",
+          defaultValues: {
+            name: donorName,
+          },
+        }}
+      />
       <PaymentElement />
       {paymentError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
@@ -837,28 +847,10 @@ export function DonationCheckoutForm({
                   }}
                   stripe={stripePromise}
                 >
-                  <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4">
-                    <div>
-                      <h3 className="font-bold text-[var(--primary)]">
-                        Adresse fiscale pour le Cerfa
-                      </h3>
-                      <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-                        Adresse obligatoire, collectee par Stripe et enregistree
-                        sur le dossier du don avant validation du paiement.
-                      </p>
-                    </div>
-                    <AddressElement
-                      options={{
-                        mode: "billing",
-                        defaultValues: {
-                          name: donorName,
-                        },
-                      }}
-                    />
-                  </div>
                   <EmbeddedPaymentForm
                     amount={moneyLabel(effectiveAmount, currency)}
                     donationId={donationId}
+                    donorName={donorName}
                   />
                 </Elements>
               ) : null}
