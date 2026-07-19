@@ -69,10 +69,14 @@ export type AdminGalleryAlbum = {
 
 type Slot = {
   id: string;
+  fileName: string;
   type: GalleryItemType;
   title: string;
   description: string;
   key: string;
+  mimeType: string;
+  size: number | null;
+  uploadError: string;
   url: string;
   preview: string;
   persisted: boolean;
@@ -80,6 +84,32 @@ type Slot = {
 };
 
 type UploadedFile = { key: string; mimeType: string; size: number };
+
+function fileNameFromKey(key: string | null) {
+  if (!key) return "";
+  const raw = key.split("/").pop() ?? key;
+  return decodeURIComponent(raw).replace(/^\d+-[\w-]+-/, "");
+}
+
+function formatFileSize(size: number | null) {
+  if (!size) return "";
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} Ko`;
+  return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function mediaTypeLabel(slot: Pick<Slot, "mimeType" | "type">) {
+  if (slot.type === "YOUTUBE") return "YouTube / Short";
+  if (slot.mimeType) return slot.mimeType;
+  return slot.type === "VIDEO" ? "Video" : "Image";
+}
+
+function slotDisplayName(slot: Slot) {
+  return (
+    slot.fileName ||
+    slot.title ||
+    (slot.type === "YOUTUBE" ? slot.url || "Lien YouTube" : "Media sans nom")
+  );
+}
 
 function youtubeEmbed(value: string) {
   const trimmed = value.trim();
@@ -94,10 +124,14 @@ function slotsFromAlbum(album?: AdminGalleryAlbum): Slot[] {
   return (
     album?.items.map((item) => ({
       id: item.id,
+      fileName: fileNameFromKey(item.key),
       type: item.type,
       title: item.title ?? "",
       description: item.description ?? "",
       key: item.key ?? "",
+      mimeType: item.mimeType ?? "",
+      size: null,
+      uploadError: "",
       url: item.url ?? "",
       preview:
         item.type === "YOUTUBE"
@@ -363,9 +397,13 @@ function AlbumDialog({
       return {
         id: `new-${Date.now()}-${counter.current}`,
         type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
+        fileName: file.name || "fichier sans nom",
         title: "",
         description: "",
         key: "",
+        mimeType: file.type || "application/octet-stream",
+        size: file.size,
+        uploadError: "",
         url: "",
         preview: URL.createObjectURL(file),
         persisted: false,
@@ -387,10 +425,16 @@ function AlbumDialog({
             ? {
                 ...slot,
                 key: media.key,
+                mimeType: media.mimeType,
                 preview: fileUrl(media.key) ?? slot.preview,
+                size: media.size,
                 status: "ready" as const,
               }
-            : { ...slot, status: "error" as const };
+            : {
+                ...slot,
+                status: "error" as const,
+                uploadError: "Reponse S3 incomplete.",
+              };
         }),
       );
       toast.success(`${uploaded.length} media(s) uploade(s).`);
@@ -398,7 +442,12 @@ function AlbumDialog({
       setSlots((current) =>
         current.map((slot) =>
           pending.some((item) => item.id === slot.id)
-            ? { ...slot, status: "error" as const }
+            ? {
+                ...slot,
+                status: "error" as const,
+                uploadError:
+                  error instanceof Error ? error.message : "Upload impossible.",
+              }
             : slot,
         ),
       );
@@ -415,9 +464,13 @@ function AlbumDialog({
       {
         id: `yt-${Date.now()}-${counter.current}`,
         type: "YOUTUBE",
+        fileName: "Lien YouTube / Short",
         title: "",
         description: "",
         key: "",
+        mimeType: "youtube",
+        size: null,
+        uploadError: "",
         url: "",
         preview: "",
         persisted: false,
@@ -453,11 +506,28 @@ function AlbumDialog({
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (uploading || slots.some((slot) => slot.status === "uploading")) {
-      toast.error("Un upload est encore en cours.");
+      const pending = slots
+        .filter((slot) => slot.status === "uploading")
+        .map(slotDisplayName)
+        .join(", ");
+      toast.error(
+        pending
+          ? `Upload encore en cours: ${pending}`
+          : "Un upload est encore en cours.",
+      );
       return;
     }
     if (slots.some((slot) => slot.status === "error")) {
-      toast.error("Retirez les medias en erreur avant d'enregistrer.");
+      const failed = slots
+        .filter((slot) => slot.status === "error")
+        .map(
+          (slot) =>
+            `${slotDisplayName(slot)}${
+              slot.uploadError ? ` (${slot.uploadError})` : ""
+            }`,
+        )
+        .join(", ");
+      toast.error(`Upload en erreur: ${failed}`);
       return;
     }
 
@@ -579,6 +649,24 @@ function AlbumDialog({
                       <Badge variant={slot.type === "YOUTUBE" ? "warning" : "info"}>
                         {slot.type === "YOUTUBE" ? "YouTube" : slot.type === "VIDEO" ? "Video" : "Image"}
                       </Badge>
+                      <div className="grid gap-1 rounded-lg border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm text-[var(--muted)]">
+                        <span>
+                          <strong className="text-[var(--primary)]">Fichier:</strong>{" "}
+                          {slotDisplayName(slot)}
+                        </span>
+                        <span>
+                          <strong className="text-[var(--primary)]">Type:</strong>{" "}
+                          {mediaTypeLabel(slot)}
+                          {formatFileSize(slot.size)
+                            ? ` - ${formatFileSize(slot.size)}`
+                            : ""}
+                        </span>
+                        {slot.status === "error" ? (
+                          <span className="font-semibold text-destructive">
+                            Erreur: {slot.uploadError || "Upload echoue."}
+                          </span>
+                        ) : null}
+                      </div>
                       {slot.type === "YOUTUBE" && (
                         <Input
                           onChange={(event) => {
@@ -593,6 +681,7 @@ function AlbumDialog({
                       <Input onChange={(event) => updateSlot(slot.id, { description: event.target.value })} placeholder="Description optionnelle" value={slot.description} />
                       <input name="itemTypes" type="hidden" value={slot.type} />
                       <input name="itemKeys" type="hidden" value={slot.key} />
+                      <input name="itemMimeTypes" type="hidden" value={slot.mimeType} />
                       <input name="itemUrls" type="hidden" value={slot.url} />
                       <input name="itemTitles" type="hidden" value={slot.title} />
                       <input name="itemDescriptions" type="hidden" value={slot.description} />

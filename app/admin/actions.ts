@@ -76,6 +76,9 @@ function readHomeGalleryItems(formData: FormData) {
   const types = formData.getAll("itemTypes").map(String);
   const keys = formData.getAll("itemKeys").map((value) => String(value).trim());
   const urls = formData.getAll("itemUrls").map((value) => String(value).trim());
+  const mimeTypes = formData
+    .getAll("itemMimeTypes")
+    .map((value) => String(value).trim());
   const titles = formData.getAll("itemTitles").map((value) => String(value).trim());
   const descriptions = formData
     .getAll("itemDescriptions")
@@ -98,6 +101,7 @@ function readHomeGalleryItems(formData: FormData) {
         type: itemType,
         key: key || null,
         url: url || null,
+        mimeType: mimeTypes[index] || null,
         title: titles[index] || null,
         description: descriptions[index] || null,
         sortOrder: index,
