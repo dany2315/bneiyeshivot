@@ -698,7 +698,7 @@ export function DonationCheckoutForm({
                   >
                     <NativeSelect
                       aria-label="Devise du don"
-                      className="h-11 w-24 border-0 bg-[var(--accent-soft)] px-2 text-sm font-black text-[var(--accent-strong)] shadow-none focus-visible:ring-0"
+                      className="h-11 w-24 overflow-hidden rounded-lg bg-[var(--accent-soft)] text-sm font-black text-[var(--accent-strong)] shadow-none [&_[data-slot=native-select]]:h-11 [&_[data-slot=native-select]]:border-0 [&_[data-slot=native-select]]:bg-transparent [&_[data-slot=native-select]]:pl-2.5 [&_[data-slot=native-select]]:pr-7 [&_[data-slot=native-select]]:font-black [&_[data-slot=native-select]]:text-[var(--accent-strong)] [&_[data-slot=native-select]]:focus-visible:ring-0"
                       onChange={(event) => {
                         setCurrency(event.target.value as DonationCurrency);
                         setClientSecret("");
