@@ -119,6 +119,8 @@ const homeServices = [
 
 type HomeGalleryMedia = {
   id: string;
+  description: string | null;
+  title: string | null;
   type: "IMAGE" | "VIDEO" | "YOUTUBE";
   src: string;
 };
@@ -211,40 +213,57 @@ function GalleryMedia({
   item: HomeGalleryMedia;
   className?: string;
 }) {
+  const overlay =
+    item.title || item.description ? (
+      <div className="gallery-media-overlay">
+        {item.title ? <strong>{item.title}</strong> : null}
+        {item.description ? <span>{item.description}</span> : null}
+      </div>
+    ) : null;
+
   if (item.type === "VIDEO") {
     return (
-      <video
-        className={className}
-        controls={false}
-        muted
-        playsInline
-        preload="metadata"
-        src={item.src}
-      />
+      <>
+        <video
+          className={className}
+          controls={false}
+          muted
+          playsInline
+          preload="metadata"
+          src={item.src}
+        />
+        {overlay}
+      </>
     );
   }
 
   if (item.type === "YOUTUBE") {
     return (
-      <iframe
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-        className={className}
-        referrerPolicy="strict-origin-when-cross-origin"
-        src={item.src}
-        title="Video galerie"
-      />
+      <>
+        <iframe
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className={className}
+          referrerPolicy="strict-origin-when-cross-origin"
+          src={item.src}
+          title="Video galerie"
+        />
+        {overlay}
+      </>
     );
   }
 
   return (
-    <Image
-      alt=""
-      className={className}
-      fill
-      sizes="(max-width: 980px) 50vw, 20vw"
-      src={item.src}
-    />
+    <>
+      <Image
+        alt=""
+        className={className}
+        fill
+        sizes="(max-width: 980px) 50vw, 20vw"
+        src={item.src}
+      />
+      {overlay}
+    </>
   );
 }
 
@@ -305,6 +324,8 @@ export default async function Home() {
             items: album.items
               .map((item) => ({
                 id: item.id,
+                description: item.description,
+                title: item.title,
                 type: item.type,
                 src:
                   item.type === "YOUTUBE"
@@ -325,6 +346,8 @@ export default async function Home() {
           description: album.description,
           items: album.photos.map((photo, index) => ({
             id: `${album.title}-${index}`,
+            description: null,
+            title: null,
             type: "IMAGE" as const,
             src: photo,
           })),

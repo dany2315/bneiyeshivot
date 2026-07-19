@@ -84,7 +84,7 @@ function youtubeEmbed(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
   const match = trimmed.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube-nocookie\.com\/embed\/)([\w-]{11})/,
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube-nocookie\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{11})/,
   );
   return match ? `https://www.youtube.com/embed/${match[1]}` : trimmed;
 }
@@ -188,11 +188,13 @@ export function AdminHomeGalleryClient({
                       key={item.id}
                     >
                       <Media
+                        description={item.description}
                         preview={
                           item.type === "YOUTUBE"
                             ? youtubeEmbed(item.url ?? "")
                             : fileUrl(item.key) ?? ""
                         }
+                        title={item.title}
                         type={item.type}
                       />
                     </div>
@@ -484,7 +486,12 @@ function AlbumDialog({
                 {slots.map((slot, index) => (
                   <div className="grid gap-3 rounded-xl border border-[var(--border)] p-3 md:grid-cols-[132px_1fr_auto]" key={slot.id}>
                     <div className="relative aspect-square overflow-hidden rounded-lg bg-[var(--subtle)]">
-                      <Media preview={slot.preview} type={slot.type} />
+                      <Media
+                        description={slot.description}
+                        preview={slot.preview}
+                        title={slot.title}
+                        type={slot.type}
+                      />
                       {slot.status === "uploading" && (
                         <span className="absolute inset-0 grid place-items-center bg-white/75">
                           <Spinner />
@@ -549,7 +556,12 @@ function AlbumDialog({
                 <div className="gallery-card-mosaic">
                   {slots.slice(0, 5).map((slot, index) => (
                     <div className={index === 0 ? "gallery-mosaic-cell gallery-mosaic-main" : "gallery-mosaic-cell"} key={slot.id}>
-                      <Media preview={slot.preview} type={slot.type} />
+                      <Media
+                        description={slot.description}
+                        preview={slot.preview}
+                        title={slot.title}
+                        type={slot.type}
+                      />
                     </div>
                   ))}
                   {slots.length === 0 && (
@@ -584,7 +596,25 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
-function Media({ type, preview }: { type: GalleryItemType; preview: string }) {
+function Media({
+  description,
+  preview,
+  title,
+  type,
+}: {
+  description?: string | null;
+  preview: string;
+  title?: string | null;
+  type: GalleryItemType;
+}) {
+  const overlay =
+    title || description ? (
+      <div className="gallery-media-overlay">
+        {title ? <strong>{title}</strong> : null}
+        {description ? <span>{description}</span> : null}
+      </div>
+    ) : null;
+
   if (!preview) {
     return (
       <div className="grid h-full w-full place-items-center bg-[var(--subtle)]">
@@ -594,7 +624,12 @@ function Media({ type, preview }: { type: GalleryItemType; preview: string }) {
   }
 
   if (type === "VIDEO") {
-    return <video className="h-full w-full object-cover" muted playsInline preload="metadata" src={preview} />;
+    return (
+      <>
+        <video className="h-full w-full object-cover" muted playsInline preload="metadata" src={preview} />
+        {overlay}
+      </>
+    );
   }
 
   if (type === "YOUTUBE") {
@@ -611,10 +646,16 @@ function Media({ type, preview }: { type: GalleryItemType; preview: string }) {
           <Film className="size-3" />
           Video
         </span>
+        {overlay}
       </div>
     );
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img alt="" className="h-full w-full object-cover" src={preview} />;
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img alt="" className="h-full w-full object-cover" src={preview} />
+      {overlay}
+    </>
+  );
 }
