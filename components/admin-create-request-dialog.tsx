@@ -50,7 +50,7 @@ export function AdminCreateRequestDialog({
           </DialogClose>
         </DialogHeader>
         <div className="max-h-[calc(92vh-96px)] overflow-y-auto p-4">
-          <RequestStepForm type={type} />
+          <RequestStepForm adminMode type={type} />
         </div>
       </DialogContent>
     </Dialog>

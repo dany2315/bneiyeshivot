@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 import { createServiceRequest } from "@/lib/service-requests";
 import { normalizeRequestInput } from "@/lib/request-validation";
@@ -97,6 +98,16 @@ export async function POST(request: Request) {
       to: adminEmail,
       ...notificationEmail,
     });
+
+    if (kind === "visa") {
+      revalidatePath("/admin/visa");
+    }
+
+    if (kind === "koupat") {
+      revalidatePath("/admin/koupat-holim");
+    }
+
+    revalidatePath("/client");
 
     return NextResponse.json(
       {

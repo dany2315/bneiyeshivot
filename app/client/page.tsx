@@ -52,7 +52,7 @@ export const metadata = {
 const requestStatusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
   IN_REVIEW: "En traitement",
-  MISSING_DOCUMENTS: "Documents manquants",
+  MISSING_DOCUMENTS: "Elements a modifier",
   APPROVED: "Approuvee",
   REJECTED: "Refusee",
   COMPLETED: "Terminee",
@@ -326,7 +326,7 @@ export default async function ClientPage({
                 )}
                 {missingDocsCount > 0 && (
                   <StatusBadge tone="gold">
-                    {missingDocsCount} document(s) manquant(s)
+                    {missingDocsCount} demande(s) a modifier
                   </StatusBadge>
                 )}
                 {registrations.length > 0 && (

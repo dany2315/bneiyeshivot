@@ -11,6 +11,7 @@ import {
   Prisma,
   ReceiptStatus,
   ServiceRequestStatus,
+  ServiceRequestType,
   StoreReservationStatus,
   UserRole,
 } from "@prisma/client";
@@ -314,6 +315,130 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
 
     await sendEmail({ to: request.user.email, ...email });
   }
+
+  revalidatePath(`/admin/${serviceRequestAdminPath(request.type)}`);
+  revalidatePath("/client");
+}
+
+export async function updateServiceRequestData(formData: FormData) {
+  const admin = await requireAdminUser();
+  const requestId = readString(formData, "requestId");
+
+  if (!requestId) {
+    throw new Error("Demande introuvable.");
+  }
+
+  const request = await prisma.serviceRequest.findUnique({
+    where: { id: requestId },
+    include: { user: true },
+  });
+
+  if (!request) {
+    throw new Error("Demande introuvable.");
+  }
+
+  const values = Object.fromEntries(
+    editableServiceRequestFields.map((field) => [field, readString(formData, field)]),
+  ) as Record<(typeof editableServiceRequestFields)[number], string>;
+  const currentPayload =
+    request.payload && typeof request.payload === "object" && !Array.isArray(request.payload)
+      ? (request.payload as Record<string, unknown>)
+      : {};
+  const nextPayload: Record<string, unknown> = {
+    ...currentPayload,
+    firstName: values.firstName,
+    lastName: values.lastName,
+    phone: values.phone,
+    parentPhone: values.parentPhone,
+    birthDate: values.birthDate,
+    nationality: values.nationality,
+    passportNumber: values.passportNumber,
+    school: values.school,
+  };
+
+  if (request.type === ServiceRequestType.VISA_STUDENT) {
+    nextPayload.personStatus = values.personStatus;
+  } else {
+    delete nextPayload.personStatus;
+  }
+
+  const fullName = [values.firstName, values.lastName].filter(Boolean).join(" ");
+  const programType =
+    request.type === ServiceRequestType.VISA_STUDENT
+      ? values.personStatus
+      : values.school;
+
+  await prisma.$transaction(async (tx) => {
+    if (request.userId) {
+      await tx.user.update({
+        where: { id: request.userId },
+        data: {
+          name: fullName || request.user?.name || "",
+          firstName: values.firstName || null,
+          lastName: values.lastName || null,
+          phone: values.phone || null,
+          parentPhone: values.parentPhone || null,
+          programType: programType || null,
+        },
+      });
+    }
+
+    await tx.serviceRequest.update({
+      where: { id: requestId },
+      data: {
+        payload: nextPayload as Prisma.JsonObject,
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "service_request.data_updated",
+        entity: "ServiceRequest",
+        entityId: requestId,
+      },
+    });
+  });
+
+  revalidatePath(`/admin/${serviceRequestAdminPath(request.type)}`);
+  revalidatePath("/client");
+}
+
+export async function deleteServiceRequest(formData: FormData) {
+  const admin = await requireAdminUser();
+  const requestId = readString(formData, "requestId");
+
+  if (!requestId) {
+    throw new Error("Demande introuvable.");
+  }
+
+  const request = await prisma.serviceRequest.findUnique({
+    where: { id: requestId },
+    include: { documents: true },
+  });
+
+  if (!request) {
+    throw new Error("Demande introuvable.");
+  }
+
+  const fileKeys = request.documents.map((document) => document.fileKey);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.requestMessage.deleteMany({ where: { requestId } });
+    await tx.requestDocument.deleteMany({ where: { requestId } });
+    await tx.serviceRequest.delete({ where: { id: requestId } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "service_request.deleted",
+        entity: "ServiceRequest",
+        entityId: requestId,
+        metadata: { type: request.type },
+      },
+    });
+  });
+
+  await deleteFilesFromS3(fileKeys);
 
   revalidatePath(`/admin/${serviceRequestAdminPath(request.type)}`);
   revalidatePath("/client");

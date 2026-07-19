@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   Check,
@@ -404,12 +405,15 @@ export type RequestFormInitialUser = {
 };
 
 export function RequestStepForm({
+  adminMode = false,
   type,
   initialUser,
 }: {
+  adminMode?: boolean;
   type: "visa" | "koupat";
   initialUser?: RequestFormInitialUser | null;
 }) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState(0);
   const [personStatus, setPersonStatus] = useState("");
@@ -647,8 +651,11 @@ export function RequestStepForm({
       setSendProgress(100);
       setSubmitState({
         status: "success",
-        message: `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
+        message: adminMode
+          ? `Demande creee avec succes (reference ${result.requestId}). Le dossier apparait dans la liste admin et l'utilisateur a ete notifie par email.`
+          : `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
       });
+      router.refresh();
     } catch (error) {
       const result = error as RequestSubmitResult;
       setSubmitState({
