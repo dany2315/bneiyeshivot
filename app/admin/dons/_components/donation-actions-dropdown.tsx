@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -42,7 +41,7 @@ export function DonationActionsDropdown({
         Actions
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>Don</DropdownMenuLabel>
+        <div className="px-2 py-1 text-xs font-bold text-[var(--muted)]">Don</div>
         <Link
           className={actionItemClassName}
           href={`/admin/dons?q=${encodeURIComponent(donorEmail)}`}
@@ -71,7 +70,9 @@ export function DonationActionsDropdown({
         {hasCerfa ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>Cerfa</DropdownMenuLabel>
+            <div className="px-2 py-1 text-xs font-bold text-[var(--muted)]">
+              Cerfa
+            </div>
             <form action={sendCerfaReceipt}>
               <input name="donationId" type="hidden" value={donationId} />
               <button className={actionItemClassName} type="submit">
