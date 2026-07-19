@@ -4331,10 +4331,14 @@ a.card:hover,
 
   .arrival-progress {
     position: sticky;
-    top: 62px;
+    top: 84px;
     z-index: 15;
     gap: 12px;
     padding: 14px 16px;
+  }
+
+  .arrival-step {
+    scroll-margin-top: 220px;
   }
 
   .arrival-progress-steps {
