@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   CerfaReceiptType,
+  DonationFrequency,
   DonationSource,
   PaymentProvider,
   PaymentStatus,
@@ -11,11 +12,10 @@ import {
   createManualDonation,
   deleteManualDonation,
   refundDonation,
-  sendCerfaReceipt,
-  sendPaymentReceipt,
   updateDonationDetails,
   updateDonationAdminNote,
 } from "./actions";
+import { DonationActionsDropdown } from "./_components/donation-actions-dropdown";
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -36,14 +36,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import {
   NativeSelect,
@@ -72,14 +64,10 @@ import { requireAdminUser } from "@/lib/session";
 import {
   Banknote,
   Download,
-  Eye,
   ExternalLink,
   FileText,
-  Mail,
-  MoreHorizontal,
   RotateCcw,
   Search,
-  Send,
   Trash2,
 } from "lucide-react";
 
@@ -88,13 +76,6 @@ export const metadata = {
 };
 
 type AdminDonation = Awaited<ReturnType<typeof getDonations>>[number];
-
-const receiptStatusLabels: Record<ReceiptStatus, string> = {
-  NOT_REQUESTED: "Non demande",
-  REQUESTED: "Demande",
-  GENERATED: "Genere",
-  SENT: "Envoye",
-};
 
 const donationProviderLabels: Record<PaymentProvider, string> = {
   STRIPE: "Stripe",
@@ -227,13 +208,20 @@ function isReceiptSent(donation: AdminDonation) {
 function buildWhere(params: Record<string, string | undefined>) {
   const where: Prisma.DonationWhereInput = {};
   const status = params.status;
-  const receipt = params.receipt;
+  const frequency = params.frequency;
   const origin = params.origin;
   const source = params.source;
   const q = params.q?.trim();
 
   if (status && Object.values(PaymentStatus).includes(status as PaymentStatus)) {
     where.status = status as PaymentStatus;
+  }
+
+  if (
+    frequency &&
+    Object.values(DonationFrequency).includes(frequency as DonationFrequency)
+  ) {
+    where.frequency = frequency as DonationFrequency;
   }
 
   if (source && Object.values(DonationSource).includes(source as DonationSource)) {
@@ -252,15 +240,6 @@ function buildWhere(params: Record<string, string | undefined>) {
   if (origin === PaymentProvider.NEDARIM_PLUS) {
     where.source = DonationSource.ONLINE;
     where.provider = PaymentProvider.NEDARIM_PLUS;
-  }
-
-  if (receipt && Object.values(ReceiptStatus).includes(receipt as ReceiptStatus)) {
-    where.receiptStatus = receipt as ReceiptStatus;
-  }
-
-  if (receipt === "MISSING") {
-    where.receiptNeeded = true;
-    where.receipt = null;
   }
 
   if (q) {
@@ -442,7 +421,13 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
               Recu, Cerfa, historique du donateur et liens paiement.
             </span>
           </div>
-          <DonationActionsDropdown donation={donation} />
+          <DonationActionsDropdown
+            cerfaUrl={cerfaUrl}
+            donationId={donation.id}
+            donorEmail={donation.donorEmail}
+            hasCerfa={hasCerfa}
+            stripeReceiptUrl={stripeReceiptUrl}
+          />
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -900,114 +885,98 @@ function RefundDialog({ donation }: { donation: AdminDonation }) {
   );
 }
 
-function DonationActionsDropdown({ donation }: { donation: AdminDonation }) {
-  const hasCerfa = canShowCerfaControls(donation);
-  const cerfaUrl = fileUrl(donation.receipt?.fileKey);
-  const stripeReceiptUrl = metadataText(donation.metadata, "stripeReceiptUrl");
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button size="sm" variant="secondary" />}>
-        <MoreHorizontal className="size-4" />
-        Actions
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>Don</DropdownMenuLabel>
-        <DropdownMenuItem render={<Link href={`/admin/dons?q=${encodeURIComponent(donation.donorEmail)}`} />}>
-          <Eye className="size-4" />
-          Voir les dons du donateur
-        </DropdownMenuItem>
-        {stripeReceiptUrl ? (
-          <DropdownMenuItem render={<a href={stripeReceiptUrl} rel="noreferrer" target="_blank" />}>
-            <ExternalLink className="size-4" />
-            Voir le recu Stripe
-          </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuItem render={<form action={sendPaymentReceipt} />}>
-          <input name="donationId" type="hidden" value={donation.id} />
-          <button className="flex w-full items-center gap-2" type="submit">
-            <Mail className="size-4" />
-            Envoyer le recu
-          </button>
-        </DropdownMenuItem>
-        {hasCerfa ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Cerfa</DropdownMenuLabel>
-            <DropdownMenuItem render={<form action={sendCerfaReceipt} />}>
-              <input name="donationId" type="hidden" value={donation.id} />
-              <button className="flex w-full items-center gap-2" type="submit">
-                <Send className="size-4" />
-                Envoyer le Cerfa
-              </button>
-            </DropdownMenuItem>
-            {cerfaUrl ? (
-              <>
-                <DropdownMenuItem render={<a href={cerfaUrl} rel="noreferrer" target="_blank" />}>
-                  <Eye className="size-4" />
-                  Voir le Cerfa
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<a download href={cerfaUrl} />}>
-                  <Download className="size-4" />
-                  Telecharger le Cerfa
-                </DropdownMenuItem>
-              </>
-            ) : null}
-          </>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 function FilterBar({
   params,
 }: {
   params: Record<string, string | undefined>;
 }) {
+  function frequencyHref(value: string) {
+    const query = new URLSearchParams();
+
+    for (const [key, rawValue] of Object.entries(params)) {
+      if (!rawValue || key === "frequency") continue;
+      query.set(key, rawValue);
+    }
+
+    if (value) {
+      query.set("frequency", value);
+    }
+
+    const suffix = query.toString();
+
+    return suffix ? `/admin/dons?${suffix}` : "/admin/dons";
+  }
+
+  const frequencyTabs = [
+    { href: frequencyHref(""), label: "Tous", value: "" },
+    {
+      href: frequencyHref(DonationFrequency.ONE_TIME),
+      label: "Ponctuels",
+      value: DonationFrequency.ONE_TIME,
+    },
+    {
+      href: frequencyHref(DonationFrequency.MONTHLY),
+      label: "Recurrents",
+      value: DonationFrequency.MONTHLY,
+    },
+  ];
+
   return (
-    <form className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/70 p-3 lg:grid-cols-[minmax(260px,1fr)_150px_160px_170px_auto_auto]">
-      <InputGroup className="h-10 bg-white">
-        <Search className="ml-3 size-4 text-[var(--muted)]" />
-        <InputGroupInput
-          defaultValue={params.q ?? ""}
-          name="q"
-          placeholder="Nom, email, telephone, recu, Stripe..."
-        />
-      </InputGroup>
-      <NativeSelect defaultValue={params.status ?? ""} name="status">
-        <NativeSelectOption value="">Statut</NativeSelectOption>
-        {Object.values(PaymentStatus).map((status) => (
-          <NativeSelectOption key={status} value={status}>
-            {paymentStatusLabels[status]}
+    <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)]/70 p-3">
+      <div className="flex gap-2 overflow-x-auto">
+        {frequencyTabs.map((tab) => {
+          const isActive = (params.frequency ?? "") === tab.value;
+
+          return (
+            <Link
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-white px-4 text-sm font-bold text-[var(--primary)] transition data-[active=true]:border-[var(--accent)]/50 data-[active=true]:bg-[var(--accent-soft)] data-[active=true]:text-[var(--accent-strong)]"
+              data-active={isActive}
+              href={tab.href}
+              key={tab.value || "all"}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <form className="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_160px_170px_auto_auto]">
+        {params.frequency ? (
+          <input name="frequency" type="hidden" value={params.frequency} />
+        ) : null}
+        <InputGroup className="h-10 bg-white">
+          <Search className="ml-3 size-4 text-[var(--muted)]" />
+          <InputGroupInput
+            defaultValue={params.q ?? ""}
+            name="q"
+            placeholder="Nom, email, telephone, ID don, recu, Stripe..."
+          />
+        </InputGroup>
+        <NativeSelect defaultValue={params.status ?? ""} name="status">
+          <NativeSelectOption value="">Statut</NativeSelectOption>
+          {Object.values(PaymentStatus).map((status) => (
+            <NativeSelectOption key={status} value={status}>
+              {paymentStatusLabels[status]}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+        <NativeSelect defaultValue={params.origin ?? ""} name="origin">
+          <NativeSelectOption value="">Origine</NativeSelectOption>
+          <NativeSelectOption value="MANUAL">Manuel</NativeSelectOption>
+          <NativeSelectOption value={PaymentProvider.STRIPE}>Stripe</NativeSelectOption>
+          <NativeSelectOption value={PaymentProvider.NEDARIM_PLUS}>
+            Nedarim Plus
           </NativeSelectOption>
-        ))}
-      </NativeSelect>
-      <NativeSelect defaultValue={params.receipt ?? ""} name="receipt">
-        <NativeSelectOption value="">Recu / Cerfa</NativeSelectOption>
-        <NativeSelectOption value="MISSING">Cerfa a creer</NativeSelectOption>
-        {Object.values(ReceiptStatus).map((status) => (
-          <NativeSelectOption key={status} value={status}>
-            {receiptStatusLabels[status]}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-      <NativeSelect defaultValue={params.origin ?? ""} name="origin">
-        <NativeSelectOption value="">Origine</NativeSelectOption>
-        <NativeSelectOption value="MANUAL">Manuel</NativeSelectOption>
-        <NativeSelectOption value={PaymentProvider.STRIPE}>Stripe</NativeSelectOption>
-        <NativeSelectOption value={PaymentProvider.NEDARIM_PLUS}>
-          Nedarim Plus
-        </NativeSelectOption>
-      </NativeSelect>
-      <Button type="submit">
-        <Search className="size-4" />
-        Filtrer
-      </Button>
-      <Button asChild variant="secondary">
-        <Link href="/admin/dons">Reset</Link>
-      </Button>
-    </form>
+        </NativeSelect>
+        <Button type="submit">
+          <Search className="size-4" />
+          Filtrer
+        </Button>
+        <Button asChild variant="secondary">
+          <Link href="/admin/dons">Reset</Link>
+        </Button>
+      </form>
+    </div>
   );
 }
 
@@ -1193,7 +1162,16 @@ export default async function AdminDonationsPage({
                       <TableCell>
                         <div className="admin-table-actions">
                           <DonationDetailsDialog donation={donation} />
-                          <DonationActionsDropdown donation={donation} />
+                          <DonationActionsDropdown
+                            cerfaUrl={fileUrl(donation.receipt?.fileKey)}
+                            donationId={donation.id}
+                            donorEmail={donation.donorEmail}
+                            hasCerfa={canShowCerfaControls(donation)}
+                            stripeReceiptUrl={metadataText(
+                              donation.metadata,
+                              "stripeReceiptUrl",
+                            )}
+                          />
                           <RefundDialog donation={donation} />
                         </div>
                       </TableCell>
