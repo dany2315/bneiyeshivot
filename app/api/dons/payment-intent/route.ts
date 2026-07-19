@@ -191,7 +191,10 @@ export async function POST(request: Request) {
             : undefined,
         metadata,
         payment_behavior: "default_incomplete",
-        payment_settings: { save_default_payment_method: "on_subscription" },
+        payment_settings: {
+          payment_method_types: ["card", "link"],
+          save_default_payment_method: "on_subscription",
+        },
         expand: ["latest_invoice.payment_intent"],
       });
       const paymentIntent = stripePaymentIntentFromSubscription(subscription);
@@ -235,7 +238,7 @@ export async function POST(request: Request) {
       currency: currency.toLowerCase(),
       receipt_email: email,
       metadata,
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card", "link"],
     });
 
     if (!paymentIntent.client_secret) {

@@ -2,7 +2,13 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import {
+  AddressElement,
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   ArrowLeft,
@@ -140,9 +146,44 @@ function EmbeddedPaymentForm({
     setIsConfirming(true);
     setPaymentError("");
 
+    const addressElement = elements.getElement(AddressElement);
+    const addressValue = await addressElement?.getValue();
+
+    if (!addressValue?.complete) {
+      setPaymentError("Adresse fiscale obligatoire pour le recu Cerfa.");
+      setIsConfirming(false);
+      return;
+    }
+
+    const addressResponse = await fetch("/api/dons/receipt-address", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        donationId,
+        name: addressValue.value.name,
+        address: addressValue.value.address,
+      }),
+    });
+
+    if (!addressResponse.ok) {
+      const payload = await addressResponse.json().catch(() => null);
+
+      setPaymentError(
+        payload?.error ?? "Adresse fiscale invalide pour le recu Cerfa.",
+      );
+      setIsConfirming(false);
+      return;
+    }
+
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
+        payment_method_data: {
+          billing_details: {
+            address: addressValue.value.address,
+            name: addressValue.value.name,
+          },
+        },
         return_url: `${window.location.origin}/dons/merci?donation=${donationId}`,
       },
       redirect: "if_required",
@@ -799,6 +840,25 @@ export function DonationCheckoutForm({
                   }}
                   stripe={stripePromise}
                 >
+                  <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4">
+                    <div>
+                      <h3 className="font-bold text-[var(--primary)]">
+                        Adresse fiscale pour le Cerfa
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                        Adresse obligatoire, collectee par Stripe et enregistree
+                        sur le dossier du don avant validation du paiement.
+                      </p>
+                    </div>
+                    <AddressElement
+                      options={{
+                        mode: "billing",
+                        defaultValues: {
+                          name: donorName,
+                        },
+                      }}
+                    />
+                  </div>
                   <EmbeddedPaymentForm
                     amount={moneyLabel(effectiveAmount, currency)}
                     donationId={donationId}
