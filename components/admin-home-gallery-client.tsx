@@ -69,6 +69,7 @@ export type AdminGalleryAlbum = {
 
 type Slot = {
   id: string;
+  file?: File;
   fileName: string;
   type: GalleryItemType;
   title: string;
@@ -466,6 +467,7 @@ function AlbumDialog({
       return {
         id: `new-${Date.now()}-${counter.current}`,
         type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
+        file,
         fileName: file.name || "fichier sans nom",
         title: "",
         description: "",
@@ -572,6 +574,50 @@ function AlbumDialog({
         }),
       );
       toast.error(error instanceof Error ? error.message : "Upload impossible.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function reuploadSlot(slot: Slot) {
+    if (!slot.file) {
+      toast.error("Fichier local indisponible. Supprimez-le puis selectionnez-le a nouveau.");
+      return;
+    }
+
+    setUploading(true);
+    updateSlot(slot.id, {
+      key: "",
+      status: "uploading",
+      uploadError: "",
+      uploadProgress: 0,
+    });
+
+    try {
+      const media = await uploadFileWithProgress(slot.file, (progress) => {
+        updateSlot(slot.id, { uploadProgress: progress });
+      });
+
+      updateSlot(slot.id, {
+        key: media.key,
+        mimeType: media.mimeType,
+        preview: fileUrl(media.key) ?? slot.preview,
+        size: media.size,
+        status: "ready",
+        uploadProgress: 100,
+      });
+      toast.success(`${slotDisplayName(slot)} reuploade.`);
+    } catch (error) {
+      updateSlot(slot.id, {
+        status: "error",
+        uploadError:
+          error instanceof Error ? error.message : "Upload impossible.",
+      });
+      toast.error(
+        `${slotDisplayName(slot)}: ${
+          error instanceof Error ? error.message : "Upload impossible."
+        }`,
+      );
     } finally {
       setUploading(false);
     }
@@ -797,8 +843,22 @@ function AlbumDialog({
                             : ""}
                         </span>
                         {slot.status === "error" ? (
-                          <span className="min-w-0 [overflow-wrap:anywhere] font-semibold text-destructive">
-                            Erreur: {slot.uploadError || "Upload echoue."}
+                          <span className="grid gap-2">
+                            <span className="min-w-0 [overflow-wrap:anywhere] font-semibold text-destructive">
+                              Erreur: {slot.uploadError || "Upload echoue."}
+                            </span>
+                            {slot.file ? (
+                              <Button
+                                className="w-fit"
+                                onClick={() => void reuploadSlot(slot)}
+                                size="sm"
+                                type="button"
+                                variant="secondary"
+                              >
+                                <Upload className="size-4" />
+                                Reuploader
+                              </Button>
+                            ) : null}
                           </span>
                         ) : null}
                       </div>
