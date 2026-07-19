@@ -200,7 +200,7 @@ function EmbeddedPaymentForm({
   }
 
   return (
-    <div className="grid gap-4 rounded-xl border border-[var(--border)] bg-white p-4 shadow-sm">
+    <div className="grid gap-4">
       <AddressElement
         options={{
           mode: "billing",
@@ -209,7 +209,20 @@ function EmbeddedPaymentForm({
           },
         }}
       />
-      <PaymentElement />
+      <PaymentElement
+        options={{
+          layout: {
+            type: "tabs",
+            defaultCollapsed: false,
+          },
+          paymentMethodOrder: ["card", "apple_pay", "google_pay", "link"],
+          wallets: {
+            applePay: "auto",
+            googlePay: "auto",
+            link: "auto",
+          },
+        }}
+      />
       {paymentError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
           {paymentError}
@@ -815,16 +828,21 @@ export function DonationCheckoutForm({
             />
 
             <div className="mt-5 grid gap-4">
-              <div className="rounded-xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-4">
-                <strong className="text-[var(--primary)]">
-                  {moneyLabel(effectiveAmount, currency)}
-                  {frequency === "MONTHLY" ? " / mois" : ""}
-                </strong>
-                <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
+                    Total
+                  </p>
+                  <strong className="text-lg text-[var(--primary)]">
+                    {moneyLabel(effectiveAmount, currency)}
+                    {frequency === "MONTHLY" ? " / mois" : ""}
+                  </strong>
+                </div>
+                <Badge variant="success" className="px-3 py-2">
                   {frequency === "MONTHLY"
-                    ? `Don mensuel - ${recurringLabel ?? "sans limite"}`
+                    ? recurringLabel ?? "Mensuel sans limite"
                     : "Don ponctuel"}
-                </p>
+                </Badge>
               </div>
               {isNedarimPayment && nedarimFields ? (
                 <NedarimPaymentFrame

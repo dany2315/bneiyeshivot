@@ -50,19 +50,35 @@ function addMonths(date: Date, months: number) {
   return next;
 }
 
-function stripePaymentIntentFromSubscription(subscription: Stripe.Subscription) {
+function stripeSubscriptionPaymentConfirmation(subscription: Stripe.Subscription) {
   const latestInvoice =
     subscription.latest_invoice && typeof subscription.latest_invoice !== "string"
       ? subscription.latest_invoice
       : null;
   const invoiceWithPaymentIntent = latestInvoice as
     | (Stripe.Invoice & {
+        confirmation_secret?: { client_secret?: string | null } | null;
         payment_intent?: string | Stripe.PaymentIntent | null;
       })
     | null;
   const paymentIntent = invoiceWithPaymentIntent?.payment_intent;
+  const normalizedPaymentIntent =
+    typeof paymentIntent === "string" ? null : paymentIntent ?? null;
+  const clientSecret =
+    normalizedPaymentIntent?.client_secret ??
+    invoiceWithPaymentIntent?.confirmation_secret?.client_secret ??
+    null;
+  const paymentIntentId =
+    normalizedPaymentIntent?.id ??
+    (clientSecret?.startsWith("pi_")
+      ? clientSecret.split("_secret_")[0]
+      : null);
 
-  return typeof paymentIntent === "string" ? null : paymentIntent ?? null;
+  return {
+    clientSecret,
+    paymentIntent: normalizedPaymentIntent,
+    paymentIntentId,
+  };
 }
 
 export async function POST(request: Request) {
@@ -197,9 +213,10 @@ export async function POST(request: Request) {
         },
         expand: ["latest_invoice.payment_intent"],
       });
-      const paymentIntent = stripePaymentIntentFromSubscription(subscription);
+      const { clientSecret, paymentIntent, paymentIntentId } =
+        stripeSubscriptionPaymentConfirmation(subscription);
 
-      if (!paymentIntent?.client_secret) {
+      if (!clientSecret || !paymentIntentId) {
         throw new Error("Stripe n'a pas retourne de client secret pour l'abonnement.");
       }
 
@@ -207,7 +224,7 @@ export async function POST(request: Request) {
         where: { id: donation.id },
         data: {
           stripeCustomerId: customer.id,
-          stripePaymentIntentId: paymentIntent.id,
+          stripePaymentIntentId: paymentIntentId,
           stripeSubscriptionId: subscription.id,
         },
       });
@@ -220,14 +237,14 @@ export async function POST(request: Request) {
           installmentTotal:
             recurringMonths && recurringMonths > 0 ? recurringMonths : null,
           billingReason: "subscription_create",
-          status: paymentIntent.status === "succeeded" ? "PAID" : "PENDING",
-          stripePaymentIntentId: paymentIntent.id,
+          status: paymentIntent?.status === "succeeded" ? "PAID" : "PENDING",
+          stripePaymentIntentId: paymentIntentId,
           metadata: { subscriptionId: subscription.id } as Prisma.InputJsonObject,
         },
       });
 
       return NextResponse.json({
-        clientSecret: paymentIntent.client_secret,
+        clientSecret,
         donationId: donation.id,
         mode: "subscription",
       });
