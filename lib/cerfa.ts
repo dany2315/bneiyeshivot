@@ -602,7 +602,7 @@ async function renderParticulierCerfaReceiptPdf({
     font: bold,
     color: textColor,
   });
-  page.drawText("Pr\\u00e9nom : ", {
+  page.drawText("Pr\u00e9nom : ", {
     x: 297,
     y: 582,
     size: 8.75,
