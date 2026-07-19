@@ -117,6 +117,18 @@ const homeServices = [
   },
 ];
 
+type HomeGalleryMedia = {
+  id: string;
+  type: "IMAGE" | "VIDEO" | "YOUTUBE";
+  src: string;
+};
+
+type HomeGalleryAlbum = {
+  title: string;
+  description: string;
+  items: HomeGalleryMedia[];
+};
+
 const galleryAlbums = [
   {
     title: "Photos",
@@ -192,6 +204,50 @@ const galleryAlbums = [
   },
 ];
 
+function GalleryMedia({
+  item,
+  className,
+}: {
+  item: HomeGalleryMedia;
+  className?: string;
+}) {
+  if (item.type === "VIDEO") {
+    return (
+      <video
+        className={className}
+        controls={false}
+        muted
+        playsInline
+        preload="metadata"
+        src={item.src}
+      />
+    );
+  }
+
+  if (item.type === "YOUTUBE") {
+    return (
+      <iframe
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        className={className}
+        referrerPolicy="strict-origin-when-cross-origin"
+        src={item.src}
+        title="Video galerie"
+      />
+    );
+  }
+
+  return (
+    <Image
+      alt=""
+      className={className}
+      fill
+      sizes="(max-width: 980px) 50vw, 20vw"
+      src={item.src}
+    />
+  );
+}
+
 const testimonials = [
   {
     name: "Rav D.",
@@ -224,11 +280,55 @@ const testimonials = [
 ];
 
 export default async function Home() {
-  const upcomingEvents = await prisma.event.findMany({
-    where: { startsAt: { gte: new Date() } },
-    orderBy: { startsAt: "asc" },
-    take: 3,
-  });
+  const [upcomingEvents, dbGalleryAlbums] = await Promise.all([
+    prisma.event.findMany({
+      where: { startsAt: { gte: new Date() } },
+      orderBy: { startsAt: "asc" },
+      take: 3,
+    }),
+    prisma.homeGalleryAlbum.findMany({
+      where: { active: true },
+      include: {
+        items: {
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        },
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    }).catch(() => []),
+  ]);
+  const homeGalleryAlbums: HomeGalleryAlbum[] =
+    dbGalleryAlbums.length > 0
+      ? dbGalleryAlbums
+          .map((album) => ({
+            title: album.title,
+            description: album.description,
+            items: album.items
+              .map((item) => ({
+                id: item.id,
+                type: item.type,
+                src:
+                  item.type === "YOUTUBE"
+                    ? item.url
+                    : fileUrl(item.key) ?? null,
+              }))
+              .filter(
+                (item): item is HomeGalleryMedia =>
+                  Boolean(item.src) &&
+                  (item.type === "IMAGE" ||
+                    item.type === "VIDEO" ||
+                    item.type === "YOUTUBE"),
+              ),
+          }))
+          .filter((album) => album.items.length > 0)
+      : galleryAlbums.map((album) => ({
+          title: album.title,
+          description: album.description,
+          items: album.photos.map((photo, index) => ({
+            id: `${album.title}-${index}`,
+            type: "IMAGE" as const,
+            src: photo,
+          })),
+        }));
 
   return (
     <PageShell>
@@ -454,7 +554,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="gallery-grid">
-              {galleryAlbums.map((album, index) => (
+              {homeGalleryAlbums.map((album, index) => (
                 <Dialog key={album.title}>
                   <DialogTrigger
                     render={
@@ -463,27 +563,22 @@ export default async function Home() {
                   >
                     <Card className="gallery-card">
                       <div className="gallery-card-mosaic">
-                        {album.photos.slice(0, 5).map((photo, photoIndex) => (
+                        {album.items.slice(0, 5).map((item, photoIndex) => (
                           <div
-                            key={photo}
+                            key={item.id}
                             className={
                               photoIndex === 0
                                 ? "gallery-mosaic-cell gallery-mosaic-main"
                                 : "gallery-mosaic-cell"
                             }
                           >
-                            <Image
-                              alt=""
-                              fill
-                              sizes="(max-width: 980px) 50vw, 20vw"
-                              src={photo}
-                            />
+                            <GalleryMedia item={item} />
                           </div>
                         ))}
                       </div>
                       <CardHeader>
                         <Badge variant={index % 2 === 0 ? "info" : "warning"}>
-                          {album.photos.length} photos
+                          {album.items.length} media(s)
                         </Badge>
                         <CardTitle>{album.title}</CardTitle>
                         <CardDescription>{album.description}</CardDescription>
@@ -513,20 +608,22 @@ export default async function Home() {
                     </DialogHeader>
                     <div className="gallery-dialog-scroll">
                       <div className="gallery-dialog-grid">
-                      {album.photos.map((photo, photoIndex) => (
+                      {album.items.map((item, photoIndex) => (
                         <div
                           className={
                             photoIndex === 0
                               ? "gallery-dialog-photo gallery-dialog-photo-featured"
                               : "gallery-dialog-photo"
                           }
-                          key={photo}
+                          key={item.id}
                         >
-                          <Image
-                            alt=""
-                            fill
-                            sizes="(max-width: 980px) 100vw, 33vw"
-                            src={photo}
+                          <GalleryMedia
+                            className={
+                              item.type === "YOUTUBE" || item.type === "VIDEO"
+                                ? "absolute inset-0 h-full w-full object-cover"
+                                : undefined
+                            }
+                            item={item}
                           />
                         </div>
                       ))}

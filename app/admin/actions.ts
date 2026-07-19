@@ -6,6 +6,7 @@ import {
   DonationFrequency,
   DonationSource,
   EventRegistrationStatus,
+  HomeGalleryItemType,
   PaymentStatus,
   ReceiptStatus,
   ServiceRequestStatus,
@@ -69,6 +70,53 @@ function readGalleryKeys(formData: FormData) {
     .getAll("galleryKeys")
     .map((value) => String(value).trim())
     .filter(Boolean);
+}
+
+function readHomeGalleryItems(formData: FormData) {
+  const types = formData.getAll("itemTypes").map(String);
+  const keys = formData.getAll("itemKeys").map((value) => String(value).trim());
+  const urls = formData.getAll("itemUrls").map((value) => String(value).trim());
+  const titles = formData.getAll("itemTitles").map((value) => String(value).trim());
+  const descriptions = formData
+    .getAll("itemDescriptions")
+    .map((value) => String(value).trim());
+
+  return types
+    .map((type, index) => {
+      if (!Object.values(HomeGalleryItemType).includes(type as HomeGalleryItemType)) {
+        return null;
+      }
+
+      const itemType = type as HomeGalleryItemType;
+      const key = keys[index] ?? "";
+      const url = urls[index] ?? "";
+
+      if ((itemType === "IMAGE" || itemType === "VIDEO") && !key) return null;
+      if (itemType === "YOUTUBE" && !url) return null;
+
+      return {
+        type: itemType,
+        key: key || null,
+        url: url || null,
+        title: titles[index] || null,
+        description: descriptions[index] || null,
+        sortOrder: index,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+}
+
+function s3KeysFromHomeGalleryItems(
+  items: Array<{ key: string | null; type: HomeGalleryItemType }>,
+) {
+  return items
+    .filter(
+      (item) =>
+        item.key &&
+        (item.type === HomeGalleryItemType.IMAGE ||
+          item.type === HomeGalleryItemType.VIDEO),
+    )
+    .map((item) => item.key as string);
 }
 
 export async function updateServiceRequest(formData: FormData) {
@@ -315,6 +363,130 @@ export async function deleteEvent(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/evenements");
+}
+
+export async function createHomeGalleryAlbum(formData: FormData) {
+  const admin = await requireAdminUser();
+  const title = readString(formData, "title");
+  const description = readString(formData, "description");
+  const items = readHomeGalleryItems(formData);
+
+  if (!title || !description) {
+    throw new Error("Titre et description obligatoires.");
+  }
+
+  const album = await prisma.homeGalleryAlbum.create({
+    data: {
+      title,
+      description,
+      sortOrder: Number(readString(formData, "sortOrder")) || 0,
+      active: formData.get("active") === "on",
+      items: { create: items },
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "home_gallery_album.created",
+      entity: "HomeGalleryAlbum",
+      entityId: album.id,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/galerie");
+}
+
+export async function updateHomeGalleryAlbum(formData: FormData) {
+  const admin = await requireAdminUser();
+  const albumId = readString(formData, "albumId");
+  const title = readString(formData, "title");
+  const description = readString(formData, "description");
+  const items = readHomeGalleryItems(formData);
+
+  if (!albumId || !title || !description) {
+    throw new Error("Album invalide.");
+  }
+
+  const existing = await prisma.homeGalleryAlbum.findUnique({
+    where: { id: albumId },
+    include: { items: true },
+  });
+
+  if (!existing) {
+    throw new Error("Album introuvable.");
+  }
+
+  const nextKeys = new Set(
+    s3KeysFromHomeGalleryItems(
+      items.map((item) => ({ key: item.key, type: item.type })),
+    ),
+  );
+  const keysToDelete = s3KeysFromHomeGalleryItems(existing.items).filter(
+    (key) => !nextKeys.has(key),
+  );
+
+  await prisma.$transaction([
+    prisma.homeGalleryItem.deleteMany({ where: { albumId } }),
+    prisma.homeGalleryAlbum.update({
+      where: { id: albumId },
+      data: {
+        title,
+        description,
+        sortOrder: Number(readString(formData, "sortOrder")) || 0,
+        active: formData.get("active") === "on",
+        items: { create: items },
+      },
+    }),
+  ]);
+
+  await deleteFilesFromS3(keysToDelete);
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "home_gallery_album.updated",
+      entity: "HomeGalleryAlbum",
+      entityId: albumId,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/galerie");
+}
+
+export async function deleteHomeGalleryAlbum(formData: FormData) {
+  const admin = await requireAdminUser();
+  const albumId = readString(formData, "albumId");
+
+  if (!albumId) {
+    throw new Error("Album introuvable.");
+  }
+
+  const existing = await prisma.homeGalleryAlbum.findUnique({
+    where: { id: albumId },
+    include: { items: true },
+  });
+
+  if (!existing) {
+    throw new Error("Album introuvable.");
+  }
+
+  await prisma.homeGalleryAlbum.delete({ where: { id: albumId } });
+  await deleteFilesFromS3(s3KeysFromHomeGalleryItems(existing.items));
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "home_gallery_album.deleted",
+      entity: "HomeGalleryAlbum",
+      entityId: albumId,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin/galerie");
 }
 
 export async function addEventPastMedia(formData: FormData) {

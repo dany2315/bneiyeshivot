@@ -115,6 +115,12 @@ enum DvarTorahCategory {
   FETE
 }
 
+enum HomeGalleryItemType {
+  IMAGE
+  VIDEO
+  YOUTUBE
+}
+
 model User {
   id                  String               @id @default(cuid())
   name                String               @default("")
@@ -515,4 +521,34 @@ model DvarTorahFile {
   published   Boolean           @default(true)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+}
+
+model HomeGalleryAlbum {
+  id          String            @id @default(cuid())
+  title       String
+  description String
+  active      Boolean           @default(true)
+  sortOrder   Int               @default(0)
+  items       HomeGalleryItem[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+model HomeGalleryItem {
+  id          String              @id @default(cuid())
+  albumId     String
+  album       HomeGalleryAlbum    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  type        HomeGalleryItemType
+  title       String?
+  description String?
+  key         String?
+  url         String?
+  mimeType    String?
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([albumId, sortOrder])
 }

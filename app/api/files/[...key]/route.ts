@@ -13,6 +13,7 @@ export async function GET(
   // Les documents de dossier (passeports, etc.) ont leurs propres routes protegees.
   if (
     !fileKey.startsWith("events/") &&
+    !fileKey.startsWith("home/gallery/") &&
     !fileKey.startsWith("public/") &&
     !fileKey.startsWith("store/products/")
   ) {

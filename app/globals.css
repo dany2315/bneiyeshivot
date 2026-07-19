@@ -791,11 +791,16 @@ textarea {
 }
 
 .gallery-mosaic-cell img,
-.gallery-dialog-photo img {
+.gallery-mosaic-cell video,
+.gallery-mosaic-cell iframe,
+.gallery-dialog-photo img,
+.gallery-dialog-photo video,
+.gallery-dialog-photo iframe {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border: 0;
 }
 
 .gallery-mosaic-main {
