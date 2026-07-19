@@ -1,9 +1,11 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { type FormEvent, useMemo, useRef, useState } from "react";
 import {
   Calendar,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -430,6 +432,9 @@ export function RequestStepForm({
   const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
   const isSubmitting = submitState.status === "loading";
   const isUploadingDocuments = Object.values(uploadingFields).some(Boolean);
+  const successTitle = isVisa
+    ? "Demande de visa envoyee"
+    : "Demande Koupat Holim envoyee";
 
   function validateStep(stepIndex: number) {
     const form = formRef.current;
@@ -656,6 +661,32 @@ export function RequestStepForm({
       setSendProgress(0);
       setFileUploadProgress({});
     }
+  }
+
+  if (submitState.status === "success") {
+    return (
+      <Card className="relative z-20 max-w-[760px] overflow-hidden">
+        <CardContent className="grid gap-6 p-7 text-center sm:p-9">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">
+            <CheckCircle2 className="size-8" />
+          </div>
+          <div className="grid gap-2">
+            <CardTitle className="text-2xl">{successTitle}</CardTitle>
+            <CardDescription className="mx-auto max-w-[560px] text-base leading-7">
+              {submitState.message}
+            </CardDescription>
+          </div>
+          <div className="mx-auto grid w-full max-w-[420px] gap-3 sm:grid-cols-2">
+            <Button asChild variant="secondary">
+              <Link href="/">Accueil</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/client">Mon espace</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -1051,9 +1082,7 @@ export function RequestStepForm({
             className={
               submitState.status === "error"
                 ? "rounded-xl border border-red-200 bg-red-50 p-4 text-base text-red-900"
-                : submitState.status === "success"
-                  ? "rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-base text-emerald-900"
-                  : "rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--primary)]"
+                : "rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--primary)]"
             }
           >
             {submitState.message}

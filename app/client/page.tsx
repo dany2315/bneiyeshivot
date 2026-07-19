@@ -363,7 +363,7 @@ export default async function ClientPage({
                 )}
               </TabsList>
 
-              <TabsContent value="requests" className="grid gap-5">
+              <TabsContent value="requests" className="grid gap-3">
                 {requests.length === 0 ? (
                   <Alert>
                     <CheckCircle2 />
@@ -374,53 +374,75 @@ export default async function ClientPage({
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <div className="grid gap-4">
-                    {requests.map((request) => (
-                      <Card key={request.id}>
-                        <CardHeader>
-                          <FileText className="size-5 text-[var(--accent)]" />
-                          <CardTitle>{requestTypeLabels[request.type]}</CardTitle>
-                          <CardDescription>
-                            Creee le{" "}
-                            {request.createdAt.toLocaleDateString("fr-FR")}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-3">
-                          <StatusBadge tone={requestTone(request.status)}>
-                            {requestStatusLabels[request.status]}
-                          </StatusBadge>
-                          <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm text-[var(--primary)]">
-                            <span className="font-bold">Demande pour : </span>
-                            {requestSubjectName(request.payload, user)}
-                          </div>
-                          {finalDocuments(request.documents, request.type).map(
-                            (document) => (
-                              <Button asChild key={document.id} variant="secondary">
-                                <a href={`/api/requests/documents/${document.id}/download`}>
-                                  <Download className="size-4" />
-                                  Telecharger {document.label.toLowerCase()}
-                                </a>
-                              </Button>
-                            ),
-                          )}
-                          {request.publicNote && (
-                            <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-base text-[var(--primary)]">
-                              {request.publicNote}
-                            </p>
-                          )}
-                          {request.messages.map((message) => (
-                            <p
-                              className="text-sm leading-6 text-[var(--muted)]"
-                              key={message.id}
-                            >
-                              {message.body}
-                            </p>
-                          ))}
-                          {request.status === ServiceRequestStatus.MISSING_DOCUMENTS ? (
-                            <form
-                              action={updateBahourServiceRequest}
-                              className="mt-2 grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3"
-                            >
+                  <div className="grid gap-2">
+                    {requests.map((request) => {
+                      const documents = finalDocuments(request.documents, request.type);
+                      const subjectName = requestSubjectName(request.payload, user);
+
+                      return (
+                        <Card key={request.id} size="sm" className="rounded-xl py-3 shadow-sm">
+                          <CardContent className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                            <div className="flex min-w-0 items-start gap-3">
+                              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[var(--accent)]">
+                                <FileText className="size-4" />
+                              </span>
+                              <div className="grid min-w-0 gap-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <CardTitle className="text-base leading-tight">
+                                    {requestTypeLabels[request.type]}
+                                  </CardTitle>
+                                  <StatusBadge tone={requestTone(request.status)}>
+                                    {requestStatusLabels[request.status]}
+                                  </StatusBadge>
+                                </div>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs leading-5 text-[var(--muted)]">
+                                  <span>
+                                    Creee le {request.createdAt.toLocaleDateString("fr-FR")}
+                                  </span>
+                                  <span>
+                                    <span className="font-bold text-[var(--primary)]">
+                                      Pour :
+                                    </span>{" "}
+                                    {subjectName}
+                                  </span>
+                                </div>
+                                {request.publicNote ? (
+                                  <p className="text-sm leading-5 text-[var(--primary)]">
+                                    {request.publicNote}
+                                  </p>
+                                ) : null}
+                                {request.messages.map((message) => (
+                                  <p
+                                    className="text-xs leading-5 text-[var(--muted)]"
+                                    key={message.id}
+                                  >
+                                    {message.body}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                            {documents.length > 0 ? (
+                              <div className="flex flex-wrap gap-2 md:justify-end">
+                                {documents.map((document) => (
+                                  <Button
+                                    asChild
+                                    key={document.id}
+                                    size="sm"
+                                    variant="secondary"
+                                  >
+                                    <a href={`/api/requests/documents/${document.id}/download`}>
+                                      <Download className="size-4" />
+                                      Telecharger
+                                    </a>
+                                  </Button>
+                                ))}
+                              </div>
+                            ) : null}
+                            {request.status === ServiceRequestStatus.MISSING_DOCUMENTS ? (
+                              <form
+                                action={updateBahourServiceRequest}
+                                className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3 md:col-span-2"
+                              >
                               <input
                                 name="requestId"
                                 type="hidden"
@@ -459,11 +481,12 @@ export default async function ClientPage({
                               <Button type="submit">
                                 Envoyer mes modifications
                               </Button>
-                            </form>
-                          ) : null}
-                        </CardContent>
-                      </Card>
-                    ))}
+                              </form>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
