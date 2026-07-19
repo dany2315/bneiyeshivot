@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import JSZip from "jszip";
-import type { Prisma } from "@prisma/client";
+import { PaymentStatus, type Prisma } from "@prisma/client";
 import { renderCerfaReceiptPdf } from "@/lib/cerfa";
 import { formatMoney } from "@/lib/donations";
 import { isAdminRole } from "@/lib/donor-access";
@@ -42,6 +42,7 @@ export async function GET(request: Request) {
         }
       : undefined;
   const donationOwnerWhere: Prisma.DonationWhereInput = {
+    status: { not: PaymentStatus.PENDING },
     OR: [
       { donorEmail: user.email },
       { userId: user.id },

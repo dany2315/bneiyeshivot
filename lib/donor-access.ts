@@ -1,4 +1,4 @@
-import { Prisma, UserRole, type User } from "@prisma/client";
+import { PaymentStatus, Prisma, UserRole, type User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export function isAdminRole(role: UserRole | string | null | undefined) {
@@ -25,6 +25,7 @@ export async function countDonationsForEmail(email: string, userId?: string) {
 
   return prisma.donation.count({
     where: {
+      status: { not: PaymentStatus.PENDING },
       OR: or,
     },
   });

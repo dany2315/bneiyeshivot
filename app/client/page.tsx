@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   EventRegistrationStatus,
+  PaymentStatus,
   ServiceRequestStatus,
   ServiceRequestType,
 } from "@prisma/client";
@@ -217,6 +218,7 @@ export default async function ClientPage({
     }),
     prisma.donation.findMany({
       where: {
+        status: { not: PaymentStatus.PENDING },
         OR: [
           { donorEmail: user.email },
           { userId: user.id },

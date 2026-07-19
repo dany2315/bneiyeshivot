@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PaymentStatus } from "@prisma/client";
 import { PageShell } from "@/app/components";
 import { DonorDonationsTable } from "@/components/donor-donations-table";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ export default async function DonorPage({
       : undefined;
   const donations = await prisma.donation.findMany({
     where: {
+      status: { not: PaymentStatus.PENDING },
       ...(donationDate
         ? {
             OR: [{ paidAt: donationDate }, { paidAt: null, createdAt: donationDate }],
