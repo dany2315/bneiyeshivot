@@ -14,11 +14,13 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const actionItemClassName =
+  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-[var(--primary)] transition hover:bg-[var(--accent-soft)] hover:text-[var(--accent-strong)]";
 
 export function DonationActionsDropdown({
   cerfaUrl,
@@ -41,54 +43,57 @@ export function DonationActionsDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel>Don</DropdownMenuLabel>
-        <DropdownMenuItem
-          render={
-            <Link href={`/admin/dons?q=${encodeURIComponent(donorEmail)}`} />
-          }
+        <Link
+          className={actionItemClassName}
+          href={`/admin/dons?q=${encodeURIComponent(donorEmail)}`}
         >
           <Eye className="size-4" />
           Voir les dons du donateur
-        </DropdownMenuItem>
+        </Link>
         {stripeReceiptUrl ? (
-          <DropdownMenuItem
-            render={
-              <a href={stripeReceiptUrl} rel="noreferrer" target="_blank" />
-            }
+          <a
+            className={actionItemClassName}
+            href={stripeReceiptUrl}
+            rel="noreferrer"
+            target="_blank"
           >
             <ExternalLink className="size-4" />
             Voir le recu Stripe
-          </DropdownMenuItem>
+          </a>
         ) : null}
-        <DropdownMenuItem render={<form action={sendPaymentReceipt} />}>
+        <form action={sendPaymentReceipt}>
           <input name="donationId" type="hidden" value={donationId} />
-          <button className="flex w-full items-center gap-2" type="submit">
+          <button className={actionItemClassName} type="submit">
             <Mail className="size-4" />
             Envoyer le recu
           </button>
-        </DropdownMenuItem>
+        </form>
         {hasCerfa ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Cerfa</DropdownMenuLabel>
-            <DropdownMenuItem render={<form action={sendCerfaReceipt} />}>
+            <form action={sendCerfaReceipt}>
               <input name="donationId" type="hidden" value={donationId} />
-              <button className="flex w-full items-center gap-2" type="submit">
+              <button className={actionItemClassName} type="submit">
                 <Send className="size-4" />
                 Envoyer le Cerfa
               </button>
-            </DropdownMenuItem>
+            </form>
             {cerfaUrl ? (
               <>
-                <DropdownMenuItem
-                  render={<a href={cerfaUrl} rel="noreferrer" target="_blank" />}
+                <a
+                  className={actionItemClassName}
+                  href={cerfaUrl}
+                  rel="noreferrer"
+                  target="_blank"
                 >
                   <Eye className="size-4" />
                   Voir le Cerfa
-                </DropdownMenuItem>
-                <DropdownMenuItem render={<a download href={cerfaUrl} />}>
+                </a>
+                <a className={actionItemClassName} download href={cerfaUrl}>
                   <Download className="size-4" />
                   Telecharger le Cerfa
-                </DropdownMenuItem>
+                </a>
               </>
             ) : null}
           </>
