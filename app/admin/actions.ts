@@ -1153,7 +1153,14 @@ export async function upsertReceiptForDonation(
 ) {
   const receiptType = readString(formData, "receiptType") as CerfaReceiptType;
   const fiscalYear = Number(readString(formData, "fiscalYear")) || new Date().getFullYear();
-  const donorName = readString(formData, "receiptDonorName");
+  const donorType = readString(formData, "donorType") === "ENTREPRISE"
+    ? "ENTREPRISE"
+    : "PARTICULIER";
+  const companyName = readString(formData, "companyName");
+  const donorName =
+    donorType === "ENTREPRISE"
+      ? companyName
+      : readString(formData, "receiptDonorName");
 
   if (!Object.values(CerfaReceiptType).includes(receiptType)) {
     throw new Error("Type de Cerfa invalide.");
@@ -1167,6 +1174,18 @@ export async function upsertReceiptForDonation(
   if (!donation) {
     throw new Error("Don introuvable.");
   }
+
+  const metadata =
+    donation.metadata &&
+    typeof donation.metadata === "object" &&
+    !Array.isArray(donation.metadata)
+      ? donation.metadata
+      : {};
+  const cerfaWasIssued =
+    donation.receiptStatus === ReceiptStatus.SENT ||
+    typeof (metadata as Record<string, unknown>).cerfaEmailSentAt === "string";
+  const regenerateReceiptNumber =
+    formData.get("regenerateReceiptNumber") === "on" && cerfaWasIssued;
 
   const receiptData = {
     type: receiptType,
@@ -1185,17 +1204,33 @@ export async function upsertReceiptForDonation(
   };
 
   if (donation.receipt) {
-    await prisma.receipt.update({
-      where: { donationId },
-      data: receiptData,
-    });
+    if (regenerateReceiptNumber) {
+      await prisma.$transaction(async (tx) => {
+        await tx.receipt.update({
+          where: { donationId },
+          data: {
+            ...receiptData,
+            number: await nextReceiptNumber(fiscalYear, tx),
+            fileKey: null,
+            issuedAt: new Date(),
+          },
+        });
+      });
+    } else {
+      await prisma.receipt.update({
+        where: { donationId },
+        data: receiptData,
+      });
+    }
   } else {
-    await prisma.receipt.create({
-      data: {
-        donationId,
-        number: await nextReceiptNumber(fiscalYear),
-        ...receiptData,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.receipt.create({
+        data: {
+          donationId,
+          number: await nextReceiptNumber(fiscalYear, tx),
+          ...receiptData,
+        },
+      });
     });
   }
 

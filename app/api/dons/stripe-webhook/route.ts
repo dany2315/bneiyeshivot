@@ -358,6 +358,7 @@ async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
     });
     if (donation.frequency !== DonationFrequency.MONTHLY) {
       await upsertDonationPaymentFromIntent(donation.id, intent, "FAILED");
+      await notifyFailedDonation(donation.id);
     }
   }
 }
@@ -651,6 +652,70 @@ async function sendAdminDonationEmail({
   });
 
   return result.ok;
+}
+
+async function notifyFailedDonation(donationId: string) {
+  const donation = await prisma.donation.findUnique({
+    where: { id: donationId },
+    include: { receipt: true },
+  });
+
+  if (!donation || donation.status !== "FAILED") {
+    return;
+  }
+
+  const metadata = metadataObject(donation.metadata);
+
+  if (metadata.adminFailureEmailSentAt) {
+    return;
+  }
+
+  const amount = formatMoney(donation.amountCents, donation.currency);
+  const frequency = formatDonationFrequency(
+    donation.frequency,
+    donation.recurringMonths,
+  );
+  const sent = await sendAdminDonationEmail({
+    amount,
+    donation: {
+      id: donation.id,
+      donorEmail: donation.donorEmail,
+      donorName: donation.donorName,
+      donorPhone: donation.donorPhone,
+      stripePaymentIntentId: donation.stripePaymentIntentId,
+    },
+    failureReason: donation.failureReason,
+    frequency,
+    heading: "Don en echec",
+    paymentStatusLabel: "Echec",
+    receiptNumber: donation.receipt?.number,
+  });
+
+  if (!sent) {
+    return;
+  }
+
+  await prisma.donation.update({
+    where: { id: donation.id },
+    data: {
+      metadata: {
+        ...metadata,
+        adminFailureEmailSentAt: new Date().toISOString(),
+      } as Prisma.InputJsonObject,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      action: "donation.admin_failure_email_sent",
+      entity: "Donation",
+      entityId: donation.id,
+      metadata: {
+        failureReason: donation.failureReason,
+        stripePaymentIntentId: donation.stripePaymentIntentId,
+      },
+    },
+  });
 }
 
 function invoicePaymentIntentId(invoice: Stripe.Invoice) {

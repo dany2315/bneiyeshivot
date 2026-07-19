@@ -1,7 +1,15 @@
+"use client";
+
 import { Fragment } from "react";
 import { Download, ExternalLink, ReceiptText } from "lucide-react";
 import { StatusBadge } from "@/app/components";
 import { DonationReceiptsExportDialog } from "@/components/donation-receipts-export-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -73,7 +81,9 @@ function donationTone(status: string) {
 }
 
 function dateTimeLabel(date: Date) {
-  return date.toLocaleString("fr-FR", {
+  const value = date instanceof Date ? date : new Date(date);
+
+  return value.toLocaleString("fr-FR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -162,6 +172,9 @@ export function DonorDonationsTable({
                   const cerfaUrl = donation.receiptNeeded
                     ? fileUrl(donation.receipt?.fileKey)
                     : null;
+                  const showPaymentHistory =
+                    donation.frequency === "MONTHLY" &&
+                    donation.payments.length > 0;
 
                   return (
                     <Fragment key={donation.id}>
@@ -227,57 +240,62 @@ export function DonorDonationsTable({
                         </div>
                       </TableCell>
                     </TableRow>
-                    {donation.payments.length > 0 ? (
+                    {showPaymentHistory ? (
                         <TableRow key={`${donation.id}-payments`}>
                           <TableCell colSpan={5}>
-                            <div className="grid gap-2 rounded-xl bg-[var(--subtle)] p-3">
-                              <strong className="text-sm text-[var(--primary)]">
-                                Historique des paiements
-                              </strong>
-                              <div className="grid gap-2">
-                                {donation.payments.map((payment) => (
-                                  <div
-                                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm"
-                                    key={payment.id}
-                                  >
-                                    <span className="font-bold text-[var(--primary)]">
-                                      {payment.installmentNumber
-                                        ? `${payment.installmentNumber} / ${
-                                            payment.installmentTotal ??
-                                            "sans limite"
-                                          }`
-                                        : "Paiement"}
-                                    </span>
-                                    <span>
-                                      {formatMoney(
-                                        payment.amountCents,
-                                        payment.currency,
-                                      )}
-                                    </span>
-                                    <StatusBadge tone={donationTone(payment.status)}>
-                                      {paymentStatusLabels[payment.status]}
-                                    </StatusBadge>
-                                    <span className="text-[var(--muted)]">
-                                      {dateTimeLabel(
-                                        payment.paidAt ?? payment.createdAt,
-                                      )}
-                                    </span>
-                                    {payment.stripeReceiptUrl ? (
-                                      <Button asChild size="sm" variant="secondary">
-                                        <a
-                                          href={payment.stripeReceiptUrl}
-                                          rel="noreferrer"
-                                          target="_blank"
-                                        >
-                                          <ExternalLink className="size-4" />
-                                          Recu
-                                        </a>
-                                      </Button>
-                                    ) : null}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                            <Accordion
+                              className="rounded-xl bg-[var(--subtle)] px-3"
+                              defaultValue={[]}
+                            >
+                              <AccordionItem className="border-none" value="payments">
+                                <AccordionTrigger className="py-3 text-[var(--primary)] hover:no-underline">
+                                  Historique des paiements
+                                </AccordionTrigger>
+                                <AccordionContent className="grid gap-2 pb-3">
+                                  {donation.payments.map((payment) => (
+                                    <div
+                                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm"
+                                      key={payment.id}
+                                    >
+                                      <span className="font-bold text-[var(--primary)]">
+                                        {payment.installmentNumber
+                                          ? `${payment.installmentNumber} / ${
+                                              payment.installmentTotal ??
+                                              "sans limite"
+                                            }`
+                                          : "Paiement"}
+                                      </span>
+                                      <span>
+                                        {formatMoney(
+                                          payment.amountCents,
+                                          payment.currency,
+                                        )}
+                                      </span>
+                                      <StatusBadge tone={donationTone(payment.status)}>
+                                        {paymentStatusLabels[payment.status]}
+                                      </StatusBadge>
+                                      <span className="text-[var(--muted)]">
+                                        {dateTimeLabel(
+                                          payment.paidAt ?? payment.createdAt,
+                                        )}
+                                      </span>
+                                      {payment.stripeReceiptUrl ? (
+                                        <Button asChild size="sm" variant="secondary">
+                                          <a
+                                            href={payment.stripeReceiptUrl}
+                                            rel="noreferrer"
+                                            target="_blank"
+                                          >
+                                            <ExternalLink className="size-4" />
+                                            Recu
+                                          </a>
+                                        </Button>
+                                      ) : null}
+                                    </div>
+                                  ))}
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
                           </TableCell>
                         </TableRow>
                     ) : null}

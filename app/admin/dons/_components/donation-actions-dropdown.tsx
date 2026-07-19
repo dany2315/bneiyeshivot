@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
 import {
   CheckCircle2,
   Download,
@@ -20,6 +22,7 @@ import {
   sendPaymentReceipt,
   updateDonationDetails,
 } from "../actions";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,6 +42,20 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+
+const companyLegalFormOptions = [
+  "Association",
+  "Auto-entrepreneur",
+  "EURL",
+  "SARL",
+  "SAS",
+  "SASU",
+  "SA",
+  "SCI",
+  "SC",
+  "SNC",
+  "Autre",
+];
 
 type FiscalDefaults = {
   adminNote: string;
@@ -65,6 +82,40 @@ type FiscalDefaults = {
 
 const actionItemClassName =
   "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-[var(--primary)] transition hover:bg-[var(--accent-soft)] hover:text-[var(--accent-strong)]";
+
+function actionErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function ActionSubmitButton({
+  children,
+  pendingLabel,
+  className = actionItemClassName,
+}: {
+  children: ReactNode;
+  pendingLabel: string;
+  className?: string;
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button className={className} disabled={pending} type="submit">
+      {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+      {pending ? pendingLabel : children}
+    </button>
+  );
+}
+
+function RefundSubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button disabled={pending} type="submit" variant="destructive">
+      {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+      {pending ? "Remboursement..." : "Rembourser via Stripe"}
+    </Button>
+  );
+}
 
 export function DonationActionsDropdown({
   canEditFiscal,
@@ -109,18 +160,61 @@ export function DonationActionsDropdown({
     setFiscalUpdated(false);
     setSentCerfa(false);
     setIsUpdatingFiscal(true);
+    const toastId = toast.loading("Mise a jour des donnees fiscales...");
 
     try {
       await updateDonationDetails(formData);
       setFiscalUpdated(true);
+      toast.success("Donnees fiscales mises a jour.", { id: toastId });
     } catch (error) {
-      setFiscalError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de mettre a jour les donnees fiscales.",
+      const message = actionErrorMessage(
+        error,
+        "Impossible de mettre a jour les donnees fiscales.",
       );
+      setFiscalError(message);
+      toast.error(message, { id: toastId });
     } finally {
       setIsUpdatingFiscal(false);
+    }
+  }
+
+  async function handlePaymentReceiptSubmit(formData: FormData) {
+    const toastId = toast.loading("Envoi du recu de paiement...");
+
+    try {
+      await sendPaymentReceipt(formData);
+      toast.success("Recu de paiement envoye.", { id: toastId });
+    } catch (error) {
+      toast.error(actionErrorMessage(error, "Impossible d'envoyer le recu."), {
+        id: toastId,
+      });
+    }
+  }
+
+  async function handleCerfaReceiptSubmit(formData: FormData) {
+    const toastId = toast.loading("Generation et envoi du Cerfa...");
+
+    try {
+      await sendCerfaReceipt(formData);
+      toast.success("Cerfa envoye.", { id: toastId });
+    } catch (error) {
+      toast.error(actionErrorMessage(error, "Impossible d'envoyer le Cerfa."), {
+        id: toastId,
+      });
+    }
+  }
+
+  async function handleRefundSubmit(formData: FormData) {
+    const toastId = toast.loading("Remboursement en cours...");
+
+    try {
+      await refundDonation(formData);
+      setRefundOpen(false);
+      toast.success("Remboursement effectue.", { id: toastId });
+    } catch (error) {
+      toast.error(actionErrorMessage(error, "Remboursement impossible."), {
+        id: toastId,
+      });
     }
   }
 
@@ -129,16 +223,16 @@ export function DonationActionsDropdown({
     formData.set("donationId", donationId);
     setFiscalError(null);
     setIsSendingCerfa(true);
+    const toastId = toast.loading("Envoi du Cerfa...");
 
     try {
       await sendCerfaReceipt(formData);
       setSentCerfa(true);
+      toast.success("Cerfa envoye.", { id: toastId });
     } catch (error) {
-      setFiscalError(
-        error instanceof Error
-          ? error.message
-          : "Impossible d'envoyer le Cerfa.",
-      );
+      const message = actionErrorMessage(error, "Impossible d'envoyer le Cerfa.");
+      setFiscalError(message);
+      toast.error(message, { id: toastId });
     } finally {
       setIsSendingCerfa(false);
     }
@@ -171,12 +265,12 @@ export function DonationActionsDropdown({
               Voir le recu Stripe
             </a>
           ) : null}
-          <form action={sendPaymentReceipt}>
+          <form action={handlePaymentReceiptSubmit}>
             <input name="donationId" type="hidden" value={donationId} />
-            <button className={actionItemClassName} type="submit">
+            <ActionSubmitButton pendingLabel="Envoi...">
               <Mail className="size-4" />
               Envoyer le recu
-            </button>
+            </ActionSubmitButton>
           </form>
           {canRefund ? (
             <button
@@ -204,12 +298,12 @@ export function DonationActionsDropdown({
               <div className="px-2 py-1 text-xs font-bold text-[var(--muted)]">
                 Cerfa
               </div>
-              <form action={sendCerfaReceipt}>
+              <form action={handleCerfaReceiptSubmit}>
                 <input name="donationId" type="hidden" value={donationId} />
-                <button className={actionItemClassName} type="submit">
+                <ActionSubmitButton pendingLabel="Envoi...">
                   <Send className="size-4" />
                   Envoyer le Cerfa
-                </button>
+                </ActionSubmitButton>
               </form>
               {cerfaUrl ? (
                 <>
@@ -242,12 +336,10 @@ export function DonationActionsDropdown({
               Laisser vide pour rembourser le solde complet.
             </DialogDescription>
           </DialogHeader>
-          <form action={refundDonation} className="grid gap-3">
+          <form action={handleRefundSubmit} className="grid gap-3">
             <input name="donationId" type="hidden" value={donationId} />
             <Input name="refundAmount" placeholder="Montant a rembourser" type="number" />
-            <Button type="submit" variant="destructive">
-              Rembourser via Stripe
-            </Button>
+            <RefundSubmitButton />
           </form>
         </DialogContent>
       </Dialog>
@@ -274,9 +366,9 @@ export function DonationActionsDropdown({
           <form action={handleFiscalSubmit} className="grid gap-3">
             <input name="donationId" type="hidden" value={donationId} />
             <input name="receiptType" type="hidden" value={receiptType} />
+            <input name="regenerateReceiptNumber" type="hidden" value="on" />
             <input name="firstName" type="hidden" value={fiscalDefaults.firstName} />
             <input name="lastName" type="hidden" value={fiscalDefaults.lastName} />
-            <input name="phone" type="hidden" value={fiscalDefaults.phone} />
             <input name="amount" type="hidden" value={fiscalDefaults.amount} />
             <input name="currency" type="hidden" value={fiscalDefaults.currency} />
             <input name="status" type="hidden" value={fiscalDefaults.status} />
@@ -307,6 +399,14 @@ export function DonationActionsDropdown({
                 placeholder="Email d'envoi des recus"
                 type="email"
               />
+              <div className="sm:col-span-2">
+                <PhoneInputGroup
+                  defaultValue={fiscalDefaults.phone}
+                  id="fiscal-phone"
+                  name="phone"
+                  placeholder="Numero de telephone"
+                />
+              </div>
               {donorType === "ENTREPRISE" ? (
                 <>
                   <Input
@@ -314,11 +414,17 @@ export function DonationActionsDropdown({
                     name="companyName"
                     placeholder="Societe"
                   />
-                  <Input
-                    defaultValue={fiscalDefaults.companyLegalForm}
+                  <NativeSelect
+                    className="w-full"
+                    defaultValue={fiscalDefaults.companyLegalForm || "SAS"}
                     name="companyLegalForm"
-                    placeholder="Forme juridique"
-                  />
+                  >
+                    {companyLegalFormOptions.map((form) => (
+                      <NativeSelectOption key={form} value={form}>
+                        {form}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
                   <Input
                     defaultValue={fiscalDefaults.receiptTaxId}
                     name="receiptTaxId"
@@ -326,12 +432,6 @@ export function DonationActionsDropdown({
                   />
                 </>
               ) : null}
-              <Input
-                className="sm:col-span-2"
-                defaultValue={fiscalDefaults.receiptDonorName}
-                name="receiptDonorName"
-                placeholder="Nom sur le recu"
-              />
               <Input
                 className="sm:col-span-2"
                 defaultValue={fiscalDefaults.receiptAddress}

@@ -422,6 +422,13 @@ model Receipt {
   updatedAt    DateTime         @updatedAt
 }
 
+model ReceiptSequence {
+  fiscalYear Int      @id
+  lastNumber Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 model Product {
   id          String      @id @default(cuid())
   title       String

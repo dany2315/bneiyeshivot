@@ -282,6 +282,11 @@ export async function donationAdminNotificationEmail(params: {
   stripeReceiptUrl?: string | null;
 }) {
   const donorName = params.donorName || params.donorEmail;
+  const heading =
+    params.heading ||
+    (params.failureReason || params.paymentStatusLabel === "Echec"
+      ? "Don en echec"
+      : "Nouveau don confirme");
   const html = await render(
     DonationAdminNotificationEmail({
       adminLink: params.adminLink,
@@ -291,7 +296,7 @@ export async function donationAdminNotificationEmail(params: {
       donorPhone: params.donorPhone,
       failureReason: params.failureReason,
       frequency: params.frequency,
-      heading: params.heading,
+      heading,
       paymentLabel: params.paymentLabel,
       paymentStatusLabel: params.paymentStatusLabel,
       receiptNumber: params.receiptNumber,
@@ -301,7 +306,7 @@ export async function donationAdminNotificationEmail(params: {
   );
 
   return {
-    subject: `Nouveau don confirme - ${params.amount} - ${donorName}`,
+    subject: `${heading} - ${params.amount} - ${donorName}`,
     html,
   };
 }

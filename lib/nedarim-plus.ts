@@ -413,7 +413,60 @@ export async function markNedarimDonationFromResponse({
 
   if (status === PaymentStatus.PAID) {
     await sendNedarimDonationEmails(donation.id);
+  } else if (status === PaymentStatus.FAILED) {
+    await sendNedarimDonationFailureAdminEmail(donation.id);
   }
+}
+
+async function sendNedarimDonationFailureAdminEmail(donationId: string) {
+  const donation = await prisma.donation.findUnique({ where: { id: donationId } });
+
+  if (!donation || donation.status !== PaymentStatus.FAILED) {
+    return;
+  }
+
+  const metadata = metadataObject(donation.metadata);
+
+  if (metadata.adminFailureEmailSentAt) {
+    return;
+  }
+
+  const amount = formatMoney(donation.amountCents, donation.currency);
+  const frequency = formatDonationFrequency(
+    donation.frequency,
+    donation.recurringMonths,
+  );
+  const adminEmail = await donationAdminNotificationEmail({
+    adminLink: `${getBaseUrl()}/admin/dons?q=${encodeURIComponent(donation.id)}`,
+    amount,
+    donorEmail: donation.donorEmail,
+    donorName: donation.donorName,
+    donorPhone: donation.donorPhone,
+    failureReason: donation.failureReason,
+    frequency,
+    heading: "Don en echec",
+    paymentStatusLabel: "Echec",
+    receiptNumber: "Non applicable",
+  });
+  const sent = await sendEmail({
+    to: "contact@bneiyeshivot.com",
+    subject: adminEmail.subject,
+    html: adminEmail.html,
+  });
+
+  if (!sent.ok) {
+    return;
+  }
+
+  await prisma.donation.update({
+    where: { id: donation.id },
+    data: {
+      metadata: {
+        ...metadata,
+        adminFailureEmailSentAt: new Date().toISOString(),
+      } as Prisma.InputJsonObject,
+    },
+  });
 }
 
 export async function sendNedarimDonationEmails(donationId: string) {

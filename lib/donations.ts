@@ -4,6 +4,7 @@ import {
   DonationSource,
   PaymentProvider,
   PaymentStatus,
+  Prisma,
   ReceiptStatus,
 } from "@prisma/client";
 import Stripe from "stripe";
@@ -13,9 +14,13 @@ export const donationAmountOptions = [20, 50, 100, 180, 260, 500];
 
 export const donationCurrencyOptions = [
   { value: "EUR", label: "EUR", provider: PaymentProvider.STRIPE },
-  { value: "USD", label: "USD", provider: PaymentProvider.STRIPE },
-  { value: "ILS", label: "ILS", provider: PaymentProvider.STRIPE },
+  { value: "ILS", label: "ILS", provider: PaymentProvider.NEDARIM_PLUS },
 ] as const;
+
+export const donationProviderLabels: Record<PaymentProvider, string> = {
+  STRIPE: "Carte bancaire EUR",
+  NEDARIM_PLUS: "Carte bancaire ILS",
+};
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
   PENDING: "En attente",
@@ -170,12 +175,22 @@ export function getStripe() {
   return new Stripe(key);
 }
 
-export async function nextReceiptNumber(fiscalYear = new Date().getFullYear()) {
-  const count = await prisma.receipt.count({
+export async function nextReceiptNumber(
+  fiscalYear = new Date().getFullYear(),
+  client: Prisma.TransactionClient | typeof prisma = prisma,
+) {
+  const sequence = await client.receiptSequence.upsert({
     where: { fiscalYear },
+    create: {
+      fiscalYear,
+      lastNumber: 1,
+    },
+    update: {
+      lastNumber: { increment: 1 },
+    },
   });
 
-  return `CERFA-${fiscalYear}-${String(count + 1).padStart(5, "0")}`;
+  return `CERFA-${fiscalYear}-${String(sequence.lastNumber).padStart(5, "0")}`;
 }
 
 export function receiptStatusFromNeeded(receiptNeeded: boolean) {

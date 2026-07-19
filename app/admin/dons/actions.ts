@@ -66,10 +66,11 @@ function receiptMetadataFromForm(formData: FormData) {
   const donorType = readString(formData, "donorType") === "ENTREPRISE"
     ? "ENTREPRISE"
     : "PARTICULIER";
+  const companyName = readString(formData, "companyName");
 
   return {
     donorType,
-    companyName: donorType === "ENTREPRISE" ? readString(formData, "companyName") || null : null,
+    companyName: donorType === "ENTREPRISE" ? companyName || null : null,
     companyLegalForm:
       donorType === "ENTREPRISE"
         ? readString(formData, "companyLegalForm") || null
@@ -301,7 +302,14 @@ export async function upsertReceiptForDonation(
   const receiptType = readString(formData, "receiptType") as CerfaReceiptType;
   const fiscalYear =
     Number(readString(formData, "fiscalYear")) || new Date().getFullYear();
-  const donorName = readString(formData, "receiptDonorName");
+  const donorType = readString(formData, "donorType") === "ENTREPRISE"
+    ? "ENTREPRISE"
+    : "PARTICULIER";
+  const companyName = readString(formData, "companyName");
+  const donorName =
+    donorType === "ENTREPRISE"
+      ? companyName
+      : readString(formData, "receiptDonorName");
 
   if (!Object.values(CerfaReceiptType).includes(receiptType)) {
     throw new Error("Type de Cerfa invalide.");
@@ -315,6 +323,13 @@ export async function upsertReceiptForDonation(
   if (!donation) {
     throw new Error("Don introuvable.");
   }
+
+  const metadata = metadataObject(donation.metadata);
+  const cerfaWasIssued =
+    donation.receiptStatus === ReceiptStatus.SENT ||
+    typeof metadata.cerfaEmailSentAt === "string";
+  const regenerateReceiptNumber =
+    formData.get("regenerateReceiptNumber") === "on" && cerfaWasIssued;
 
   const receiptData = {
     type: receiptType,
@@ -333,17 +348,33 @@ export async function upsertReceiptForDonation(
   };
 
   if (donation.receipt) {
-    await prisma.receipt.update({
-      where: { donationId },
-      data: receiptData,
-    });
+    if (regenerateReceiptNumber) {
+      await prisma.$transaction(async (tx) => {
+        await tx.receipt.update({
+          where: { donationId },
+          data: {
+            ...receiptData,
+            number: await nextReceiptNumber(fiscalYear, tx),
+            fileKey: null,
+            issuedAt: new Date(),
+          },
+        });
+      });
+    } else {
+      await prisma.receipt.update({
+        where: { donationId },
+        data: receiptData,
+      });
+    }
   } else {
-    await prisma.receipt.create({
-      data: {
-        donationId,
-        number: await nextReceiptNumber(fiscalYear),
-        ...receiptData,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.receipt.create({
+        data: {
+          donationId,
+          number: await nextReceiptNumber(fiscalYear, tx),
+          ...receiptData,
+        },
+      });
     });
   }
 
@@ -353,7 +384,7 @@ export async function upsertReceiptForDonation(
       receiptNeeded: true,
       receiptStatus: ReceiptStatus.GENERATED,
       metadata: {
-        ...metadataObject(donation.metadata),
+        ...metadata,
         ...receiptMetadataFromForm(formData),
         cerfaRegeneratedAt: new Date().toISOString(),
       },
@@ -442,7 +473,7 @@ export async function updateDonationDetails(formData: FormData) {
     donorName: isManual
       ? [firstName, lastName].filter(Boolean).join(" ") || donation.donorEmail
       : donation.donorName,
-    donorPhone: isManual ? readString(formData, "phone") || null : donation.donorPhone,
+    donorPhone: readString(formData, "phone") || null,
     dedication: isManual
       ? readString(formData, "dedication") || null
       : donation.dedication,

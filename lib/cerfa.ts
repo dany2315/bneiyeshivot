@@ -795,19 +795,21 @@ export async function ensureCerfaReceiptForDonation(donationId: string) {
         ? meta.companyName
         : donation.donorName || donation.donorEmail;
 
-    receipt = await prisma.receipt.create({
-      data: {
-        donationId: donation.id,
-        number: await nextReceiptNumber(fiscalYear),
-        type: meta.type,
-        fiscalYear,
-        donorName,
-        donorAddress: meta.address,
-        donorZip: meta.zip,
-        donorCity: meta.city,
-        donorCountry: meta.country,
-        donorTaxId: meta.taxId,
-      },
+    receipt = await prisma.$transaction(async (tx) => {
+      return tx.receipt.create({
+        data: {
+          donationId: donation.id,
+          number: await nextReceiptNumber(fiscalYear, tx),
+          type: meta.type,
+          fiscalYear,
+          donorName,
+          donorAddress: meta.address,
+          donorZip: meta.zip,
+          donorCity: meta.city,
+          donorCountry: meta.country,
+          donorTaxId: meta.taxId,
+        },
+      });
     });
   }
 
