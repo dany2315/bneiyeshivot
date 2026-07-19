@@ -157,7 +157,7 @@ const steps: JourneyStep[] = [
     description:
       "Nous vous accompagnons pour effectuer votre inscription aupres des caisses d'assurance maladie israeliennes.",
     cta: {
-      label: "Faire ma demande d'assurance maladie",
+      label: "Demander mon assurance",
       href: "/demandes/koupat-holim",
     },
     icon: HeartPulse,
