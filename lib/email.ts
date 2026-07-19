@@ -1,6 +1,7 @@
 import { render } from "@react-email/render";
 import { DonationAdminNotificationEmail } from "@/emails/donation-admin-notification-email";
 import {
+  DonationRecurringPaymentEmail,
   DonationThankYouEmail,
   NewRequestAdminEmail,
   RequestConfirmationEmail,
@@ -178,6 +179,8 @@ export async function donationThankYouEmail(params: {
   donorName?: string | null;
   amount: string;
   frequency: string;
+  paymentLabel?: string | null;
+  paymentStatusLabel?: string | null;
   receiptNumber?: string | null;
   stripeReceiptUrl?: string | null;
 }) {
@@ -195,7 +198,11 @@ export async function donationAdminNotificationEmail(params: {
   donorEmail: string;
   donorName?: string | null;
   donorPhone?: string | null;
+  failureReason?: string | null;
   frequency: string;
+  heading?: string;
+  paymentLabel?: string | null;
+  paymentStatusLabel?: string | null;
   receiptNumber?: string | null;
   stripePaymentIntentId?: string | null;
   stripeReceiptUrl?: string | null;
@@ -208,7 +215,11 @@ export async function donationAdminNotificationEmail(params: {
       donorEmail: params.donorEmail,
       donorName,
       donorPhone: params.donorPhone,
+      failureReason: params.failureReason,
       frequency: params.frequency,
+      heading: params.heading,
+      paymentLabel: params.paymentLabel,
+      paymentStatusLabel: params.paymentStatusLabel,
       receiptNumber: params.receiptNumber,
       stripePaymentIntentId: params.stripePaymentIntentId,
       stripeReceiptUrl: params.stripeReceiptUrl,
@@ -217,6 +228,23 @@ export async function donationAdminNotificationEmail(params: {
 
   return {
     subject: `Nouveau don confirme - ${params.amount} - ${donorName}`,
+    html,
+  };
+}
+
+export async function donationRecurringPaymentEmail(params: {
+  amount: string;
+  donorName?: string | null;
+  failureReason?: string | null;
+  frequency: string;
+  paymentLabel: string;
+  statusLabel: string;
+  stripeReceiptUrl?: string | null;
+}) {
+  const html = await render(DonationRecurringPaymentEmail(params));
+
+  return {
+    subject: `Bnei Yeshivot - Paiement recurrent ${params.statusLabel.toLowerCase()} - ${params.paymentLabel}`,
     html,
   };
 }

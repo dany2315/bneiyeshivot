@@ -1,7 +1,9 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,7 +18,7 @@ import {
   ShieldCheck,
   User,
 } from "lucide-react";
-import { donationAmountOptions } from "@/lib/donations";
+import { donationAmountOptions, donationCurrencyOptions } from "@/lib/donations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,7 +74,12 @@ const impactByAmount = [
 const steps = [
   { title: "Don", icon: BadgeEuro },
   { title: "Donateur", icon: User },
+  { title: "Paiement", icon: ShieldCheck },
 ];
+
+type DonationCurrency = (typeof donationCurrencyOptions)[number]["value"];
+
+type NedarimFields = Record<string, string>;
 
 function moneyLabel(amount: number, currency: string) {
   return new Intl.NumberFormat("fr-FR", {
@@ -115,11 +122,198 @@ function StepHeader({
   );
 }
 
-export function DonationCheckoutForm() {
+function EmbeddedPaymentForm({
+  amount,
+  donationId,
+}: {
+  amount: string;
+  donationId: string;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paymentError, setPaymentError] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  async function confirmPayment() {
+    if (!stripe || !elements) return;
+
+    setIsConfirming(true);
+    setPaymentError("");
+
+    const result = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/dons/merci?donation=${donationId}`,
+      },
+      redirect: "if_required",
+    });
+
+    if (result.error) {
+      setPaymentError(result.error.message ?? "Paiement refuse par Stripe.");
+      setIsConfirming(false);
+      return;
+    }
+
+    window.location.href = `/dons/merci?donation=${donationId}`;
+  }
+
+  return (
+    <div className="grid gap-4">
+      <PaymentElement />
+      {paymentError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+          {paymentError}
+        </div>
+      ) : null}
+      <Button
+        className="h-12 px-6"
+        disabled={!stripe || isConfirming}
+        onClick={confirmPayment}
+        size="lg"
+        type="button"
+      >
+        <ShieldCheck className="size-5" />
+        {isConfirming ? "Validation..." : `Payer ${amount}`}
+      </Button>
+    </div>
+  );
+}
+
+function NedarimPaymentFrame({
+  amount,
+  donationId,
+  fields,
+}: {
+  amount: string;
+  donationId: string;
+  fields: NedarimFields;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [frameHeight, setFrameHeight] = useState(420);
+  const [paymentError, setPaymentError] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
+
+  function postToNedarim(data: unknown) {
+    iframeRef.current?.contentWindow?.postMessage(data, "https://matara.pro");
+  }
+
+  useEffect(() => {
+    function readPostMessage(event: MessageEvent) {
+      if (event.origin !== "https://matara.pro") return;
+
+      const data = event.data as
+        | { Name?: string; Value?: unknown }
+        | undefined;
+
+      if (data?.Name === "Height") {
+        const height = Number(data.Value);
+
+        if (Number.isFinite(height) && height > 0) {
+          setFrameHeight(height + 15);
+        }
+      }
+
+      if (data?.Name === "TransactionResponse") {
+        const response =
+          data.Value && typeof data.Value === "object"
+            ? (data.Value as Record<string, unknown>)
+            : {};
+
+        if (response.Status === "Error") {
+          setPaymentError(String(response.Message ?? "Paiement refuse."));
+          setIsConfirming(false);
+          return;
+        }
+
+        fetch("/api/dons/nedarim-plus/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ donationId, response }),
+        })
+          .then(async (result) => {
+            if (!result.ok) {
+              const payload = await result.json().catch(() => null);
+              throw new Error(
+                payload?.error ?? "Paiement confirme, synchronisation incomplete.",
+              );
+            }
+
+            setIsPaid(true);
+            window.location.href = `/dons/merci?donation=${donationId}`;
+          })
+          .catch((error: unknown) => {
+            setPaymentError(
+              error instanceof Error
+                ? error.message
+                : "Paiement confirme, synchronisation incomplete.",
+            );
+            setIsConfirming(false);
+          });
+      }
+    }
+
+    window.addEventListener("message", readPostMessage);
+
+    return () => window.removeEventListener("message", readPostMessage);
+  }, [donationId]);
+
+  function startPayment() {
+    setPaymentError("");
+    setIsConfirming(true);
+    postToNedarim({
+      Name: "FinishTransaction2",
+      Value: fields,
+    });
+  }
+
+  return (
+    <div className="grid gap-4">
+      <iframe
+        className="w-full rounded-xl border border-[var(--border)] bg-white"
+        onLoad={() => postToNedarim({ Name: "GetHeight" })}
+        ref={iframeRef}
+        scrolling="no"
+        src="https://matara.pro/nedarimplus/iframe?language=en&Picture=Hide"
+        style={{ height: `${frameHeight}px` }}
+        title="Paiement securise"
+      />
+      {paymentError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+          {paymentError}
+        </div>
+      ) : null}
+      {isPaid ? (
+        <div className="rounded-xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-3 text-sm font-bold text-[var(--success)]">
+          Paiement confirme.
+        </div>
+      ) : null}
+      <Button
+        className="h-12 px-6"
+        disabled={isConfirming}
+        onClick={startPayment}
+        size="lg"
+        type="button"
+      >
+        <ShieldCheck className="size-5" />
+        {isConfirming ? "Validation..." : `Payer ${amount}`}
+      </Button>
+    </div>
+  );
+}
+
+export function DonationCheckoutForm({
+  stripePublishableKey,
+  nedarimPlusEnabled,
+}: {
+  stripePublishableKey: string;
+  nedarimPlusEnabled: boolean;
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [customAmount, setCustomAmount] = useState("50");
-  const currency = "EUR";
+  const [currency, setCurrency] = useState<DonationCurrency>("EUR");
   const [frequency, setFrequency] = useState<"ONE_TIME" | "MONTHLY">("ONE_TIME");
   const [recurringMonths, setRecurringMonths] = useState("12");
   const [donorType, setDonorType] = useState<"PARTICULIER" | "ENTREPRISE">(
@@ -129,8 +323,19 @@ export function DonationCheckoutForm() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [nedarimZeout, setNedarimZeout] = useState("");
+  const [nedarimStreet, setNedarimStreet] = useState("");
+  const [nedarimCity, setNedarimCity] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [error, setError] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [donationId, setDonationId] = useState("");
+  const [nedarimFields, setNedarimFields] = useState<NedarimFields | null>(null);
+  const [isPreparingPayment, setIsPreparingPayment] = useState(false);
+  const stripePromise = useMemo(
+    () => (stripePublishableKey ? loadStripe(stripePublishableKey) : null),
+    [stripePublishableKey],
+  );
 
   const effectiveAmount = useMemo(() => {
     const custom = Number(customAmount.replace(",", "."));
@@ -148,6 +353,8 @@ export function DonationCheckoutForm() {
       : null;
   const donorName = [firstName, lastName].filter(Boolean).join(" ");
   const afterTaxAmount = effectiveAmount * 0.34;
+  const isNedarimPayment = currency === "ILS";
+  const receiptAvailable = currency === "EUR";
 
   function validateStep(step: number) {
     if (step === 0 && effectiveAmount <= 0) {
@@ -161,6 +368,10 @@ export function DonationCheckoutForm() {
 
       if (donorType === "ENTREPRISE" && !companyName.trim()) {
         return "Le nom de l'entreprise est obligatoire.";
+      }
+
+      if (isNedarimPayment && (!nedarimStreet.trim() || !nedarimCity.trim())) {
+        return "Rue et ville sont obligatoires pour un paiement en shekel.";
       }
     }
 
@@ -176,20 +387,84 @@ export function DonationCheckoutForm() {
     }
 
     setError("");
-    setActiveStep((step) => Math.min(step + 1, steps.length - 1));
+    setActiveStep((step) => Math.min(step + 1, 1));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     const nextError = validateStep(1);
 
     if (nextError) {
-      event.preventDefault();
       setActiveStep(1);
       setError(nextError);
       return;
     }
 
     setError("");
+  }
+
+  async function preparePayment() {
+    const nextError = validateStep(1);
+
+    if (nextError) {
+      setActiveStep(1);
+      setError(nextError);
+      return;
+    }
+
+    if (isNedarimPayment) {
+      if (!nedarimPlusEnabled) {
+        setError("Nedarim Plus n'est pas configure pour les paiements en shekel.");
+        return;
+      }
+    } else if (!stripePublishableKey) {
+      setError("STRIPE_PUBLISHABLE_KEY est manquant.");
+      return;
+    }
+
+    if (!formRef.current) return;
+
+    setIsPreparingPayment(true);
+    setError("");
+
+    const response = await fetch(
+      isNedarimPayment
+        ? "/api/dons/nedarim-plus/prepare"
+        : "/api/dons/payment-intent",
+      {
+      method: "POST",
+      body: new FormData(formRef.current),
+      },
+    );
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          clientSecret?: string;
+          donationId?: string;
+          fields?: NedarimFields;
+          error?: string;
+        }
+      | null;
+
+    if (
+      !response.ok ||
+      !payload?.donationId ||
+      (isNedarimPayment ? !payload.fields : !payload.clientSecret)
+    ) {
+      setError(
+        payload?.error ??
+          `Impossible de preparer le paiement ${
+            isNedarimPayment ? "Nedarim Plus" : "Stripe"
+          }.`,
+      );
+      setIsPreparingPayment(false);
+      return;
+    }
+
+    setClientSecret(payload.clientSecret ?? "");
+    setNedarimFields(payload.fields ?? null);
+    setDonationId(payload.donationId);
+    setActiveStep(2);
+    setIsPreparingPayment(false);
   }
 
   return (
@@ -220,19 +495,20 @@ export function DonationCheckoutForm() {
 
       <CardContent className="p-4">
         <form
-          action="/api/dons/checkout"
           className="grid gap-4"
-          method="post"
           onSubmit={handleSubmit}
+          ref={formRef}
         >
           <input name="amount" type="hidden" value={selectedAmount} />
-          <input name="currency" type="hidden" value="EUR" />
+          <input name="currency" type="hidden" value={currency} />
           <input name="donorType" type="hidden" value={donorType} />
-          <input name="receiptNeeded" type="hidden" value="on" />
+          {receiptAvailable ? (
+            <input name="receiptNeeded" type="hidden" value="on" />
+          ) : null}
 
           <div className="grid gap-3">
             <div className="relative grid grid-cols-2 gap-4">
-              <span className="absolute top-5 right-[25%] left-[25%] h-0.5 bg-[var(--border)]" />
+              <span className="absolute top-5 right-[16%] left-[16%] h-0.5 bg-[var(--border)]" />
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isDone = index < activeStep;
@@ -245,7 +521,7 @@ export function DonationCheckoutForm() {
                     data-done={isDone}
                     key={step.title}
                     onClick={() => {
-                      if (index <= activeStep) {
+                      if (index <= activeStep && (index < 2 || clientSecret)) {
                         setActiveStep(index);
                         setError("");
                       }
@@ -291,7 +567,9 @@ export function DonationCheckoutForm() {
                   </span>
                   <span className="flex items-center gap-2">
                     <ReceiptText className="size-4 text-[var(--success)]" />
-                    Recu Cerfa automatique
+                    {receiptAvailable
+                      ? "Recu Cerfa automatique"
+                      : "Confirmation de paiement sans Cerfa"}
                   </span>
                 </div>
               </div>
@@ -330,15 +608,39 @@ export function DonationCheckoutForm() {
                   onClick={() => {
                     setSelectedAmount(amount);
                     setCustomAmount(String(amount));
+                    setClientSecret("");
+                    setNedarimFields(null);
                   }}
                   type="button"
                 >
-                  {amount} EUR
+                  {amount} {currency}
                 </button>
               ))}
             </div>
 
             <div className="mt-4 grid justify-items-center gap-3">
+              <div className="grid w-full max-w-sm gap-2">
+                <span className="text-sm font-bold text-[var(--primary)]">
+                  Devise
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {donationCurrencyOptions.map((option) => (
+                    <button
+                      className="flex h-12 items-center justify-center rounded-xl border border-[var(--border)] bg-white text-sm font-black text-[var(--primary)] transition data-[selected=true]:border-[var(--accent)]/50 data-[selected=true]:bg-[var(--accent-soft)] data-[selected=true]:text-[var(--accent-strong)]"
+                      data-selected={currency === option.value}
+                      key={option.value}
+                      onClick={() => {
+                        setCurrency(option.value);
+                        setClientSecret("");
+                        setNedarimFields(null);
+                      }}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <Label className="grid w-full max-w-sm gap-2">
                 <span className="text-sm font-bold text-[var(--primary)]">
                   Montant
@@ -368,14 +670,23 @@ export function DonationCheckoutForm() {
                   </InputGroupAddon>
                 </InputGroup>
               </Label>
-              <div className="w-full max-w-sm rounded-2xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-4 text-center">
-                <span className="text-sm font-bold text-[var(--primary)]">
-                  Apres reduction fiscale de 66%, ce don ne vous coute que
-                </span>
-                <strong className="mt-1 block font-serif text-xl text-[var(--success)]">
-                  {moneyLabel(afterTaxAmount, currency)}
-                </strong>
-              </div>
+              {receiptAvailable ? (
+                <div className="w-full max-w-sm rounded-2xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-4 text-center">
+                  <span className="text-sm font-bold text-[var(--primary)]">
+                    Apres reduction fiscale de 66%, ce don ne vous coute que
+                  </span>
+                  <strong className="mt-1 block font-serif text-xl text-[var(--success)]">
+                    {moneyLabel(afterTaxAmount, currency)}
+                  </strong>
+                </div>
+              ) : (
+                <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-center">
+                  <span className="text-sm font-bold text-[var(--primary)]">
+                    Paiement en shekel traite en Israel, sans recu Cerfa ni
+                    deduction fiscale francaise.
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 border-t border-[var(--border)] pt-5">
@@ -439,16 +750,80 @@ export function DonationCheckoutForm() {
 
           <section
             className={
+              activeStep === 2
+                ? "rounded-xl border border-[var(--border)] bg-white p-4"
+                : "hidden"
+            }
+          >
+            <StepHeader
+              description={
+                isNedarimPayment
+                  ? "Saisissez votre carte bancaire dans le module securise pour les paiements en shekel."
+                  : "Saisissez votre carte bancaire dans un module Stripe securise, sans quitter la page."
+              }
+              icon={<ShieldCheck className="size-5" />}
+              number="3"
+              title="Paiement securise"
+            />
+
+            <div className="mt-5 grid gap-4">
+              <div className="rounded-xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-4">
+                <strong className="text-[var(--primary)]">
+                  {moneyLabel(effectiveAmount, currency)}
+                  {frequency === "MONTHLY" ? " / mois" : ""}
+                </strong>
+                <p className="mt-1 text-sm font-bold text-[var(--muted)]">
+                  {frequency === "MONTHLY"
+                    ? `Don mensuel - ${recurringLabel ?? "sans limite"}`
+                    : "Don ponctuel"}
+                </p>
+              </div>
+              {isNedarimPayment && nedarimFields ? (
+                <NedarimPaymentFrame
+                  amount={moneyLabel(effectiveAmount, currency)}
+                  donationId={donationId}
+                  fields={nedarimFields}
+                />
+              ) : stripePromise && clientSecret ? (
+                <Elements
+                  options={{
+                    appearance: {
+                      theme: "stripe",
+                      variables: {
+                        colorPrimary: "#062846",
+                        colorText: "#061e39",
+                        borderRadius: "10px",
+                      },
+                    },
+                    clientSecret,
+                  }}
+                  stripe={stripePromise}
+                >
+                  <EmbeddedPaymentForm
+                    amount={moneyLabel(effectiveAmount, currency)}
+                    donationId={donationId}
+                  />
+                </Elements>
+              ) : null}
+            </div>
+          </section>
+
+          <section
+            className={
               activeStep === 1
                 ? "rounded-xl border border-[var(--border)] bg-white p-4"
                 : "hidden"
             }
           >
             <StepHeader
-              description="Une seule saisie pour le paiement, le donateur et le recu Cerfa."
+              description={
+                receiptAvailable
+                  ? "Une seule saisie pour le paiement, le donateur et le recu Cerfa."
+                  : "Une seule saisie pour le paiement et la confirmation du don."
+              }
               icon={<User className="size-5" />}
               number="2"
-              title="Donateur et Cerfa"
+              title={receiptAvailable ? "Donateur et Cerfa" : "Donateur"}
             />
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -503,6 +878,33 @@ export function DonationCheckoutForm() {
                 required
               />
 
+              {isNedarimPayment ? (
+                <>
+                  <Input
+                    inputMode="numeric"
+                    maxLength={9}
+                    name="nedarimZeout"
+                    onChange={(event) => setNedarimZeout(event.target.value)}
+                    placeholder="Teoudat zehout (si disponible)"
+                    value={nedarimZeout}
+                  />
+                  <Input
+                    name="nedarimStreet"
+                    onChange={(event) => setNedarimStreet(event.target.value)}
+                    placeholder="Rue"
+                    required
+                    value={nedarimStreet}
+                  />
+                  <Input
+                    name="nedarimCity"
+                    onChange={(event) => setNedarimCity(event.target.value)}
+                    placeholder="Ville"
+                    required
+                    value={nedarimCity}
+                  />
+                </>
+              ) : null}
+
               {donorType === "ENTREPRISE" && (
                 <>
                   <Input
@@ -548,7 +950,7 @@ export function DonationCheckoutForm() {
               Retour
             </button>
 
-            {activeStep < steps.length - 1 ? (
+            {activeStep === 0 ? (
               <button
                 className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-4 text-sm font-bold text-white shadow-[0_14px_32px_rgba(6,40,70,0.18)] transition hover:bg-[#0b3b63]"
                 onClick={goNext}
@@ -557,11 +959,23 @@ export function DonationCheckoutForm() {
                 Suivant
                 <ArrowRight className="size-4" />
               </button>
-            ) : (
-              <Button className="h-11 px-6" size="lg" type="submit">
+            ) : activeStep === 1 ? (
+              <Button
+                className="h-11 px-6"
+                disabled={isPreparingPayment}
+                onClick={preparePayment}
+                size="lg"
+                type="button"
+              >
                 <HeartHandshake className="size-5" />
-                Je donne {moneyLabel(effectiveAmount, currency)}
+                {isPreparingPayment
+                  ? "Preparation..."
+                  : `Continuer au paiement ${moneyLabel(effectiveAmount, currency)}`}
               </Button>
+            ) : (
+              <span className="text-sm font-bold text-[var(--muted)]">
+                Paiement securise
+              </span>
             )}
           </div>
         </form>

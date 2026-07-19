@@ -17,7 +17,11 @@ type DonationAdminNotificationEmailProps = {
   donorEmail: string;
   donorName: string;
   donorPhone?: string | null;
+  failureReason?: string | null;
   frequency: string;
+  heading?: string;
+  paymentLabel?: string | null;
+  paymentStatusLabel?: string | null;
   receiptNumber?: string | null;
   stripePaymentIntentId?: string | null;
   stripeReceiptUrl?: string | null;
@@ -29,7 +33,11 @@ export function DonationAdminNotificationEmail({
   donorEmail,
   donorName,
   donorPhone,
+  failureReason,
   frequency,
+  heading = "Nouveau don confirme",
+  paymentLabel,
+  paymentStatusLabel,
   receiptNumber,
   stripePaymentIntentId,
   stripeReceiptUrl,
@@ -37,14 +45,16 @@ export function DonationAdminNotificationEmail({
   return (
     <Html lang="fr">
       <Head />
-      <Preview>Nouveau don confirme - {amount} - {donorName}</Preview>
+      <Preview>
+        {heading} - {amount} - {donorName}
+      </Preview>
       <Body style={body}>
         <Container style={container}>
           <Section style={header}>
             <Text style={eyebrow}>Notification admin</Text>
-            <Heading style={heading}>Nouveau don confirme</Heading>
+            <Heading style={headingStyle}>{heading}</Heading>
             <Text style={headerText}>
-              Un paiement vient d&apos;etre confirme sur la page dons.
+              Un paiement vient d&apos;etre synchronise sur la page dons.
             </Text>
           </Section>
 
@@ -53,6 +63,12 @@ export function DonationAdminNotificationEmail({
               <Text style={amountLabel}>Montant</Text>
               <Text style={amountValue}>{amount}</Text>
               <Text style={frequencyText}>{frequency}</Text>
+              {paymentLabel ? (
+                <Text style={frequencyText}>Paiement {paymentLabel}</Text>
+              ) : null}
+              {paymentStatusLabel ? (
+                <Text style={frequencyText}>Statut: {paymentStatusLabel}</Text>
+              ) : null}
             </Section>
 
             <Section style={infoBox}>
@@ -79,6 +95,11 @@ export function DonationAdminNotificationEmail({
                 <strong>Stripe payment intent :</strong>{" "}
                 {stripePaymentIntentId || "-"}
               </Text>
+              {failureReason ? (
+                <Text style={line}>
+                  <strong>Raison echec :</strong> {failureReason}
+                </Text>
+              ) : null}
             </Section>
 
             <Section style={actions}>
@@ -135,7 +156,7 @@ const eyebrow = {
   textTransform: "uppercase" as const,
 };
 
-const heading = {
+const headingStyle = {
   margin: "0",
   color: "#ffffff",
   fontSize: "28px",

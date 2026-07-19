@@ -9,13 +9,25 @@ export const metadata = {
 };
 
 export default function DonationsPage() {
+  const stripePublishableKey =
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+    process.env.STRIPE_PUBLISHABLE_KEY ||
+    "";
+  const nedarimPlusEnabled =
+    process.env.NEDARIM_PLUS_ENABLED === "true" &&
+    Boolean(process.env.NEDARIM_PLUS_MOSAD_ID) &&
+    Boolean(process.env.NEDARIM_PLUS_API_VALID);
+
   return (
     <PageShell>
       <main>
         <DonationHero />
         <section className="section">
           <div className="container max-w-5xl">
-            <DonationCheckoutForm />
+            <DonationCheckoutForm
+              nedarimPlusEnabled={nedarimPlusEnabled}
+              stripePublishableKey={stripePublishableKey}
+            />
           </div>
         </section>
         <DonationImpactGrid />

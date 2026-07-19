@@ -157,7 +157,10 @@ export default async function ClientPage({
           },
         ],
       },
-      include: { receipt: true },
+      include: {
+        payments: { orderBy: { createdAt: "desc" } },
+        receipt: true,
+      },
       orderBy: { paidAt: "desc" },
     }),
   ]);

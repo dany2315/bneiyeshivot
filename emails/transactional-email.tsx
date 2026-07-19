@@ -186,6 +186,8 @@ export function DonationThankYouEmail(props: {
   donorName?: string | null;
   amount: string;
   frequency: string;
+  paymentLabel?: string | null;
+  paymentStatusLabel?: string | null;
   receiptNumber?: string | null;
   stripeReceiptUrl?: string | null;
 }) {
@@ -199,6 +201,12 @@ export function DonationThankYouEmail(props: {
         {props.frequency}). Votre soutien nous aide a accompagner les jeunes
         francophones en Israel de facon concrete.
       </Text>
+      {props.paymentLabel ? (
+        <InfoLine label="Paiement" value={props.paymentLabel} />
+      ) : null}
+      {props.paymentStatusLabel ? (
+        <InfoLine label="Statut" value={props.paymentStatusLabel} />
+      ) : null}
       {props.receiptNumber ? (
         <Text style={paragraph}>
           Votre recu fiscal Cerfa <strong>{props.receiptNumber}</strong> est
@@ -211,6 +219,44 @@ export function DonationThankYouEmail(props: {
         </Button>
       ) : null}
       <Text style={paragraph}>Avec toute notre reconnaissance,</Text>
+    </BaseEmail>
+  );
+}
+
+export function DonationRecurringPaymentEmail(props: {
+  amount: string;
+  donorName?: string | null;
+  failureReason?: string | null;
+  frequency: string;
+  paymentLabel: string;
+  statusLabel: string;
+  stripeReceiptUrl?: string | null;
+}) {
+  const greeting = props.donorName ? `Bonjour ${props.donorName},` : "Bonjour,";
+  const isFailed = props.statusLabel.toLowerCase().includes("echec");
+
+  return (
+    <BaseEmail
+      preview={`Paiement recurrent ${props.statusLabel.toLowerCase()} - ${props.paymentLabel}`}
+      title={isFailed ? "Paiement recurrent a verifier" : "Paiement recurrent confirme"}
+    >
+      <Text style={paragraph}>{greeting}</Text>
+      <Text style={paragraph}>
+        Votre paiement mensuel de <strong>{props.amount}</strong> a ete mis a
+        jour pour votre don recurrent Bnei Yeshivot.
+      </Text>
+      <InfoLine label="Paiement" value={props.paymentLabel} />
+      <InfoLine label="Frequence" value={props.frequency} />
+      <InfoLine label="Statut" value={props.statusLabel} />
+      {props.failureReason ? (
+        <InfoLine label="Raison" value={props.failureReason} />
+      ) : null}
+      {props.stripeReceiptUrl ? (
+        <Button href={props.stripeReceiptUrl} style={secondaryButton}>
+          Voir le recu Stripe
+        </Button>
+      ) : null}
+      <Text style={paragraph}>Merci pour votre soutien regulier.</Text>
     </BaseEmail>
   );
 }

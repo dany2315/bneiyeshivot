@@ -16,6 +16,7 @@ import {
 } from "@/lib/donations";
 import {
   donationAdminNotificationEmail,
+  donationRecurringPaymentEmail,
   donationThankYouEmail,
   sendEmail,
 } from "@/lib/email";
@@ -31,6 +32,18 @@ function metadataObject(metadata: unknown) {
   return metadata && typeof metadata === "object" && !Array.isArray(metadata)
     ? (metadata as Record<string, unknown>)
     : {};
+}
+
+function stripeTimestamp(seconds?: number | null) {
+  return seconds ? new Date(seconds * 1000) : null;
+}
+
+function paymentLabel(installmentNumber?: number | null, installmentTotal?: number | null) {
+  if (!installmentNumber) return null;
+
+  return installmentTotal && installmentTotal > 0
+    ? `${installmentNumber} / ${installmentTotal}`
+    : `${installmentNumber} / sans limite`;
 }
 
 function receiptAddressFromSession(session: Stripe.Checkout.Session) {
@@ -264,9 +277,46 @@ async function scheduleSubscriptionCancellation(donationId: string) {
   });
 }
 
-async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
-  const donation = await prisma.donation.findFirst({
+async function upsertDonationPaymentFromIntent(
+  donationId: string,
+  intent: Stripe.PaymentIntent,
+  status: "PAID" | "FAILED" | "CANCELED" | "PENDING",
+) {
+  const failureReason =
+    intent.last_payment_error?.message ||
+    intent.cancellation_reason ||
+    null;
+
+  return prisma.donationPayment.upsert({
     where: { stripePaymentIntentId: intent.id },
+    create: {
+      donationId,
+      amountCents: intent.amount,
+      currency: intent.currency.toUpperCase(),
+      installmentNumber: 1,
+      installmentTotal: 1,
+      billingReason: "payment_intent",
+      status,
+      stripePaymentIntentId: intent.id,
+      failureReason,
+      paidAt: status === "PAID" ? new Date() : null,
+      failedAt: status === "FAILED" ? new Date() : null,
+    },
+    update: {
+      status,
+      failureReason,
+      paidAt: status === "PAID" ? new Date() : undefined,
+      failedAt: status === "FAILED" ? new Date() : undefined,
+    },
+  });
+}
+
+async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
+  const metadataDonationId = intent.metadata?.donationId;
+  const donation = await prisma.donation.findFirst({
+    where: metadataDonationId
+      ? { id: metadataDonationId }
+      : { stripePaymentIntentId: intent.id },
   });
 
   if (!donation) return;
@@ -279,6 +329,7 @@ async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
         paidAt: donation.paidAt ?? new Date(),
       },
     });
+    await upsertDonationPaymentFromIntent(donation.id, intent, "PAID");
     await handleDonationConfirmation(updatedDonation.id);
   }
 
@@ -290,6 +341,18 @@ async function updatePaymentIntent(intent: Stripe.PaymentIntent) {
         canceledAt: new Date(),
       },
     });
+    await upsertDonationPaymentFromIntent(donation.id, intent, "CANCELED");
+  }
+
+  if (intent.status === "requires_payment_method") {
+    await prisma.donation.update({
+      where: { id: donation.id },
+      data: {
+        status: "FAILED",
+        failureReason: intent.last_payment_error?.message ?? null,
+      },
+    });
+    await upsertDonationPaymentFromIntent(donation.id, intent, "FAILED");
   }
 }
 
@@ -304,7 +367,7 @@ async function updateChargeReceipt(charge: Stripe.Charge) {
   });
 
   await Promise.all(
-    donations.map((donation) => {
+    donations.map(async (donation) => {
       const metadata =
         donation.metadata &&
         typeof donation.metadata === "object" &&
@@ -312,16 +375,26 @@ async function updateChargeReceipt(charge: Stripe.Charge) {
           ? (donation.metadata as Record<string, unknown>)
           : {};
 
-      return prisma.donation.update({
-        where: { id: donation.id },
-        data: {
-          metadata: {
-            ...metadata,
+      await prisma.$transaction([
+        prisma.donation.update({
+          where: { id: donation.id },
+          data: {
+            metadata: {
+              ...metadata,
+              stripeReceiptUrl: charge.receipt_url,
+              stripeReceiptNumber: charge.receipt_number,
+            },
+          },
+        }),
+        prisma.donationPayment.updateMany({
+          where: { stripePaymentIntentId: charge.payment_intent as string },
+          data: {
+            stripeChargeId: charge.id,
             stripeReceiptUrl: charge.receipt_url,
             stripeReceiptNumber: charge.receipt_number,
           },
-        },
-      });
+        }),
+      ]);
     }),
   );
 }
@@ -516,7 +589,11 @@ async function adminDonationRecipients() {
 async function sendAdminDonationEmail({
   amount,
   donation,
+  failureReason,
   frequency,
+  heading,
+  paymentLabel,
+  paymentStatusLabel,
   receiptNumber,
   stripeReceiptUrl,
 }: {
@@ -528,7 +605,11 @@ async function sendAdminDonationEmail({
     donorPhone: string | null;
     stripePaymentIntentId: string | null;
   };
+  failureReason?: string | null;
   frequency: string;
+  heading?: string;
+  paymentLabel?: string | null;
+  paymentStatusLabel?: string | null;
   receiptNumber?: string | null;
   stripeReceiptUrl?: string | null;
 }) {
@@ -544,7 +625,11 @@ async function sendAdminDonationEmail({
     donorEmail: donation.donorEmail,
     donorName: donation.donorName,
     donorPhone: donation.donorPhone,
+    failureReason,
     frequency,
+    heading,
+    paymentLabel,
+    paymentStatusLabel,
     receiptNumber,
     stripePaymentIntentId: donation.stripePaymentIntentId,
     stripeReceiptUrl,
@@ -560,6 +645,231 @@ async function sendAdminDonationEmail({
   });
 
   return result.ok;
+}
+
+function invoicePaymentIntentId(invoice: Stripe.Invoice) {
+  const invoiceWithPaymentIntent = invoice as Stripe.Invoice & {
+    payment_intent?: string | Stripe.PaymentIntent | null;
+  };
+  const paymentIntent = invoiceWithPaymentIntent.payment_intent;
+
+  return typeof paymentIntent === "string" ? paymentIntent : paymentIntent?.id ?? null;
+}
+
+function invoiceChargeId(invoice: Stripe.Invoice) {
+  const invoiceWithCharge = invoice as Stripe.Invoice & {
+    charge?: string | Stripe.Charge | null;
+  };
+  const charge = invoiceWithCharge.charge;
+
+  return typeof charge === "string" ? charge : charge?.id ?? null;
+}
+
+function invoiceSubscriptionId(invoice: Stripe.Invoice) {
+  const invoiceWithSubscription = invoice as Stripe.Invoice & {
+    subscription?: string | Stripe.Subscription | null;
+  };
+  const subscription = invoiceWithSubscription.subscription;
+
+  return typeof subscription === "string" ? subscription : subscription?.id ?? null;
+}
+
+function invoiceBillingReason(invoice: Stripe.Invoice) {
+  const invoiceWithReason = invoice as Stripe.Invoice & {
+    billing_reason?: string | null;
+  };
+
+  return invoiceWithReason.billing_reason ?? null;
+}
+
+function invoicePeriod(invoice: Stripe.Invoice) {
+  const firstLine = invoice.lines.data[0];
+
+  return {
+    periodStart: stripeTimestamp(firstLine?.period?.start),
+    periodEnd: stripeTimestamp(firstLine?.period?.end),
+  };
+}
+
+async function nextInstallmentNumber(donationId: string, invoiceId: string) {
+  const existing = await prisma.donationPayment.findUnique({
+    where: { stripeInvoiceId: invoiceId },
+    select: { installmentNumber: true },
+  });
+
+  if (existing?.installmentNumber) {
+    return existing.installmentNumber;
+  }
+
+  const count = await prisma.donationPayment.count({
+    where: { donationId, stripeInvoiceId: { not: invoiceId } },
+  });
+
+  return count + 1;
+}
+
+async function notifyRecurringPayment(paymentId: string, statusLabel: string) {
+  const payment = await prisma.donationPayment.findUnique({
+    where: { id: paymentId },
+    include: { donation: true },
+  });
+
+  if (!payment || payment.billingReason === "subscription_create") {
+    return;
+  }
+
+  const metadata = metadataObject(payment.metadata);
+  const adminKey = `admin${statusLabel}EmailSentAt`;
+  const donorKey = `donor${statusLabel}EmailSentAt`;
+
+  if (metadata[adminKey] && metadata[donorKey]) {
+    return;
+  }
+
+  const amount = formatMoney(payment.amountCents, payment.currency);
+  const frequency = formatDonationFrequency(
+    payment.donation.frequency,
+    payment.donation.recurringMonths,
+  );
+  const installmentLabel =
+    paymentLabel(payment.installmentNumber, payment.installmentTotal) ??
+    "mensuel";
+  const nextMetadata = { ...metadata };
+
+  if (!metadata[donorKey]) {
+    const donorEmail = await donationRecurringPaymentEmail({
+      amount,
+      donorName: payment.donation.donorName,
+      failureReason: payment.failureReason,
+      frequency,
+      paymentLabel: installmentLabel,
+      statusLabel,
+      stripeReceiptUrl: payment.stripeReceiptUrl,
+    });
+    const sent = await sendEmail({
+      to: payment.donation.donorEmail,
+      subject: donorEmail.subject,
+      html: donorEmail.html,
+    });
+
+    if (sent.ok) {
+      nextMetadata[donorKey] = new Date().toISOString();
+    }
+  }
+
+  if (!metadata[adminKey]) {
+    const adminSent = await sendAdminDonationEmail({
+      amount,
+      donation: {
+        id: payment.donation.id,
+        donorEmail: payment.donation.donorEmail,
+        donorName: payment.donation.donorName,
+        donorPhone: payment.donation.donorPhone,
+        stripePaymentIntentId: payment.stripePaymentIntentId,
+      },
+      failureReason: payment.failureReason,
+      frequency,
+      heading: `Paiement recurrent ${statusLabel.toLowerCase()}`,
+      paymentLabel: installmentLabel,
+      paymentStatusLabel: statusLabel,
+      stripeReceiptUrl: payment.stripeReceiptUrl,
+    });
+
+    if (adminSent) {
+      nextMetadata[adminKey] = new Date().toISOString();
+    }
+  }
+
+  await prisma.donationPayment.update({
+    where: { id: payment.id },
+    data: { metadata: nextMetadata as Prisma.InputJsonObject },
+  });
+}
+
+async function updateInvoicePayment(
+  invoice: Stripe.Invoice,
+  status: "PAID" | "FAILED",
+) {
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  const metadataDonationId = invoice.metadata?.donationId;
+  const donation = await prisma.donation.findFirst({
+    where: metadataDonationId
+      ? { id: metadataDonationId }
+      : subscriptionId
+        ? { stripeSubscriptionId: subscriptionId }
+        : { stripePaymentIntentId: invoicePaymentIntentId(invoice) ?? "" },
+  });
+
+  if (!donation) return;
+
+  const invoiceId = invoice.id;
+  const installmentNumber = await nextInstallmentNumber(donation.id, invoiceId);
+  const installmentTotal =
+    donation.recurringMonths && donation.recurringMonths > 0
+      ? donation.recurringMonths
+      : null;
+  const period = invoicePeriod(invoice);
+  const paymentIntentId = invoicePaymentIntentId(invoice);
+  const chargeId = invoiceChargeId(invoice);
+  const failureReason =
+    invoice.last_finalization_error?.message ?? "Paiement non confirme par Stripe";
+  const billingReason = invoiceBillingReason(invoice);
+  const payment = await prisma.donationPayment.upsert({
+    where: { stripeInvoiceId: invoiceId },
+    create: {
+      donationId: donation.id,
+      amountCents: invoice.amount_paid || invoice.amount_due || donation.amountCents,
+      currency: (invoice.currency || donation.currency).toUpperCase(),
+      installmentNumber,
+      installmentTotal,
+      billingReason,
+      status,
+      stripeInvoiceId: invoiceId,
+      stripePaymentIntentId: paymentIntentId,
+      stripeChargeId: chargeId,
+      stripeReceiptUrl: invoice.hosted_invoice_url,
+      failureReason: status === "FAILED" ? failureReason : null,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+      paidAt: status === "PAID" ? new Date() : null,
+      failedAt: status === "FAILED" ? new Date() : null,
+    },
+    update: {
+      amountCents: invoice.amount_paid || invoice.amount_due || donation.amountCents,
+      currency: (invoice.currency || donation.currency).toUpperCase(),
+      installmentNumber,
+      installmentTotal,
+      billingReason,
+      status,
+      stripePaymentIntentId: paymentIntentId,
+      stripeChargeId: chargeId,
+      stripeReceiptUrl: invoice.hosted_invoice_url,
+      failureReason: status === "FAILED" ? failureReason : null,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+      paidAt: status === "PAID" ? new Date() : undefined,
+      failedAt: status === "FAILED" ? new Date() : undefined,
+    },
+  });
+
+  await prisma.donation.update({
+    where: { id: donation.id },
+    data: {
+      status,
+      paidAt: status === "PAID" ? donation.paidAt ?? new Date() : donation.paidAt,
+      failureReason: status === "FAILED" ? failureReason : null,
+    },
+  });
+
+  if (status === "PAID" && billingReason === "subscription_create") {
+    await handleDonationConfirmation(donation.id);
+    return;
+  }
+
+  await notifyRecurringPayment(
+    payment.id,
+    status === "PAID" ? "Reussi" : "Echec",
+  );
 }
 
 async function updateChargeRefund(charge: Stripe.Charge) {
@@ -616,9 +926,18 @@ export async function POST(request: Request) {
 
   if (
     event.type === "payment_intent.succeeded" ||
-    event.type === "payment_intent.canceled"
+    event.type === "payment_intent.canceled" ||
+    event.type === "payment_intent.payment_failed"
   ) {
     await updatePaymentIntent(event.data.object);
+  }
+
+  if (event.type === "invoice.payment_succeeded") {
+    await updateInvoicePayment(event.data.object, "PAID");
+  }
+
+  if (event.type === "invoice.payment_failed") {
+    await updateInvoicePayment(event.data.object, "FAILED");
   }
 
   if (event.type === "charge.refunded") {

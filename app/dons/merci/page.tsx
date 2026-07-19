@@ -25,14 +25,14 @@ export default async function DonationThanksPage({
   const donation = donationId
     ? await prisma.donation.findUnique({
         where: { id: donationId },
-        include: { receipt: true },
+        include: { payments: { orderBy: { createdAt: "desc" } }, receipt: true },
       })
     : sessionId
       ? await prisma.donation.findUnique({
           where: { stripeCheckoutSessionId: sessionId },
-          include: { receipt: true },
+          include: { payments: { orderBy: { createdAt: "desc" } }, receipt: true },
         })
-    : null;
+      : null;
 
   return (
     <PageShell>
@@ -44,8 +44,8 @@ export default async function DonationThanksPage({
                 <CheckCircle2 className="size-10 text-[var(--success)]" />
                 <CardTitle>Merci pour votre soutien</CardTitle>
                 <CardDescription>
-                  Votre don est enregistré. La confirmation finale du paiement
-                  est synchronisée automatiquement.
+                  Votre don est enregistre. La confirmation finale du paiement
+                  est synchronisee automatiquement.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
@@ -57,17 +57,28 @@ export default async function DonationThanksPage({
                     <span className="text-sm text-[var(--muted)]">
                       Statut: {paymentStatusLabels[donation.status]}
                     </span>
-                    {donation.receiptNeeded && (
+                    {donation.receiptNeeded ? (
                       <span className="flex items-center gap-2 text-sm text-[var(--primary)]">
                         <ReceiptText className="size-4" />
-                        Reçu Cerfa demandé
+                        Recu Cerfa demande
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2 text-sm text-[var(--primary)]">
+                        <ReceiptText className="size-4" />
+                        Recu fiscal non applicable pour ce paiement
                       </span>
                     )}
+                    {donation.payments[0]?.installmentNumber ? (
+                      <span className="text-sm text-[var(--muted)]">
+                        Paiement: {donation.payments[0].installmentNumber} /{" "}
+                        {donation.payments[0].installmentTotal ?? "sans limite"}
+                      </span>
+                    ) : null}
                   </div>
                 )}
                 <div className="flex flex-wrap gap-3">
                   <Button asChild>
-                    <Link href="/">Retour à l’accueil</Link>
+                    <Link href="/">Retour a l&apos;accueil</Link>
                   </Button>
                   <Button asChild variant="secondary">
                     <Link href="/dons">Faire un autre don</Link>

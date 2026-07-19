@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Download, ExternalLink, ReceiptText } from "lucide-react";
 import { StatusBadge } from "@/app/components";
 import { DonationReceiptsExportDialog } from "@/components/donation-receipts-export-dialog";
@@ -35,6 +36,18 @@ type DonationRow = {
   paidAt: Date | null;
   createdAt: Date;
   metadata: unknown;
+  receiptNeeded: boolean;
+  payments: Array<{
+    id: string;
+    amountCents: number;
+    currency: string;
+    installmentNumber: number | null;
+    installmentTotal: number | null;
+    paidAt: Date | null;
+    createdAt: Date;
+    status: keyof typeof paymentStatusLabels;
+    stripeReceiptUrl: string | null;
+  }>;
   receipt: {
     fileKey: string | null;
     number: string;
@@ -143,15 +156,30 @@ export function DonorDonationsTable({
                     donation.metadata,
                     "stripeReceiptUrl",
                   );
-                  const cerfaUrl = fileUrl(donation.receipt?.fileKey);
+                  const paymentReceiptUrl =
+                    metadataText(donation.metadata, "paymentReceiptUrl") ??
+                    stripeReceiptUrl;
+                  const cerfaUrl = donation.receiptNeeded
+                    ? fileUrl(donation.receipt?.fileKey)
+                    : null;
 
                   return (
-                    <TableRow key={donation.id}>
+                    <Fragment key={donation.id}>
+                    <TableRow>
                       <TableCell className="font-bold text-[var(--primary)]">
                         {dateTimeLabel(donationDate)}
                       </TableCell>
                       <TableCell>
-                        {formatMoney(donation.amountCents, donation.currency)}
+                        <div className="grid gap-1">
+                          <span>
+                            {formatMoney(donation.amountCents, donation.currency)}
+                          </span>
+                          {donation.payments.length > 1 ? (
+                            <span className="text-xs font-bold text-[var(--muted)]">
+                              {donation.payments.length} paiements suivis
+                            </span>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {formatDonationFrequency(
@@ -166,15 +194,15 @@ export function DonorDonationsTable({
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2">
-                          {stripeReceiptUrl ? (
+                          {paymentReceiptUrl ? (
                             <Button asChild size="sm" variant="secondary">
                               <a
-                                href={stripeReceiptUrl}
+                                href={paymentReceiptUrl}
                                 rel="noreferrer"
                                 target="_blank"
                               >
                                 <ExternalLink className="size-4" />
-                                Facture
+                                Recu
                               </a>
                             </Button>
                           ) : null}
@@ -185,15 +213,75 @@ export function DonorDonationsTable({
                                 Cerfa
                               </a>
                             </Button>
-                          ) : (
+                          ) : donation.receiptNeeded ? (
                             <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] px-3 text-xs font-bold text-[var(--muted)]">
                               <ReceiptText className="size-4" />
                               Cerfa en preparation
+                            </span>
+                          ) : (
+                            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] px-3 text-xs font-bold text-[var(--muted)]">
+                              <ReceiptText className="size-4" />
+                              Pas de Cerfa
                             </span>
                           )}
                         </div>
                       </TableCell>
                     </TableRow>
+                    {donation.payments.length > 0 ? (
+                        <TableRow key={`${donation.id}-payments`}>
+                          <TableCell colSpan={5}>
+                            <div className="grid gap-2 rounded-xl bg-[var(--subtle)] p-3">
+                              <strong className="text-sm text-[var(--primary)]">
+                                Historique des paiements
+                              </strong>
+                              <div className="grid gap-2">
+                                {donation.payments.map((payment) => (
+                                  <div
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm"
+                                    key={payment.id}
+                                  >
+                                    <span className="font-bold text-[var(--primary)]">
+                                      {payment.installmentNumber
+                                        ? `${payment.installmentNumber} / ${
+                                            payment.installmentTotal ??
+                                            "sans limite"
+                                          }`
+                                        : "Paiement"}
+                                    </span>
+                                    <span>
+                                      {formatMoney(
+                                        payment.amountCents,
+                                        payment.currency,
+                                      )}
+                                    </span>
+                                    <StatusBadge tone={donationTone(payment.status)}>
+                                      {paymentStatusLabels[payment.status]}
+                                    </StatusBadge>
+                                    <span className="text-[var(--muted)]">
+                                      {dateTimeLabel(
+                                        payment.paidAt ?? payment.createdAt,
+                                      )}
+                                    </span>
+                                    {payment.stripeReceiptUrl ? (
+                                      <Button asChild size="sm" variant="secondary">
+                                        <a
+                                          href={payment.stripeReceiptUrl}
+                                          rel="noreferrer"
+                                          target="_blank"
+                                        >
+                                          <ExternalLink className="size-4" />
+                                          Recu
+                                        </a>
+                                      </Button>
+                                    ) : null}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                    ) : null}
+                    </Fragment>
                   );
                 })}
               </TableBody>

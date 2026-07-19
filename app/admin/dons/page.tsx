@@ -141,6 +141,14 @@ function stripePaymentUrl(donation: AdminDonation) {
   return `https://dashboard.stripe.com/test/payments/${donation.stripePaymentIntentId}`;
 }
 
+function installmentLabel(payment: AdminDonation["payments"][number]) {
+  if (!payment.installmentNumber) return "Paiement";
+
+  return `${payment.installmentNumber} / ${
+    payment.installmentTotal ?? "sans limite"
+  }`;
+}
+
 function buildWhere(params: Record<string, string | undefined>) {
   const where: Prisma.DonationWhereInput = {};
   const status = params.status;
@@ -183,6 +191,7 @@ async function getDonations(params: Record<string, string | undefined> = {}) {
   return prisma.donation.findMany({
     where: buildWhere(params),
     include: {
+      payments: { orderBy: { createdAt: "desc" } },
       receipt: true,
       user: {
         select: {
@@ -442,7 +451,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             <span>Entreprise: {metadataText(donation.metadata, "companyName") ?? "-"}</span>
             <span>Type juridique: {metadataText(donation.metadata, "companyLegalForm") ?? "-"}</span>
             <span>Compte rattache: {donation.user?.email ?? "Non"}</span>
-            <span>Email d'envoi recus: {receiptEmail || donation.donorEmail}</span>
+            <span>Email d&apos;envoi recus: {receiptEmail || donation.donorEmail}</span>
           </CardContent>
         </Card>
 
@@ -508,6 +517,85 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             )}
           </CardContent>
         </Card>
+        )}
+
+        {donation.payments.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Historique des paiements</CardTitle>
+              <CardDescription>
+                Suivi paiement par paiement, y compris les mensualites Stripe.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="table-wrap">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Paiement</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Stripe</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {donation.payments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell className="font-bold text-[var(--primary)]">
+                          {installmentLabel(payment)}
+                        </TableCell>
+                        <TableCell>
+                          {formatMoney(payment.amountCents, payment.currency)}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge tone={donationTone(payment.status)}>
+                            {paymentStatusLabels[payment.status]}
+                          </StatusBadge>
+                          {payment.failureReason ? (
+                            <p className="mt-1 text-xs text-red-700">
+                              {payment.failureReason}
+                            </p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          {dateTimeLabel(payment.paidAt ?? payment.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-2">
+                            {payment.stripePaymentIntentId ? (
+                              <Button asChild size="sm" variant="secondary">
+                                <a
+                                  href={`https://dashboard.stripe.com/test/payments/${payment.stripePaymentIntentId}`}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  <ExternalLink className="size-4" />
+                                  Paiement
+                                </a>
+                              </Button>
+                            ) : null}
+                            {payment.stripeReceiptUrl ? (
+                              <Button asChild size="sm" variant="secondary">
+                                <a
+                                  href={payment.stripeReceiptUrl}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  <ExternalLink className="size-4" />
+                                  Recu
+                                </a>
+                              </Button>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {cerfaUrl && (
@@ -849,7 +937,7 @@ function ReceiptBulkDownloadCard() {
       <CardHeader>
         <CardTitle>Telechargement groupe des recus</CardTitle>
         <CardDescription>
-          Selectionnez une plage de dates d'emission. Le ZIP contient un index
+          Selectionnez une plage de dates d&apos;emission. Le ZIP contient un index
           CSV et un fichier PDF Cerfa par recu.
         </CardDescription>
       </CardHeader>
