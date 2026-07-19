@@ -68,8 +68,7 @@ const pageServices = [
     action: "Voir la boutique",
     href: "/boutique",
     learnMoreHref: "/boutique",
-    image:
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+    image: "/services/boutique-literie.jpg",
   },
   {
     title: "Guide PDF",

@@ -67,10 +67,7 @@ export default function ContactPage() {
                       Recevez les annonces et les prochaines activites de
                       l&apos;association.
                     </span>
-                    <Button
-                      asChild
-                      className="h-auto w-full justify-between rounded-lg bg-[#25D366] px-4 py-3 font-bold text-white shadow-[0_12px_26px_rgba(37,211,102,0.28)] transition hover:bg-[#1ebe5d]"
-                    >
+                    <Button asChild className="h-auto w-full justify-between rounded-lg border border-[var(--border)] bg-white px-4 py-3 text-[var(--primary)] shadow-sm transition hover:border-[rgba(242,99,0,0.32)] hover:bg-[var(--subtle)]">
                       <a
                         href={whatsappGroupUrl}
                         target="_blank"
@@ -78,15 +75,20 @@ export default function ContactPage() {
                         aria-label="Rejoindre le groupe WhatsApp"
                       >
                         <span className="flex items-center gap-3">
-                          <span className="grid size-9 place-items-center rounded-full bg-white text-[#25D366]">
+                          <span className="grid size-9 place-items-center rounded-md bg-[var(--primary-soft)] text-[var(--primary)]">
                             <MessageCircle
                               className="size-5"
                               aria-hidden="true"
                             />
                           </span>
-                          <span>Rejoindre le groupe</span>
+                          <span className="text-left">
+                            <span className="block font-bold">Rejoindre le groupe</span>
+                            <span className="block text-xs font-medium text-[var(--muted)]">
+                              Annonces et activites
+                            </span>
+                          </span>
                         </span>
-                        <ArrowUpRight className="size-5" aria-hidden="true" />
+                        <ArrowUpRight className="size-4" aria-hidden="true" />
                       </a>
                     </Button>
                   </CardDescription>

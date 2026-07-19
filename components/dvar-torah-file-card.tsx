@@ -45,31 +45,31 @@ export function DvarTorahFileCard({
   }
 
   return (
-    <Card className="group border-[var(--border)] bg-white shadow-sm transition hover:border-[rgba(242,99,0,0.28)] hover:shadow-lg">
-      <CardContent className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
-        <div className="flex min-w-0 gap-4">
-          <div className="grid size-14 shrink-0 place-items-center rounded-2xl border border-[var(--border)] bg-[var(--primary-soft)] text-[var(--primary)]">
-            <FileText className="size-6" />
+    <Card className="group border-[var(--border)] bg-white shadow-sm transition hover:border-[rgba(242,99,0,0.28)]">
+      <CardContent className="grid gap-3 p-3 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="flex min-w-0 gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg border border-[var(--border)] bg-[var(--primary-soft)] text-[var(--primary)]">
+            <FileText className="size-5" />
           </div>
           <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
+            <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <Badge variant={category === "Chabbat" ? "info" : "warning"}>
                 {category}
               </Badge>
-              <span className="text-sm font-semibold text-[var(--muted)]">
+              <span className="text-xs font-semibold text-[var(--muted)]">
                 {date}
               </span>
             </div>
-            <CardTitle className="truncate text-xl leading-tight">
+            <CardTitle className="truncate text-base leading-tight">
               {title}
             </CardTitle>
-            <p className="mt-2 line-clamp-2 text-base leading-6 text-[var(--muted)]">
+            <p className="mt-1 line-clamp-1 text-sm leading-5 text-[var(--muted)]">
               {description}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-1.5">
           <Button asChild variant="ghost" size="sm">
             <Link href={href} target="_blank">
               <ExternalLink className="size-4" />

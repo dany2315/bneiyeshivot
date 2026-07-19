@@ -50,6 +50,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -504,14 +505,17 @@ function SessionActionsMenu({ session }: { session: AdminSession }) {
       >
         <MoreHorizontal />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem render={<div />}>
+      <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
+        <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
+          Actions du mivhan
+        </DropdownMenuLabel>
+        <DropdownMenuItem className="p-0 focus:bg-transparent" render={<div />}>
           <EditMivhanDialog session={session} />
         </DropdownMenuItem>
-        <DropdownMenuItem render={<div />}>
+        <DropdownMenuItem className="mt-1 p-0 focus:bg-transparent" render={<div />}>
           <AddRegistrationDialog sessionId={session.id} />
         </DropdownMenuItem>
-        <DropdownMenuItem render={<div />}>
+        <DropdownMenuItem className="mt-1 p-0 focus:bg-transparent" render={<div />}>
           <TalmoudoActionButton
             action={setMivhanSessionClosedState}
             fields={{
@@ -534,8 +538,11 @@ function SessionActionsMenu({ session }: { session: AdminSession }) {
             )}
           </TalmoudoActionButton>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem render={<div />} variant="destructive">
+        <DropdownMenuSeparator className="my-2" />
+        <DropdownMenuLabel className="px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
+          Zone sensible
+        </DropdownMenuLabel>
+        <DropdownMenuItem className="p-0 focus:bg-transparent" render={<div />} variant="destructive">
           <DeleteMivhanDialog session={session} />
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -850,20 +857,35 @@ export function AdminTalmoudoPageClient({
                       value={registrationView}
                       onValueChange={setRegistrationView}
                     >
-                      <TabsList className="w-full flex-wrap justify-start">
-                        <TabsTrigger value="all">
+                      <TabsList className="w-full flex-wrap justify-start border-[var(--border)] bg-white text-[var(--primary)] shadow-sm">
+                        <TabsTrigger
+                          className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
+                          value="all"
+                        >
                           Inscriptions ({selectedStats?.total ?? 0})
                         </TabsTrigger>
-                        <TabsTrigger value="graded">
+                        <TabsTrigger
+                          className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
+                          value="graded"
+                        >
                           Notes ({selectedStats?.graded ?? 0})
                         </TabsTrigger>
-                        <TabsTrigger value="pending-grade">
+                        <TabsTrigger
+                          className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
+                          value="pending-grade"
+                        >
                           A noter ({(selectedStats?.total ?? 0) - (selectedStats?.graded ?? 0)})
                         </TabsTrigger>
-                        <TabsTrigger value="paid">
+                        <TabsTrigger
+                          className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
+                          value="paid"
+                        >
                           Payes ({selectedStats?.paid ?? 0})
                         </TabsTrigger>
-                        <TabsTrigger value="unpaid">
+                        <TabsTrigger
+                          className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
+                          value="unpaid"
+                        >
                           A payer ({selectedStats?.unpaid ?? 0})
                         </TabsTrigger>
                       </TabsList>

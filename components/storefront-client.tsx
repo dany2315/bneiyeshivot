@@ -155,7 +155,7 @@ export function StorefrontClient({
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-5">
             {products.map((product) => (
-              <Card className="overflow-hidden" key={product.id}>
+              <Card className="overflow-hidden py-0" key={product.id}>
                 <StoreProductImageDialog
                   imageUrl={product.imageUrl}
                   imageUrls={product.imageUrls}
@@ -357,44 +357,89 @@ function useProductQuantities(products: ProductView[]) {
   return useState<Record<string, number>>(initial);
 }
 
+export function StoreProductReservationQuantity({
+  disabled,
+  name,
+}: {
+  disabled?: boolean;
+  name: string;
+}) {
+  const [quantity, setQuantity] = useState(1);
+
+  return (
+    <>
+      <input name={name} type="hidden" value={quantity} />
+      <QuantityControl
+        disabled={disabled}
+        min={1}
+        onChange={setQuantity}
+        quantity={quantity}
+      />
+    </>
+  );
+}
+
 function QuantityControl({
   disabled,
+  min = 0,
   onChange,
   quantity,
 }: {
   disabled?: boolean;
+  min?: number;
   onChange: (quantity: number) => void;
   quantity: number;
 }) {
+  const [animationKey, setAnimationKey] = useState(0);
+  const canDecrease = quantity > min;
+
+  function updateQuantity(nextQuantity: number) {
+    const next = Math.max(min, nextQuantity);
+
+    if (next > quantity) {
+      setAnimationKey((current) => current + 1);
+    }
+
+    onChange(next);
+  }
+
   return (
-    <div className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-white p-1">
+    <div className="relative grid grid-cols-[2.35rem_3.25rem_2.35rem] items-center rounded-lg border border-[var(--border)] bg-white p-1 shadow-sm sm:grid-cols-[2rem_3rem_2rem]">
+      {animationKey > 0 ? (
+        <span
+          className="pointer-events-none absolute right-2 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-[var(--accent)] text-white shadow-lg animate-[cart-fly_700ms_ease-out_forwards]"
+          key={animationKey}
+        >
+          <ShoppingBag className="size-3.5" />
+        </span>
+      ) : null}
       <Button
         aria-label="Retirer"
-        onClick={() => onChange(quantity - 1)}
-        disabled={disabled}
-        size="icon-xs"
+        onClick={() => updateQuantity(quantity - 1)}
+        disabled={disabled || !canDecrease}
+        size="icon-sm"
         type="button"
         variant="ghost"
       >
-        <Minus className="size-3" />
+        <Minus className="size-4" />
       </Button>
       <Input
-        className="h-8 w-12 border-0 p-0 text-center"
-        min="0"
-        onChange={(event) => onChange(Number(event.target.value) || 0)}
+        className="h-9 w-full border-0 p-0 text-center text-sm font-bold tabular-nums"
+        min={min}
+        onChange={(event) => updateQuantity(Number(event.target.value) || min)}
         disabled={disabled}
         type="number"
         value={quantity}
       />
       <Button
         aria-label="Ajouter"
-        onClick={() => onChange(quantity + 1)}
+        onClick={() => updateQuantity(quantity + 1)}
         disabled={disabled}
-        size="icon-xs"
+        size="icon-sm"
         type="button"
         variant="ghost"
       >
-        <Plus className="size-3" />
+        <Plus className="size-4" />
       </Button>
     </div>
   );

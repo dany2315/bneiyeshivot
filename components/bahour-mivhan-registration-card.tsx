@@ -5,7 +5,7 @@ import { TalmoudoDialogActionForm } from "@/components/talmoudo-action-form";
 import { StatusBadge } from "@/app/components";
 import { updateBahourTalmoudoRegistrationState } from "@/app/client/actions";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Edit3, Trophy } from "lucide-react";
+import { CalendarDays, Edit3, MapPin, Trophy } from "lucide-react";
 import { dapimRangesToHebrew } from "@/lib/shas";
 
 type BahourMivhanRegistration = {
@@ -21,6 +21,7 @@ type BahourMivhanRegistration = {
   session: {
     title: string;
     date: Date;
+    location: string | null;
   };
 };
 
@@ -50,36 +51,38 @@ export function BahourMivhanRegistrationCard({
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="grid gap-2.5">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-md bg-[var(--subtle)] text-[var(--accent)]">
+          <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[var(--subtle)] text-[var(--accent)]">
             <Trophy className="size-4" />
           </span>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <strong className="truncate text-sm text-[var(--primary)]">
-                {registration.session.title}
-              </strong>
-              <StatusBadge tone={registration.grade === null ? "blue" : "green"}>
-                {registration.grade === null
-                  ? "Inscrit"
-                  : `${registration.grade} / 100`}
-              </StatusBadge>
-            </div>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-              <span className="inline-flex items-center gap-1">
-                <CalendarDays className="size-3.5" />
-                {dateLabel}
-              </span>
-              <span className="font-medium text-[var(--primary)]">
+          <div className="min-w-0 space-y-1">
+            <strong className="block truncate text-sm text-[var(--primary)]">
+              {registration.session.title}
+            </strong>
+            <span className="flex items-center gap-1 text-xs text-[var(--muted)]">
+              <CalendarDays className="size-3.5" />
+              {dateLabel}
+            </span>
+            <span className="flex items-center gap-1 text-xs text-[var(--muted)]">
+              <MapPin className="size-3.5" />
+              {registration.session.location || "Lieu a confirmer"}
+            </span>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold uppercase tracking-wide text-[var(--primary)]">
                 {registration.massehet ?? "Massehet"}
               </span>
-              <span>{dapimLabel}</span>
+              <span className="text-[var(--muted)]">{dapimLabel}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-2 text-xs text-[var(--muted)]">
+          <StatusBadge tone={registration.grade === null ? "blue" : "green"}>
+            {registration.grade === null
+              ? "Inscrit"
+              : `${registration.grade} / 100`}
+          </StatusBadge>
           <span className="rounded-md bg-[var(--subtle)] px-2 py-1">
             {formatReward(
               registration.rewardAmountCents,

@@ -3,7 +3,10 @@ import Link from "next/link";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { PageShell } from "@/app/components";
 import { createStoreReservation } from "@/app/boutique/actions";
-import { StoreReservationCustomerFields } from "@/components/storefront-client";
+import {
+  StoreProductReservationQuantity,
+  StoreReservationCustomerFields,
+} from "@/components/storefront-client";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
@@ -129,12 +131,9 @@ export default async function StoreProductPage({
                     </Alert>
                   ) : null}
                   <form action={createStoreReservation} className="grid gap-4">
-                    <Input
-                      min="1"
-                      name={`quantity-${product.id}`}
-                      type="number"
-                      defaultValue="1"
+                    <StoreProductReservationQuantity
                       disabled={!storefront.active}
+                      name={`quantity-${product.id}`}
                     />
                     <StoreReservationCustomerFields
                       disabled={!storefront.active}
