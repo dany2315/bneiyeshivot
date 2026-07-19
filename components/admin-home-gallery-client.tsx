@@ -445,62 +445,64 @@ function AlbumDialog({
     setSlots((current) => [...current, ...pending]);
     setUploading(true);
 
-    const results = await Promise.allSettled(
-      files.map((file, index) =>
-        uploadFileWithProgress(file, (progress) => {
-          const slotId = pending[index]?.id;
-          if (!slotId) return;
+    const uploadTasks = files.map((file, index) =>
+      uploadFileWithProgress(file, (progress) => {
+        const slotId = pending[index]?.id;
+        if (!slotId) return;
+        setSlots((current) =>
+          current.map((slot) =>
+            slot.id === slotId ? { ...slot, uploadProgress: progress } : slot,
+          ),
+        );
+      })
+        .then((media) => {
+          const slotId = pending[index].id;
           setSlots((current) =>
             current.map((slot) =>
-              slot.id === slotId ? { ...slot, uploadProgress: progress } : slot,
+              slot.id === slotId
+                ? {
+                    ...slot,
+                    key: media.key,
+                    mimeType: media.mimeType,
+                    preview: fileUrl(media.key) ?? slot.preview,
+                    size: media.size,
+                    status: "ready" as const,
+                    uploadProgress: 100,
+                  }
+                : slot,
             ),
           );
-        }).then((media) => ({ media, slotId: pending[index].id })),
-      ),
+          return { media, slotId };
+        })
+        .catch((error) => {
+          const slotId = pending[index].id;
+          setSlots((current) =>
+            current.map((slot) =>
+              slot.id === slotId
+                ? {
+                    ...slot,
+                    status: "error" as const,
+                    uploadError:
+                      error instanceof Error
+                        ? error.message
+                        : "Upload impossible.",
+                  }
+                : slot,
+            ),
+          );
+          throw error;
+        }),
     );
 
-    let uploadedCount = 0;
-    setSlots((current) =>
-      current.map((slot) => {
-        const success = results.find(
-          (result) =>
-            result.status === "fulfilled" && result.value.slotId === slot.id,
-        );
+    const results = await Promise.allSettled(uploadTasks);
 
-        if (success?.status === "fulfilled") {
-          uploadedCount += 1;
-          return {
-            ...slot,
-            key: success.value.media.key,
-            mimeType: success.value.media.mimeType,
-            preview: fileUrl(success.value.media.key) ?? slot.preview,
-            size: success.value.media.size,
-            status: "ready" as const,
-            uploadProgress: 100,
-          };
-        }
-
-        const failedIndex = pending.findIndex((item) => item.id === slot.id);
-        const failure = failedIndex >= 0 ? results[failedIndex] : null;
-
-        if (failure?.status === "rejected") {
-          return {
-            ...slot,
-            status: "error" as const,
-            uploadError:
-              failure.reason instanceof Error
-                ? failure.reason.message
-                : "Upload impossible.",
-          };
-        }
-
-        return slot;
-      }),
-    );
-
+    const uploadedCount = results.filter(
+      (result) => result.status === "fulfilled",
+    ).length;
     const failedCount = results.filter(
       (result) => result.status === "rejected",
     ).length;
+
     if (uploadedCount > 0) {
       toast.success(`${uploadedCount} media(s) uploade(s).`);
     }
