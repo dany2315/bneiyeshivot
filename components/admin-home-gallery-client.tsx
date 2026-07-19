@@ -86,6 +86,8 @@ type Slot = {
 
 type UploadedFile = { key: string; mimeType: string; size: number };
 
+const maxParallelUploads = 3;
+
 function fileNameFromKey(key: string | null) {
   if (!key) return "";
   const raw = key.split("/").pop() ?? key;
@@ -187,9 +189,46 @@ function uploadFileWithProgress(
     };
 
     request.onerror = () => reject(new Error("Connexion interrompue."));
+    request.ontimeout = () => reject(new Error("Upload trop long."));
+    request.onabort = () => reject(new Error("Upload annule."));
+    request.timeout = 1000 * 60 * 8;
     request.open("POST", "/api/uploads");
     request.send(formData);
   });
+}
+
+async function runUploadsWithLimit<T>(
+  count: number,
+  limit: number,
+  worker: (index: number) => Promise<T>,
+) {
+  const results: PromiseSettledResult<T>[] = new Array(count);
+  let nextIndex = 0;
+
+  async function runWorker() {
+    while (nextIndex < count) {
+      const index = nextIndex;
+      nextIndex += 1;
+
+      try {
+        results[index] = {
+          status: "fulfilled",
+          value: await worker(index),
+        };
+      } catch (error) {
+        results[index] = {
+          reason: error,
+          status: "rejected",
+        };
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, count) }, () => runWorker()),
+  );
+
+  return results;
 }
 
 async function deleteNewUpload(key: string) {
@@ -445,18 +484,23 @@ function AlbumDialog({
     setSlots((current) => [...current, ...pending]);
     setUploading(true);
 
-    const uploadTasks = files.map((file, index) =>
-      uploadFileWithProgress(file, (progress) => {
-        const slotId = pending[index]?.id;
-        if (!slotId) return;
-        setSlots((current) =>
-          current.map((slot) =>
-            slot.id === slotId ? { ...slot, uploadProgress: progress } : slot,
-          ),
-        );
-      })
-        .then((media) => {
+    try {
+      const results = await runUploadsWithLimit(
+        files.length,
+        maxParallelUploads,
+        async (index) => {
+          const file = files[index];
           const slotId = pending[index].id;
+          const media = await uploadFileWithProgress(file, (progress) => {
+            setSlots((current) =>
+              current.map((slot) =>
+                slot.id === slotId
+                  ? { ...slot, uploadProgress: progress }
+                  : slot,
+              ),
+            );
+          });
+
           setSlots((current) =>
             current.map((slot) =>
               slot.id === slotId
@@ -472,44 +516,65 @@ function AlbumDialog({
                 : slot,
             ),
           );
+
           return { media, slotId };
-        })
-        .catch((error) => {
-          const slotId = pending[index].id;
-          setSlots((current) =>
-            current.map((slot) =>
-              slot.id === slotId
-                ? {
-                    ...slot,
-                    status: "error" as const,
-                    uploadError:
-                      error instanceof Error
-                        ? error.message
-                        : "Upload impossible.",
-                  }
-                : slot,
-            ),
-          );
-          throw error;
+        },
+      );
+
+      results.forEach((result, index) => {
+        if (result.status !== "rejected") return;
+
+        const slotId = pending[index]?.id;
+        if (!slotId) return;
+
+        const error = result.reason;
+        setSlots((current) =>
+          current.map((slot) =>
+            slot.id === slotId
+              ? {
+                  ...slot,
+                  status: "error" as const,
+                  uploadError:
+                    error instanceof Error
+                      ? error.message
+                      : "Upload impossible.",
+                }
+              : slot,
+          ),
+        );
+      });
+
+      const uploadedCount = results.filter(
+        (result) => result.status === "fulfilled",
+      ).length;
+      const failedCount = results.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      if (uploadedCount > 0) {
+        toast.success(`${uploadedCount} media(s) uploade(s).`);
+      }
+      if (failedCount > 0) {
+        toast.error(`${failedCount} upload(s) en erreur.`);
+      }
+    } catch (error) {
+      setSlots((current) =>
+        current.map((slot) => {
+          if (!pending.some((item) => item.id === slot.id)) return slot;
+          if (slot.status !== "uploading") return slot;
+
+          return {
+            ...slot,
+            status: "error" as const,
+            uploadError:
+              error instanceof Error ? error.message : "Upload impossible.",
+          };
         }),
-    );
-
-    const results = await Promise.allSettled(uploadTasks);
-
-    const uploadedCount = results.filter(
-      (result) => result.status === "fulfilled",
-    ).length;
-    const failedCount = results.filter(
-      (result) => result.status === "rejected",
-    ).length;
-
-    if (uploadedCount > 0) {
-      toast.success(`${uploadedCount} media(s) uploade(s).`);
+      );
+      toast.error(error instanceof Error ? error.message : "Upload impossible.");
+    } finally {
+      setUploading(false);
     }
-    if (failedCount > 0) {
-      toast.error(`${failedCount} upload(s) en erreur.`);
-    }
-    setUploading(false);
   }
 
   function addYoutube() {
