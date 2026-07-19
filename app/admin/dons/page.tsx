@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  CerfaReceiptType,
   DonationFrequency,
   DonationSource,
   PaymentProvider,
@@ -9,13 +8,11 @@ import {
   ReceiptStatus,
 } from "@prisma/client";
 import {
-  createManualDonation,
   deleteManualDonation,
-  refundDonation,
-  updateDonationDetails,
   updateDonationAdminNote,
 } from "./actions";
 import { DonationActionsDropdown } from "./_components/donation-actions-dropdown";
+import { ManualDonationDialog } from "./_components/manual-donation-dialog";
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +38,6 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
@@ -53,20 +49,16 @@ import {
 } from "@/components/ui/table";
 import {
   formatDonationFrequency,
-  donationSourceLabels,
   formatMoney,
   paymentStatusLabels,
-  receiptTypeLabels,
 } from "@/lib/donations";
 import { fileUrl } from "@/lib/files";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/session";
 import {
-  Banknote,
   Download,
   ExternalLink,
   FileText,
-  RotateCcw,
   Search,
   Trash2,
 } from "lucide-react";
@@ -161,6 +153,63 @@ function stripePaymentUrl(donation: AdminDonation) {
 
 function canShowCerfaControls(donation: AdminDonation) {
   return donation.provider !== PaymentProvider.NEDARIM_PLUS && donation.currency === "EUR";
+}
+
+function donationActionsProps(donation: AdminDonation) {
+  const receiptAddress = metadataNestedText(donation.metadata, "receipt", "address");
+  const receiptZip = metadataNestedText(donation.metadata, "receipt", "zip");
+  const receiptCity = metadataNestedText(donation.metadata, "receipt", "city");
+  const receiptCountry =
+    metadataNestedText(donation.metadata, "receipt", "country") ?? "France";
+  const receiptTaxId = metadataNestedText(donation.metadata, "receipt", "taxId");
+  const donorType: "PARTICULIER" | "ENTREPRISE" =
+    metadataText(donation.metadata, "donorType") === "ENTREPRISE"
+      ? "ENTREPRISE"
+      : "PARTICULIER";
+  const metadata = metadataObject(donation.metadata);
+  const refundableCents = Math.max(
+    0,
+    donation.amountCents - donation.refundedAmountCents,
+  );
+
+  return {
+    canEditFiscal: canShowCerfaControls(donation),
+    canRefund:
+      Boolean(donation.stripePaymentIntentId) &&
+      donation.status === PaymentStatus.PAID &&
+      refundableCents > 0,
+    cerfaUrl: fileUrl(donation.receipt?.fileKey),
+    donationId: donation.id,
+    donorEmail: donation.donorEmail,
+    fiscalDefaults: {
+      adminNote: typeof metadata.adminNote === "string" ? metadata.adminNote : "",
+      amount: String(donation.amountCents / 100),
+      companyLegalForm:
+        metadataText(donation.metadata, "companyLegalForm") ?? "",
+      companyName: metadataText(donation.metadata, "companyName") ?? "",
+      currency: donation.currency,
+      dedication: donation.dedication ?? "",
+      donorType,
+      firstName: donation.donorFirstName ?? "",
+      lastName: donation.donorLastName ?? "",
+      paidAt: donation.paidAt ? donation.paidAt.toISOString().slice(0, 10) : "",
+      phone: donation.donorPhone ?? "",
+      receiptAddress: receiptAddress ?? donation.receipt?.donorAddress ?? "",
+      receiptCity: receiptCity ?? donation.receipt?.donorCity ?? "",
+      receiptCountry,
+      receiptDonorName:
+        donation.receipt?.donorName ?? donation.donorName ?? donation.donorEmail,
+      receiptEmail: metadataText(donation.metadata, "receiptEmail") ?? "",
+      receiptTaxId: receiptTaxId ?? donation.receipt?.donorTaxId ?? "",
+      receiptZip: receiptZip ?? donation.receipt?.donorZip ?? "",
+      source: donation.source,
+      status: donation.status,
+    },
+    hasCerfa: canShowCerfaControls(donation),
+    refundableAmountLabel:
+      refundableCents > 0 ? formatMoney(refundableCents, donation.currency) : null,
+    stripeReceiptUrl: metadataText(donation.metadata, "stripeReceiptUrl"),
+  };
 }
 
 function installmentLabel(payment: AdminDonation["payments"][number]) {
@@ -276,115 +325,6 @@ async function getDonations(params: Record<string, string | undefined> = {}) {
   });
 }
 
-function ManualDonationDialog() {
-  return (
-    <Dialog>
-      <DialogTrigger render={<Button />}>
-        <Banknote className="size-4" />
-        Ajouter un don manuel
-      </DialogTrigger>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Don manuel</DialogTitle>
-          <DialogDescription>
-            Especes, cheque, virement ou autre. Le don est cree comme paye et
-            peut generer directement un recu Cerfa pour les dons eligibles.
-          </DialogDescription>
-        </DialogHeader>
-        <form action={createManualDonation} className="grid gap-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input name="firstName" placeholder="Prenom" />
-            <Input name="lastName" placeholder="Nom" />
-            <Input name="email" placeholder="Email" required type="email" />
-            <Input name="phone" placeholder="Telephone" />
-            <Input name="amount" placeholder="Montant" required type="number" />
-            <NativeSelect defaultValue={PaymentStatus.PAID} name="status">
-              {Object.values(PaymentStatus).map((status) => (
-                <NativeSelectOption key={status} value={status}>
-                  {paymentStatusLabels[status]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-            <NativeSelect defaultValue="EUR" name="currency">
-              <NativeSelectOption value="EUR">EUR</NativeSelectOption>
-              <NativeSelectOption value="USD">USD</NativeSelectOption>
-              <NativeSelectOption value="ILS">ILS</NativeSelectOption>
-            </NativeSelect>
-            <NativeSelect defaultValue={DonationSource.ADMIN_CASH} name="source">
-              {Object.values(DonationSource)
-                .filter((source) => source !== DonationSource.ONLINE)
-                .map((source) => (
-                  <NativeSelectOption key={source} value={source}>
-                    {donationSourceLabels[source]}
-                  </NativeSelectOption>
-                ))}
-            </NativeSelect>
-            <Input name="paidAt" placeholder="Date du don" type="date" />
-            <Input name="paymentReference" placeholder="Reference cheque/virement" />
-            <NativeSelect defaultValue="PARTICULIER" name="donorType">
-              <NativeSelectOption value="PARTICULIER">Particulier</NativeSelectOption>
-              <NativeSelectOption value="ENTREPRISE">Entreprise</NativeSelectOption>
-            </NativeSelect>
-          </div>
-          <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 sm:grid-cols-3">
-            <Input name="companyName" placeholder="Societe (si entreprise)" />
-            <Input name="companyLegalForm" placeholder="Forme juridique" />
-            <Input name="receiptTaxId" placeholder="SIREN / SIRET" />
-          </div>
-          <Textarea name="dedication" placeholder="Dedicace ou note" />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <NativeSelect
-              defaultValue={CerfaReceiptType.PARTICULIER}
-              name="receiptType"
-            >
-              {Object.values(CerfaReceiptType).map((type) => (
-                <NativeSelectOption key={type} value={type}>
-                  {receiptTypeLabels[type]}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-            <Input name="fiscalYear" placeholder="Annee fiscale" type="number" />
-            <Input
-              className="sm:col-span-2"
-              name="receiptDonorName"
-              placeholder="Nom sur le recu"
-            />
-            <Input
-              className="sm:col-span-2"
-              name="receiptEmail"
-              placeholder="Email d'envoi des recus (si different)"
-              type="email"
-            />
-            <Input
-              className="sm:col-span-2"
-              name="receiptAddress"
-              placeholder="Adresse"
-            />
-            <Input name="receiptZip" placeholder="Code postal" />
-            <Input name="receiptCity" placeholder="Ville" />
-            <Input defaultValue="France" name="receiptCountry" placeholder="Pays" />
-          </div>
-          <Textarea name="adminNote" placeholder="Note interne" />
-          <div className="grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
-            <strong className="text-sm text-[var(--primary)]">
-              Envois automatiques si le don est paye
-            </strong>
-            <label className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
-              <input name="sendPaymentReceipt" type="checkbox" />
-              Envoyer automatiquement le recu / mail de remerciement
-            </label>
-            <label className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
-              <input name="sendCerfaReceipt" type="checkbox" />
-              Envoyer automatiquement le recu Cerfa
-            </label>
-          </div>
-          <Button type="submit">Creer le don</Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
   const metadata = metadataObject(donation.metadata);
   const stripeUrl = stripePaymentUrl(donation);
@@ -393,12 +333,6 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
   const isManual = donation.source !== DonationSource.ONLINE;
   const hasCerfa = canShowCerfaControls(donation);
   const receiptEmail = metadataText(donation.metadata, "receiptEmail") ?? "";
-  const receiptAddress = metadataNestedText(donation.metadata, "receipt", "address");
-  const receiptZip = metadataNestedText(donation.metadata, "receipt", "zip");
-  const receiptCity = metadataNestedText(donation.metadata, "receipt", "city");
-  const receiptCountry =
-    metadataNestedText(donation.metadata, "receipt", "country") ?? "France";
-  const receiptTaxId = metadataNestedText(donation.metadata, "receipt", "taxId");
 
   return (
     <Dialog>
@@ -421,13 +355,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
               Recu, Cerfa, historique du donateur et liens paiement.
             </span>
           </div>
-          <DonationActionsDropdown
-            cerfaUrl={cerfaUrl}
-            donationId={donation.id}
-            donorEmail={donation.donorEmail}
-            hasCerfa={hasCerfa}
-            stripeReceiptUrl={stripeReceiptUrl}
-          />
+          <DonationActionsDropdown {...donationActionsProps(donation)} />
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -660,185 +588,6 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           </Card>
         </div>
 
-        <Separator />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {isManual
-                ? "Modifier le don manuel"
-                : hasCerfa
-                  ? "Modifier les donnees fiscales"
-                  : "Modifier les donnees du don"}
-            </CardTitle>
-            <CardDescription>
-              {isManual
-                ? "Tous les champs du don manuel peuvent etre ajustes."
-                : hasCerfa
-                  ? "Le montant et les donnees du paiement en ligne restent verrouilles."
-                  : "Le montant et les donnees du paiement en ligne restent verrouilles. Aucun Cerfa n'est genere pour ce don."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={updateDonationDetails} className="grid gap-3">
-              <input name="donationId" type="hidden" value={donation.id} />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input
-                  defaultValue={donation.donorFirstName ?? ""}
-                  disabled={!isManual}
-                  name="firstName"
-                  placeholder="Prenom"
-                />
-                <Input
-                  defaultValue={donation.donorLastName ?? ""}
-                  disabled={!isManual}
-                  name="lastName"
-                  placeholder="Nom"
-                />
-                <Input
-                  defaultValue={donation.donorPhone ?? ""}
-                  disabled={!isManual}
-                  name="phone"
-                  placeholder="Telephone"
-                />
-                <Input
-                  defaultValue={receiptEmail}
-                  name="receiptEmail"
-                  placeholder="Email d'envoi des recus"
-                  type="email"
-                />
-                {isManual && (
-                  <>
-                    <Input
-                      defaultValue={donation.amountCents / 100}
-                      name="amount"
-                      placeholder="Montant"
-                      type="number"
-                    />
-                    <NativeSelect defaultValue={donation.currency} name="currency">
-                      <NativeSelectOption value="EUR">EUR</NativeSelectOption>
-                      <NativeSelectOption value="USD">USD</NativeSelectOption>
-                      <NativeSelectOption value="ILS">ILS</NativeSelectOption>
-                    </NativeSelect>
-                    <NativeSelect defaultValue={donation.status} name="status">
-                      {Object.values(PaymentStatus).map((status) => (
-                        <NativeSelectOption key={status} value={status}>
-                          {paymentStatusLabels[status]}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
-                    <NativeSelect defaultValue={donation.source} name="source">
-                      {Object.values(DonationSource)
-                        .filter((source) => source !== DonationSource.ONLINE)
-                        .map((source) => (
-                          <NativeSelectOption key={source} value={source}>
-                            {donationSourceLabels[source]}
-                          </NativeSelectOption>
-                        ))}
-                    </NativeSelect>
-                    <Input
-                      defaultValue={
-                        donation.paidAt
-                          ? donation.paidAt.toISOString().slice(0, 10)
-                          : ""
-                      }
-                      name="paidAt"
-                      type="date"
-                    />
-                  </>
-                )}
-                <NativeSelect
-                  defaultValue={
-                    metadataText(donation.metadata, "donorType") === "ENTREPRISE"
-                      ? "ENTREPRISE"
-                      : "PARTICULIER"
-                  }
-                  name="donorType"
-                >
-                  <NativeSelectOption value="PARTICULIER">Particulier</NativeSelectOption>
-                  <NativeSelectOption value="ENTREPRISE">Entreprise</NativeSelectOption>
-                </NativeSelect>
-                {hasCerfa ? (
-                  <NativeSelect
-                    defaultValue={donation.receipt?.type ?? CerfaReceiptType.PARTICULIER}
-                    name="receiptType"
-                  >
-                    {Object.values(CerfaReceiptType).map((type) => (
-                      <NativeSelectOption key={type} value={type}>
-                        {receiptTypeLabels[type]}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
-                ) : null}
-                <Input
-                  defaultValue={metadataText(donation.metadata, "companyName") ?? ""}
-                  name="companyName"
-                  placeholder="Societe (entreprise)"
-                />
-                <Input
-                  defaultValue={
-                    metadataText(donation.metadata, "companyLegalForm") ?? ""
-                  }
-                  name="companyLegalForm"
-                  placeholder="Forme juridique"
-                />
-                <Input
-                  defaultValue={receiptTaxId ?? donation.receipt?.donorTaxId ?? ""}
-                  name="receiptTaxId"
-                  placeholder="SIREN / SIRET"
-                />
-                <Input
-                  className="sm:col-span-2"
-                  defaultValue={
-                    donation.receipt?.donorName ??
-                    donation.donorName ??
-                    donation.donorEmail
-                  }
-                  name="receiptDonorName"
-                  placeholder="Nom sur le recu"
-                />
-                <Input
-                  className="sm:col-span-2"
-                  defaultValue={receiptAddress ?? donation.receipt?.donorAddress ?? ""}
-                  name="receiptAddress"
-                  placeholder="Adresse fiscale"
-                />
-                <Input
-                  defaultValue={receiptZip ?? donation.receipt?.donorZip ?? ""}
-                  name="receiptZip"
-                  placeholder="Code postal"
-                />
-                <Input
-                  defaultValue={receiptCity ?? donation.receipt?.donorCity ?? ""}
-                  name="receiptCity"
-                  placeholder="Ville"
-                />
-                <Input
-                  defaultValue={receiptCountry}
-                  name="receiptCountry"
-                  placeholder="Pays"
-                />
-              </div>
-              <Textarea
-                defaultValue={donation.dedication ?? ""}
-                disabled={!isManual}
-                name="dedication"
-                placeholder="Dedicace"
-              />
-              <Textarea
-                defaultValue={
-                  typeof metadata.adminNote === "string" ? metadata.adminNote : ""
-                }
-                name="adminNote"
-                placeholder="Note interne"
-              />
-              <Button type="submit">
-                {hasCerfa ? "Enregistrer et mettre a jour le Cerfa" : "Enregistrer"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
         {isManual && (
           <form action={deleteManualDonation}>
             <input name="donationId" type="hidden" value={donation.id} />
@@ -848,38 +597,6 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             </Button>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function RefundDialog({ donation }: { donation: AdminDonation }) {
-  if (!donation.stripePaymentIntentId || donation.status !== "PAID") {
-    return null;
-  }
-
-  const refundableCents = donation.amountCents - donation.refundedAmountCents;
-
-  return (
-    <Dialog>
-      <DialogTrigger render={<Button size="sm" variant="ghost" />}>
-        <RotateCcw className="size-4" />
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Rembourser le don</DialogTitle>
-          <DialogDescription>
-            Solde remboursable: {formatMoney(refundableCents, donation.currency)}.
-            Laisser vide pour rembourser le solde complet.
-          </DialogDescription>
-        </DialogHeader>
-        <form action={refundDonation} className="grid gap-3">
-          <input name="donationId" type="hidden" value={donation.id} />
-          <Input name="refundAmount" placeholder="Montant a rembourser" type="number" />
-          <Button type="submit" variant="destructive">
-            Rembourser via Stripe
-          </Button>
-        </form>
       </DialogContent>
     </Dialog>
   );
@@ -1162,17 +879,7 @@ export default async function AdminDonationsPage({
                       <TableCell>
                         <div className="admin-table-actions">
                           <DonationDetailsDialog donation={donation} />
-                          <DonationActionsDropdown
-                            cerfaUrl={fileUrl(donation.receipt?.fileKey)}
-                            donationId={donation.id}
-                            donorEmail={donation.donorEmail}
-                            hasCerfa={canShowCerfaControls(donation)}
-                            stripeReceiptUrl={metadataText(
-                              donation.metadata,
-                              "stripeReceiptUrl",
-                            )}
-                          />
-                          <RefundDialog donation={donation} />
+                          <DonationActionsDropdown {...donationActionsProps(donation)} />
                         </div>
                       </TableCell>
                     </TableRow>
