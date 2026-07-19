@@ -49,7 +49,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -509,13 +508,13 @@ function SessionActionsMenu({ session }: { session: AdminSession }) {
         <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
           Actions du mivhan
         </DropdownMenuLabel>
-        <DropdownMenuItem className="p-0 focus:bg-transparent" render={<div />}>
+        <div>
           <EditMivhanDialog session={session} />
-        </DropdownMenuItem>
-        <DropdownMenuItem className="mt-1 p-0 focus:bg-transparent" render={<div />}>
+        </div>
+        <div className="mt-1">
           <AddRegistrationDialog sessionId={session.id} />
-        </DropdownMenuItem>
-        <DropdownMenuItem className="mt-1 p-0 focus:bg-transparent" render={<div />}>
+        </div>
+        <div className="mt-1">
           <TalmoudoActionButton
             action={setMivhanSessionClosedState}
             fields={{
@@ -537,14 +536,14 @@ function SessionActionsMenu({ session }: { session: AdminSession }) {
               </>
             )}
           </TalmoudoActionButton>
-        </DropdownMenuItem>
+        </div>
         <DropdownMenuSeparator className="my-2" />
         <DropdownMenuLabel className="px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
           Zone sensible
         </DropdownMenuLabel>
-        <DropdownMenuItem className="p-0 focus:bg-transparent" render={<div />} variant="destructive">
+        <div>
           <DeleteMivhanDialog session={session} />
-        </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
