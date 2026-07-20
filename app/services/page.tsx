@@ -24,8 +24,7 @@ const pageServices = [
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
     learnMoreHref: "/services/assurance-maladie",
-    image:
-      "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80",
+    image: "/services/assurance-maladie.jpg",
   },
   {
     title: "Visa etudiant",
@@ -35,8 +34,7 @@ const pageServices = [
     action: "Déposer mon dossier",
     href: "/demandes/visa",
     learnMoreHref: "/services/visa-etudiant",
-    image:
-      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80",
+    image: "/services/visa-etudiant.jpg",
   },
   {
     title: "ETA-IL",
@@ -46,8 +44,7 @@ const pageServices = [
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     learnMoreHref: "/services/eta-il",
-    image:
-      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
+    image: "/services/eta-il.jpg",
   },
   {
     title: "Installation en Israël",

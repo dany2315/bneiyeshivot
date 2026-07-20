@@ -14,11 +14,11 @@ export const donationAmountOptions = [20, 50, 100, 180, 260, 500];
 
 export const donationCurrencyOptions = [
   { value: "EUR", label: "EUR", provider: PaymentProvider.STRIPE },
-  { value: "ILS", label: "ILS", provider: PaymentProvider.NEDARIM_PLUS },
+  { value: "ILS", label: "ILS", provider: PaymentProvider.STRIPE },
 ] as const;
 
 export const donationProviderLabels: Record<PaymentProvider, string> = {
-  STRIPE: "Carte bancaire EUR",
+  STRIPE: "Carte bancaire Stripe",
   NEDARIM_PLUS: "Carte bancaire ILS",
 };
 
