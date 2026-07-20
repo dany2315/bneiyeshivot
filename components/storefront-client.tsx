@@ -576,7 +576,7 @@ function ProductOptionDrawerContent({
       <DrawerFooter className="bg-popover pt-4">
         <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
-          <QuantityControl min={1} onChange={setQuantity} quantity={quantity} />
+          <QuantityControl fullWidth min={1} onChange={setQuantity} quantity={quantity} />
         </div>
         <Button
           className="relative"
@@ -987,11 +987,13 @@ export function StoreProductReservationPanel({
 
 function QuantityControl({
   disabled,
+  fullWidth = false,
   min = 0,
   onChange,
   quantity,
 }: {
   disabled?: boolean;
+  fullWidth?: boolean;
   min?: number;
   onChange: (quantity: number) => void;
   quantity: number;
@@ -1010,7 +1012,13 @@ function QuantityControl({
   }
 
   return (
-    <div className="relative grid w-fit grid-cols-[2.35rem_3.25rem_2.35rem] items-center rounded-lg border border-[var(--border)] bg-white p-1 shadow-sm sm:grid-cols-[2rem_3rem_2rem]">
+    <div
+      className={`relative grid items-center rounded-lg border border-[var(--border)] bg-white p-1 shadow-sm ${
+        fullWidth
+          ? "w-full grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]"
+          : "w-fit grid-cols-[2.35rem_3.25rem_2.35rem] sm:grid-cols-[2rem_3rem_2rem]"
+      }`}
+    >
       {animationKey > 0 ? (
         <span
           className="pointer-events-none absolute right-2 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-[var(--accent)] text-white shadow-lg animate-[cart-fly_700ms_ease-out_forwards]"
