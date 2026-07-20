@@ -2002,12 +2002,12 @@ function VariantOptionsDialog({
           <Edit className="size-4" />
           {triggerLabel}
         </DialogTrigger>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="flex max-h-[86vh] flex-col overflow-hidden sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-2">
+          <div className="-mx-1 grid min-h-0 flex-1 gap-2 overflow-y-auto px-1 pr-2">
             {labels.length > 0 ? (
               labels.map((label, index) => (
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2" key={index}>
