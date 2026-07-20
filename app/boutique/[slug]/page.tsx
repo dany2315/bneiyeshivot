@@ -95,7 +95,7 @@ export default async function StoreProductPage({
         storefront={storefrontView}
       />
       <main>
-        <section className="section pt-24">
+        <section className="section pt-36 md:pt-40">
           <div className="container grid gap-8 pb-24">
             <div className="grid gap-5">
               <Button asChild className="w-fit" variant="secondary">
@@ -105,8 +105,8 @@ export default async function StoreProductPage({
                 </Link>
               </Button>
 
-              <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-                <Card className="overflow-hidden">
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start">
+                <Card className="w-full max-w-xl overflow-hidden lg:max-w-none">
                   <StoreProductImageDialog
                     imageUrl={product.imageUrl}
                     imageUrls={product.imageUrls}
