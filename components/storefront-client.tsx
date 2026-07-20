@@ -26,11 +26,19 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -262,19 +270,6 @@ function ProductCard({
 }) {
   const router = useRouter();
   const productSizes = sizesFor(product);
-  const defaultVariant = findDefaultVariant(product);
-  const [size, setSize] = useState(defaultVariant?.size ?? "");
-  const [variantId, setVariantId] = useState(defaultVariant?.id ?? "");
-  const selectedVariant = findVariant(product, size, variantId);
-  const cutOptions = size ? cutsFor(product, size) : [];
-  const hasVariants = product.variants.length > 0;
-
-  function selectSize(nextSize: string) {
-    const nextVariant = cutsFor(product, nextSize)[0] ?? null;
-    setSize(nextSize);
-    setVariantId(nextVariant?.id ?? "");
-  }
-
   return (
     <Card
       className="cursor-pointer overflow-hidden py-0 transition hover:-translate-y-0.5 hover:shadow-lg"
@@ -324,30 +319,6 @@ function ProductCard({
         <strong className="text-base text-[var(--primary)] md:text-xl">
           {formatPrice(product.priceCents, product.currency)}
         </strong>
-        {false ? (
-          <VariantSelector
-            cutOptions={cutOptions}
-            onSizeChange={selectSize}
-            onVariantChange={setVariantId}
-            productSizes={productSizes}
-            size={size}
-            variantId={selectedVariant?.id ?? ""}
-          />
-        ) : null}
-        <div className="hidden">
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/boutique/${product.slug}`}>Voir le détail</Link>
-          </Button>
-          <Button
-            disabled={disabled || (hasVariants && !selectedVariant)}
-            onClick={() => onAddToCart(product, selectedVariant?.id ?? null)}
-            size="sm"
-            type="button"
-          >
-            <ShoppingBag className="size-4" />
-            Ajouter
-          </Button>
-        </div>
         <ProductAddButton
           disabled={disabled}
           onAdd={(selectedVariantId, quantity) =>
@@ -452,8 +423,13 @@ function ProductAddButton({
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger
+    <Drawer
+      open={open}
+      onOpenChange={setOpen}
+      showSwipeHandle={isMobile}
+      swipeDirection={isMobile ? "down" : "right"}
+    >
+      <DrawerTrigger
         render={
           <Button
             className={fixed ? "relative w-full shadow-lg" : "relative w-full"}
@@ -465,11 +441,8 @@ function ProductAddButton({
       >
         <ShoppingBag className="size-4" />
         Ajouter au panier
-      </SheetTrigger>
-      <SheetContent
-        className="max-h-[85vh] overflow-y-auto sm:max-w-md"
-        side={isMobile ? "bottom" : "right"}
-      >
+      </DrawerTrigger>
+      <DrawerContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <ProductAddDrawerContent
           onAdd={(variantId, quantity) => {
             onAdd(variantId, quantity);
@@ -477,8 +450,8 @@ function ProductAddButton({
           }}
           product={product}
         />
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
@@ -506,12 +479,12 @@ function ProductAddDrawerContent({
 
   return (
     <>
-      <SheetHeader>
-        <SheetTitle>{product.title}</SheetTitle>
-        <SheetDescription>
+      <DrawerHeader>
+        <DrawerTitle>{product.title}</DrawerTitle>
+        <DrawerDescription>
           Sélectionnez la taille et la coupe avant l’ajout au panier.
-        </SheetDescription>
-      </SheetHeader>
+        </DrawerDescription>
+      </DrawerHeader>
       <div className="grid gap-4 px-4">
         <VariantSelector
           cutOptions={cutOptions}
@@ -526,7 +499,7 @@ function ProductAddDrawerContent({
           <QuantityControl min={1} onChange={setQuantity} quantity={quantity} />
         </div>
       </div>
-      <SheetFooter className="sticky bottom-0 bg-popover pt-4">
+      <DrawerFooter className="sticky bottom-0 bg-popover pt-4">
         <Button
           className="relative"
           disabled={!selectedVariant}
@@ -540,7 +513,7 @@ function ProductAddDrawerContent({
           Ajouter au panier
           {addedKey > 0 ? <CartAddedPulse key={addedKey} /> : null}
         </Button>
-      </SheetFooter>
+      </DrawerFooter>
     </>
   );
 }
