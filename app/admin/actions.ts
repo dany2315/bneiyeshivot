@@ -46,6 +46,15 @@ function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function storeReservationItemLabel(item: {
+  productTitle: string;
+  variantLabel: string | null;
+}) {
+  return item.variantLabel
+    ? `${item.productTitle} (${item.variantLabel})`
+    : item.productTitle;
+}
+
 const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
   SUBMITTED: "Nouvelle",
   CONFIRMED: "Confirmee",
@@ -113,6 +122,50 @@ function readGalleryKeys(formData: FormData) {
     .getAll("galleryKeys")
     .map((value) => String(value).trim())
     .filter(Boolean);
+}
+
+function readStoreProductVariants(formData: FormData) {
+  const ids = formData.getAll("variantId").map((value) => String(value).trim());
+  const sizes = formData.getAll("variantSize").map((value) => String(value).trim());
+  const cuts = formData.getAll("variantCut").map((value) => String(value).trim());
+  const stocks = formData
+    .getAll("variantStockQuantity")
+    .map((value) => String(value).trim());
+  const activeIndexes = new Set(
+    formData
+      .getAll("variantActiveIndex")
+      .map((value) => Number(String(value)))
+      .filter(Number.isFinite),
+  );
+
+  return sizes
+    .map((size, index) => {
+      if (!size) return null;
+      const stock = stocks[index] ? Number(stocks[index]) : null;
+
+      return {
+        id: ids[index] || null,
+        size,
+        cut: cuts[index] || null,
+        stockQuantity: stock == null || !Number.isFinite(stock) ? null : stock,
+        active: activeIndexes.has(index),
+      };
+    })
+    .filter((variant): variant is NonNullable<typeof variant> => Boolean(variant));
+}
+
+function validateStoreProductVariants(
+  variants: ReturnType<typeof readStoreProductVariants>,
+) {
+  const keys = new Set<string>();
+
+  for (const variant of variants) {
+    const key = `${variant.size.toLowerCase()}::${(variant.cut ?? "").toLowerCase()}`;
+    if (keys.has(key)) {
+      throw new Error("Chaque variation taille/coupe doit être unique.");
+    }
+    keys.add(key);
+  }
 }
 
 function readHomeGalleryItems(formData: FormData) {
@@ -984,6 +1037,8 @@ export async function createStoreProduct(formData: FormData) {
   const description = readString(formData, "description");
   const priceCents = readStorePrice(formData.get("price"));
   const imageUrls = formData.getAll("imageUrls").map(String).filter(Boolean);
+  const variants = readStoreProductVariants(formData);
+  validateStoreProductVariants(variants);
 
   if (!title || !description || !priceCents) {
     throw new Error("Titre, description et prix obligatoires.");
@@ -997,7 +1052,7 @@ export async function createStoreProduct(formData: FormData) {
       description,
       details: readString(formData, "details") || null,
       priceCents,
-      currency: readString(formData, "currency").toUpperCase() || "EUR",
+      currency: "ILS",
       imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
       imageUrls,
       stockQuantity: readString(formData, "stockQuantity")
@@ -1005,6 +1060,14 @@ export async function createStoreProduct(formData: FormData) {
         : null,
       active: formData.get("active") === "on",
       featured: formData.get("featured") === "on",
+      variants: {
+        create: variants.map((variant) => ({
+          size: variant.size,
+          cut: variant.cut,
+          stockQuantity: variant.stockQuantity,
+          active: variant.active,
+        })),
+      },
     },
   });
 
@@ -1029,27 +1092,75 @@ export async function updateStoreProduct(formData: FormData) {
   const description = readString(formData, "description");
   const priceCents = readStorePrice(formData.get("price"));
   const imageUrls = formData.getAll("imageUrls").map(String).filter(Boolean);
+  const variants = readStoreProductVariants(formData);
+  validateStoreProductVariants(variants);
 
   if (!productId || !title || !description || !priceCents) {
     throw new Error("Produit invalide.");
   }
 
-  await prisma.storeProduct.update({
-    where: { id: productId },
-    data: {
-      title,
-      description,
-      details: readString(formData, "details") || null,
-      priceCents,
-      currency: readString(formData, "currency").toUpperCase() || "EUR",
-      imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
-      imageUrls,
-      stockQuantity: readString(formData, "stockQuantity")
-        ? Number(readString(formData, "stockQuantity"))
-        : null,
-      active: formData.get("active") === "on",
-      featured: formData.get("featured") === "on",
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.storeProduct.update({
+      where: { id: productId },
+      data: {
+        title,
+        description,
+        details: readString(formData, "details") || null,
+        priceCents,
+        currency: "ILS",
+        imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
+        imageUrls,
+        stockQuantity: readString(formData, "stockQuantity")
+          ? Number(readString(formData, "stockQuantity"))
+          : null,
+        active: formData.get("active") === "on",
+        featured: formData.get("featured") === "on",
+      },
+    });
+
+    const keptVariantIds = variants
+      .map((variant) => variant.id)
+      .filter((id): id is string => Boolean(id));
+
+    await tx.storeProductVariant.deleteMany({
+      where: {
+        productId,
+        id: { notIn: keptVariantIds.length > 0 ? keptVariantIds : [""] },
+        reservationItems: { none: {} },
+      },
+    });
+
+    await tx.storeProductVariant.updateMany({
+      where: {
+        productId,
+        id: { notIn: keptVariantIds.length > 0 ? keptVariantIds : [""] },
+      },
+      data: { active: false },
+    });
+
+    for (const variant of variants) {
+      if (variant.id) {
+        await tx.storeProductVariant.update({
+          where: { id: variant.id },
+          data: {
+            size: variant.size,
+            cut: variant.cut,
+            stockQuantity: variant.stockQuantity,
+            active: variant.active,
+          },
+        });
+      } else {
+        await tx.storeProductVariant.create({
+          data: {
+            productId,
+            size: variant.size,
+            cut: variant.cut,
+            stockQuantity: variant.stockQuantity,
+            active: variant.active,
+          },
+        });
+      }
+    }
   });
 
   await prisma.auditLog.create({
@@ -1162,7 +1273,7 @@ export async function updateStoreReservation(formData: FormData) {
     }).format(reservation.totalCents / 100);
     const items = reservation.items.map(
       (item) =>
-        `${item.quantity} x ${item.productTitle} - ${new Intl.NumberFormat(
+        `${item.quantity} x ${storeReservationItemLabel(item)} - ${new Intl.NumberFormat(
           "fr-FR",
           {
             style: "currency",

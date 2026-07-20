@@ -2,11 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { PageShell } from "@/app/components";
-import { createStoreReservation } from "@/app/boutique/actions";
-import {
-  StoreProductReservationQuantity,
-  StoreReservationCustomerFields,
-} from "@/components/storefront-client";
+import { StoreProductReservationPanel } from "@/components/storefront-client";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { ensureDefaultStorefront, formatStorePrice } from "@/lib/store";
@@ -52,6 +47,12 @@ export default async function StoreProductPage({
   ]);
   const product = await prisma.storeProduct.findUnique({
     where: { slug },
+    include: {
+      variants: {
+        where: { active: true },
+        orderBy: [{ size: "asc" }, { cut: "asc" }],
+      },
+    },
   });
 
   if (!product || !product.active || product.storefrontId !== storefront.id) {
@@ -97,6 +98,17 @@ export default async function StoreProductPage({
                   <p className="text-lg leading-8 text-[var(--muted)]">
                     {product.description}
                   </p>
+                  {product.variants.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from(new Set(product.variants.map((variant) => variant.size))).map(
+                        (size) => (
+                          <Badge key={size} variant="outline">
+                            {size}
+                          </Badge>
+                        ),
+                      )}
+                    </div>
+                  ) : null}
                   {product.details ? (
                     <div className="rounded-xl border border-[var(--border)] bg-white p-5">
                       <h2 className="text-lg font-bold text-[var(--primary)]">
@@ -116,7 +128,7 @@ export default async function StoreProductPage({
                 <CardHeader>
                   <CardTitle>Réserver ce produit</CardTitle>
                   <CardDescription>
-                    Aucun paiement en ligne. L’équipe confirme ensuite.
+                    Choisissez la variation, puis envoyez la réservation.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -130,35 +142,38 @@ export default async function StoreProductPage({
                       </AlertDescription>
                     </Alert>
                   ) : null}
-                  <form action={createStoreReservation} className="grid gap-4">
-                    <StoreProductReservationQuantity
-                      disabled={!storefront.active}
-                      name={`quantity-${product.id}`}
-                    />
-                    <StoreReservationCustomerFields
-                      disabled={!storefront.active}
-                      initialUser={
-                        user
-                          ? {
-                              email: user.email,
-                              firstName: user.firstName,
-                              lastName: user.lastName,
-                              phone: user.phone,
-                              yeshiva: user.yeshiva,
-                            }
-                          : null
-                      }
-                    />
-                    <Textarea
-                      name="note"
-                      placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
-                      disabled={!storefront.active}
-                    />
-                    <Button disabled={!storefront.active}>
-                      <ShoppingBag className="size-4" />
-                      {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
-                    </Button>
-                  </form>
+                  <StoreProductReservationPanel
+                    disabled={!storefront.active}
+                    initialUser={
+                      user
+                        ? {
+                            email: user.email,
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            phone: user.phone,
+                            yeshiva: user.yeshiva,
+                          }
+                        : null
+                    }
+                    product={{
+                      id: product.id,
+                      title: product.title,
+                      slug: product.slug,
+                      description: product.description,
+                      priceCents: product.priceCents,
+                      currency: product.currency,
+                      imageUrl: product.imageUrl,
+                      imageUrls: product.imageUrls,
+                      stockQuantity: product.stockQuantity,
+                      featured: product.featured,
+                      variants: product.variants.map((variant) => ({
+                        id: variant.id,
+                        size: variant.size,
+                        cut: variant.cut,
+                        stockQuantity: variant.stockQuantity,
+                      })),
+                    }}
+                  />
                 </CardContent>
               </Card>
             </aside>

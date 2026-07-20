@@ -173,17 +173,34 @@ model StoreProduct {
   description    String
   details        String?
   priceCents     Int
-  currency       String                 @default("EUR")
+  currency       String                 @default("ILS")
   imageUrl       String?
   imageUrls      String[]               @default([])
   stockQuantity  Int?
   active         Boolean                @default(true)
   featured       Boolean                @default(false)
+  variants       StoreProductVariant[]
   reservationItems StoreReservationItem[]
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
 
   @@index([storefrontId, active])
+}
+
+model StoreProductVariant {
+  id              String                 @id @default(cuid())
+  productId       String
+  product         StoreProduct           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size            String
+  cut             String?
+  stockQuantity   Int?
+  active          Boolean                @default(true)
+  reservationItems StoreReservationItem[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([productId, active])
+  @@unique([productId, size, cut])
 }
 
 model StoreReservation {
@@ -204,7 +221,7 @@ model StoreReservation {
   note          String?
   adminNote     String?
   totalCents    Int
-  currency      String                 @default("EUR")
+  currency      String                 @default("ILS")
   items         StoreReservationItem[]
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
@@ -219,9 +236,14 @@ model StoreReservationItem {
   reservation   StoreReservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   productId     String
   product       StoreProduct     @relation(fields: [productId], references: [id])
+  productVariantId String?
+  productVariant StoreProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+  variantLabel  String?
   quantity      Int
   unitCents     Int
   productTitle  String
+
+  @@index([productVariantId])
 }
 
 model Session {

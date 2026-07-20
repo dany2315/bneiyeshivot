@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Minus, Plus, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { createStoreReservation } from "@/app/boutique/actions";
 import { PhoneInputGroup } from "@/components/phone-input-group";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
@@ -17,6 +17,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import {
   Sheet,
   SheetContent,
@@ -34,6 +38,13 @@ type StorefrontView = {
   pickupDetails: string | null;
 };
 
+type ProductVariantView = {
+  id: string;
+  size: string;
+  cut: string | null;
+  stockQuantity: number | null;
+};
+
 type ProductView = {
   id: string;
   title: string;
@@ -45,6 +56,14 @@ type ProductView = {
   imageUrls: string[];
   stockQuantity: number | null;
   featured: boolean;
+  variants: ProductVariantView[];
+};
+
+type CartLine = {
+  key: string;
+  productId: string;
+  variantId: string | null;
+  quantity: number;
 };
 
 export type StoreInitialUser = {
@@ -55,11 +74,36 @@ export type StoreInitialUser = {
   yeshiva?: string | null;
 };
 
-function formatPrice(cents: number, currency = "EUR") {
+function formatPrice(cents: number, currency = "ILS") {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency,
   }).format(cents / 100);
+}
+
+function variantLabel(variant: ProductVariantView | null) {
+  if (!variant) return "";
+  return [variant.size, variant.cut].filter(Boolean).join(" / ");
+}
+
+function sizesFor(product: ProductView) {
+  return Array.from(new Set(product.variants.map((variant) => variant.size)));
+}
+
+function cutsFor(product: ProductView, size: string) {
+  return product.variants.filter((variant) => variant.size === size);
+}
+
+function findDefaultVariant(product: ProductView) {
+  return product.variants[0] ?? null;
+}
+
+function findVariant(product: ProductView, size: string, variantId: string) {
+  return (
+    product.variants.find((variant) => variant.id === variantId) ??
+    cutsFor(product, size)[0] ??
+    findDefaultVariant(product)
+  );
 }
 
 export function StorefrontClient({
@@ -73,26 +117,48 @@ export function StorefrontClient({
   reservationOk: boolean;
   storefront: StorefrontView;
 }) {
-  const [quantities, setQuantities] = useProductQuantities(products);
-  const cartItems = products
-    .map((product) => ({
-      product,
-      quantity: quantities[product.id] ?? 0,
-    }))
-    .filter((item) => item.quantity > 0);
-  const totalCents = cartItems.reduce(
-    (total, item) => total + item.product.priceCents * item.quantity,
-    0,
-  );
-  const currency = cartItems[0]?.product.currency ?? "EUR";
+  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const totalCents = cartLines.reduce((total, line) => {
+    const product = products.find((item) => item.id === line.productId);
+    return total + (product?.priceCents ?? 0) * line.quantity;
+  }, 0);
+  const currency =
+    products.find((product) => product.id === cartLines[0]?.productId)?.currency ??
+    "ILS";
 
-  function setQuantity(productId: string, quantity: number) {
-    const product = products.find((item) => item.id === productId);
-    const max = Math.min(50, product?.stockQuantity ?? 50);
-    setQuantities((current) => ({
-      ...current,
-      [productId]: Math.max(0, Math.min(max, quantity)),
-    }));
+  function addToCart(product: ProductView, variantId: string | null) {
+    const key = `${product.id}:${variantId ?? "base"}`;
+    const variant = variantId
+      ? product.variants.find((item) => item.id === variantId) ?? null
+      : null;
+    const max = Math.min(50, variant?.stockQuantity ?? product.stockQuantity ?? 50);
+
+    setCartLines((current) => {
+      const existing = current.find((line) => line.key === key);
+      if (existing) {
+        return current.map((line) =>
+          line.key === key
+            ? { ...line, quantity: Math.min(max, line.quantity + 1) }
+            : line,
+        );
+      }
+
+      return [...current, { key, productId: product.id, variantId, quantity: 1 }];
+    });
+  }
+
+  function updateCartLine(key: string, quantity: number) {
+    setCartLines((current) =>
+      current
+        .map((line) =>
+          line.key === key ? { ...line, quantity: Math.max(1, quantity) } : line,
+        )
+        .filter((line) => line.quantity > 0),
+    );
+  }
+
+  function removeCartLine(key: string) {
+    setCartLines((current) => current.filter((line) => line.key !== key));
   }
 
   return (
@@ -108,13 +174,14 @@ export function StorefrontClient({
             </small>
           </div>
           <CartSheet
-            cartItems={cartItems}
+            cartLines={cartLines}
             currency={currency}
+            initialUser={initialUser}
+            onRemoveLine={removeCartLine}
+            onUpdateLine={updateCartLine}
             products={products}
-            quantities={quantities}
             storefront={storefront}
             totalCents={totalCents}
-            initialUser={initialUser}
           />
         </div>
       </div>
@@ -125,8 +192,8 @@ export function StorefrontClient({
             <CheckCircle2 className="size-4" />
             <AlertTitle>Réservation envoyée</AlertTitle>
             <AlertDescription>
-              Nous avons bien reçu votre réservation. L’équipe vous
-              recontactera pour confirmer la disponibilité.
+              Nous avons bien reçu votre réservation. L’équipe vous recontactera
+              pour confirmer la disponibilité.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -136,8 +203,8 @@ export function StorefrontClient({
             <ShoppingBag className="size-4" />
             <AlertTitle>Boutique fermée</AlertTitle>
             <AlertDescription>
-              Les réservations sont momentanément fermées. Vous pouvez consulter les produits,
-              mais il n’est pas possible de réserver pour le moment.
+              Les réservations sont momentanément fermées. Vous pouvez consulter
+              les produits, mais il n’est pas possible de réserver pour le moment.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -155,33 +222,12 @@ export function StorefrontClient({
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-5">
             {products.map((product) => (
-              <Card className="overflow-hidden py-0" key={product.id}>
-                <StoreProductImageDialog
-                  imageUrl={product.imageUrl}
-                  imageUrls={product.imageUrls}
-                  title={product.title}
-                />
-                <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
-                  {product.featured ? (
-                    <Badge className="w-fit" variant="success">Recommandé</Badge>
-                  ) : null}
-                  <CardTitle className="text-base md:text-lg">
-                    <Link href={`/boutique/${product.slug}`}>
-                      {product.title}
-                    </Link>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2 px-3 pb-2 pt-0 md:flex-row md:items-center md:justify-between md:px-4 md:pb-3 md:pt-0">
-                  <strong className="text-base text-[var(--primary)] md:text-xl">
-                    {formatPrice(product.priceCents, product.currency)}
-                  </strong>
-                  <QuantityControl
-                    disabled={!storefront.active}
-                    onChange={(quantity) => setQuantity(product.id, quantity)}
-                    quantity={quantities[product.id] ?? 0}
-                  />
-                </CardContent>
-              </Card>
+              <ProductCard
+                disabled={!storefront.active}
+                key={product.id}
+                onAddToCart={addToCart}
+                product={product}
+              />
             ))}
           </div>
         ) : (
@@ -199,24 +245,173 @@ export function StorefrontClient({
   );
 }
 
+function ProductCard({
+  disabled,
+  onAddToCart,
+  product,
+}: {
+  disabled?: boolean;
+  onAddToCart: (product: ProductView, variantId: string | null) => void;
+  product: ProductView;
+}) {
+  const defaultVariant = findDefaultVariant(product);
+  const [size, setSize] = useState(defaultVariant?.size ?? "");
+  const [variantId, setVariantId] = useState(defaultVariant?.id ?? "");
+  const selectedVariant = findVariant(product, size, variantId);
+  const productSizes = sizesFor(product);
+  const cutOptions = size ? cutsFor(product, size) : [];
+  const hasVariants = product.variants.length > 0;
+
+  function selectSize(nextSize: string) {
+    const nextVariant = cutsFor(product, nextSize)[0] ?? null;
+    setSize(nextSize);
+    setVariantId(nextVariant?.id ?? "");
+  }
+
+  return (
+    <Card className="overflow-hidden py-0">
+      <StoreProductImageDialog
+        imageUrl={product.imageUrl}
+        imageUrls={product.imageUrls}
+        title={product.title}
+      />
+      <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
+        {product.featured ? (
+          <Badge className="w-fit" variant="success">
+            Recommandé
+          </Badge>
+        ) : null}
+        <CardTitle className="text-base md:text-lg">
+          <Link className="hover:text-[var(--accent)]" href={`/boutique/${product.slug}`}>
+            {product.title}
+          </Link>
+        </CardTitle>
+        {productSizes.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {productSizes.slice(0, 5).map((item) => (
+              <button
+                className="rounded-md border border-[var(--border)] px-2 py-1 text-xs font-bold text-[var(--primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                key={item}
+                onClick={() => selectSize(item)}
+                type="button"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </CardHeader>
+      <CardContent className="grid gap-3 px-3 pb-3 pt-0 md:px-4">
+        <strong className="text-base text-[var(--primary)] md:text-xl">
+          {formatPrice(product.priceCents, product.currency)}
+        </strong>
+        {hasVariants ? (
+          <VariantSelector
+            cutOptions={cutOptions}
+            onSizeChange={selectSize}
+            onVariantChange={setVariantId}
+            productSizes={productSizes}
+            size={size}
+            variantId={selectedVariant?.id ?? ""}
+          />
+        ) : null}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <Button asChild size="sm" variant="secondary">
+            <Link href={`/boutique/${product.slug}`}>Voir le détail</Link>
+          </Button>
+          <Button
+            disabled={disabled || (hasVariants && !selectedVariant)}
+            onClick={() => onAddToCart(product, selectedVariant?.id ?? null)}
+            size="sm"
+            type="button"
+          >
+            <ShoppingBag className="size-4" />
+            Ajouter
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function VariantSelector({
+  cutOptions,
+  onSizeChange,
+  onVariantChange,
+  productSizes,
+  size,
+  variantId,
+}: {
+  cutOptions: ProductVariantView[];
+  onSizeChange: (size: string) => void;
+  onVariantChange: (variantId: string) => void;
+  productSizes: string[];
+  size: string;
+  variantId: string;
+}) {
+  const hasCuts = cutOptions.some((variant) => Boolean(variant.cut));
+
+  return (
+    <div className="grid gap-2">
+      <label className="grid gap-1 text-xs font-bold text-[var(--primary)]">
+        Taille
+        <NativeSelect value={size} onChange={(event) => onSizeChange(event.target.value)}>
+          {productSizes.map((item) => (
+            <NativeSelectOption key={item} value={item}>
+              {item}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </label>
+      {hasCuts ? (
+        <label className="grid gap-1 text-xs font-bold text-[var(--primary)]">
+          Coupe
+          <NativeSelect
+            value={variantId}
+            onChange={(event) => onVariantChange(event.target.value)}
+          >
+            {cutOptions.map((variant) => (
+              <NativeSelectOption key={variant.id} value={variant.id}>
+                {variant.cut ?? "Standard"}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </label>
+      ) : null}
+    </div>
+  );
+}
+
 function CartSheet({
-  cartItems,
+  cartLines,
   currency,
   initialUser,
+  onRemoveLine,
+  onUpdateLine,
   products,
-  quantities,
   storefront,
   totalCents,
 }: {
-  cartItems: Array<{ product: ProductView; quantity: number }>;
+  cartLines: CartLine[];
   currency: string;
   initialUser?: StoreInitialUser | null;
+  onRemoveLine: (key: string) => void;
+  onUpdateLine: (key: string, quantity: number) => void;
   products: ProductView[];
-  quantities: Record<string, number>;
   storefront: StorefrontView;
   totalCents: number;
 }) {
-  const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
+  const cartItems = cartLines
+    .map((line) => {
+      const product = products.find((item) => item.id === line.productId);
+      const variant = line.variantId
+        ? product?.variants.find((item) => item.id === line.variantId) ?? null
+        : null;
+
+      return product ? { line, product, variant } : null;
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   return (
     <Sheet>
@@ -233,36 +428,58 @@ function CartSheet({
           </SheetDescription>
         </SheetHeader>
         <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pb-4">
-          {products.map((product) => (
-            <input
-              key={product.id}
-              name={`quantity-${product.id}`}
-              type="hidden"
-              value={quantities[product.id] ?? 0}
-            />
+          {cartItems.map(({ line }) => (
+            <div key={`hidden-${line.key}`}>
+              <input name="cartProductId" type="hidden" value={line.productId} />
+              <input name="cartVariantId" type="hidden" value={line.variantId ?? ""} />
+              <input name="cartQuantity" type="hidden" value={line.quantity} />
+            </div>
           ))}
 
           <div className="grid gap-2">
             {cartItems.length > 0 ? (
-              cartItems.map(({ product, quantity }) => (
+              cartItems.map(({ line, product, variant }) => (
                 <div
-                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 rounded-lg border border-[var(--border)] p-3"
-                  key={product.id}
+                  className="grid min-w-0 gap-3 rounded-lg border border-[var(--border)] p-3"
+                  key={line.key}
                 >
-                  <span className="min-w-0">
-                    <strong className="block truncate">{product.title}</strong>
-                    <small className="text-[var(--muted)]">
-                      {quantity} x {formatPrice(product.priceCents, product.currency)}
-                    </small>
-                  </span>
-                  <strong className="whitespace-nowrap text-[var(--primary)]">
-                    {formatPrice(product.priceCents * quantity, product.currency)}
-                  </strong>
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
+                    <span className="min-w-0">
+                      <strong className="block truncate">{product.title}</strong>
+                      {variant ? (
+                        <small className="block text-[var(--muted)]">
+                          {variantLabel(variant)}
+                        </small>
+                      ) : null}
+                      <small className="text-[var(--muted)]">
+                        {formatPrice(product.priceCents, product.currency)}
+                      </small>
+                    </span>
+                    <strong className="whitespace-nowrap text-[var(--primary)]">
+                      {formatPrice(product.priceCents * line.quantity, product.currency)}
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <QuantityControl
+                      min={1}
+                      onChange={(quantity) => onUpdateLine(line.key, quantity)}
+                      quantity={line.quantity}
+                    />
+                    <Button
+                      aria-label="Retirer du panier"
+                      onClick={() => onRemoveLine(line.key)}
+                      size="icon-sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
                 </div>
               ))
             ) : (
               <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                Ajoutez des produits depuis la liste.
+                Choisissez une variation puis cliquez sur Ajouter.
               </p>
             )}
           </div>
@@ -352,30 +569,65 @@ export function StoreReservationCustomerFields({
   );
 }
 
-function useProductQuantities(products: ProductView[]) {
-  const initial = Object.fromEntries(products.map((product) => [product.id, 0]));
-  return useState<Record<string, number>>(initial);
-}
-
-export function StoreProductReservationQuantity({
+export function StoreProductReservationPanel({
   disabled,
-  name,
+  initialUser,
+  product,
 }: {
   disabled?: boolean;
-  name: string;
+  initialUser?: StoreInitialUser | null;
+  product: ProductView;
 }) {
+  const defaultVariant = findDefaultVariant(product);
+  const [size, setSize] = useState(defaultVariant?.size ?? "");
+  const [variantId, setVariantId] = useState(defaultVariant?.id ?? "");
   const [quantity, setQuantity] = useState(1);
+  const productSizes = useMemo(() => sizesFor(product), [product]);
+  const cutOptions = size ? cutsFor(product, size) : [];
+  const selectedVariant = findVariant(product, size, variantId);
+  const hasVariants = product.variants.length > 0;
+
+  function selectSize(nextSize: string) {
+    const nextVariant = cutsFor(product, nextSize)[0] ?? null;
+    setSize(nextSize);
+    setVariantId(nextVariant?.id ?? "");
+  }
 
   return (
-    <>
-      <input name={name} type="hidden" value={quantity} />
-      <QuantityControl
+    <form action={createStoreReservation} className="grid gap-4">
+      <input name="cartProductId" type="hidden" value={product.id} />
+      <input name="cartVariantId" type="hidden" value={selectedVariant?.id ?? ""} />
+      <input name="cartQuantity" type="hidden" value={quantity} />
+      {hasVariants ? (
+        <VariantSelector
+          cutOptions={cutOptions}
+          onSizeChange={selectSize}
+          onVariantChange={setVariantId}
+          productSizes={productSizes}
+          size={size}
+          variantId={selectedVariant?.id ?? ""}
+        />
+      ) : null}
+      <div className="grid gap-2">
+        <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
+        <QuantityControl
+          disabled={disabled}
+          min={1}
+          onChange={setQuantity}
+          quantity={quantity}
+        />
+      </div>
+      <StoreReservationCustomerFields disabled={disabled} initialUser={initialUser} />
+      <Textarea
+        name="note"
+        placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
         disabled={disabled}
-        min={1}
-        onChange={setQuantity}
-        quantity={quantity}
       />
-    </>
+      <Button disabled={disabled || (hasVariants && !selectedVariant)}>
+        <ShoppingBag className="size-4" />
+        {disabled ? "Réservations fermées" : "Envoyer la réservation"}
+      </Button>
+    </form>
   );
 }
 
@@ -404,7 +656,7 @@ function QuantityControl({
   }
 
   return (
-    <div className="relative grid grid-cols-[2.35rem_3.25rem_2.35rem] items-center rounded-lg border border-[var(--border)] bg-white p-1 shadow-sm sm:grid-cols-[2rem_3rem_2rem]">
+    <div className="relative grid w-fit grid-cols-[2.35rem_3.25rem_2.35rem] items-center rounded-lg border border-[var(--border)] bg-white p-1 shadow-sm sm:grid-cols-[2rem_3rem_2rem]">
       {animationKey > 0 ? (
         <span
           className="pointer-events-none absolute right-2 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-[var(--accent)] text-white shadow-lg animate-[cart-fly_700ms_ease-out_forwards]"

@@ -97,6 +97,13 @@ type ProductView = {
   stockQuantity: number | null;
   active: boolean;
   featured: boolean;
+  variants: Array<{
+    id: string;
+    size: string;
+    cut: string | null;
+    stockQuantity: number | null;
+    active: boolean;
+  }>;
 };
 
 type ReservationView = {
@@ -118,6 +125,7 @@ type ReservationView = {
   items: Array<{
     id: string;
     productId: string;
+    variantLabel: string | null;
     quantity: number;
     unitCents: number;
     productTitle: string;
@@ -126,7 +134,9 @@ type ReservationView = {
 
 type SupplyView = {
   productId: string;
+  productVariantId: string | null;
   title: string;
+  variantLabel: string | null;
   orderedQuantity: number;
   stockQuantity: number | null;
   missingQuantity: number | null;
@@ -415,8 +425,19 @@ function ProductsTab({ products }: { products: ProductView[] }) {
                   ) : null}
                   {product.featured ? (
                     <Badge className="mt-2" variant="success">
-                      Recommande
+                      Recommandé
                     </Badge>
+                  ) : null}
+                  {product.variants.length > 0 ? (
+                    <span className="mt-2 flex flex-wrap gap-1">
+                      {Array.from(new Set(product.variants.map((variant) => variant.size)))
+                        .slice(0, 6)
+                        .map((size) => (
+                          <Badge key={size} variant="outline">
+                            {size}
+                          </Badge>
+                        ))}
+                    </span>
                   ) : null}
                 </TableCell>
                 <TableCell>{formatPrice(product.priceCents, product.currency)}</TableCell>
@@ -464,7 +485,17 @@ function ProductDialog({
   const [description, setDescription] = useState(product?.description ?? "");
   const [details, setDetails] = useState(product?.details ?? "");
   const [price, setPrice] = useState(product ? moneyInput(product.priceCents) : "");
-  const [currency, setCurrency] = useState(product?.currency ?? "EUR");
+  const currency = "ILS";
+  const [variants, setVariants] = useState<ProductVariantFormItem[]>(
+    product?.variants.map((variant) => ({
+      localId: variant.id,
+      id: variant.id,
+      size: variant.size,
+      cut: variant.cut ?? "",
+      stockQuantity: variant.stockQuantity == null ? "" : String(variant.stockQuantity),
+      active: variant.active,
+    })) ?? [],
+  );
   const initialImages =
     product?.imageUrls && product.imageUrls.length > 0
       ? product.imageUrls
@@ -484,7 +515,7 @@ function ProductDialog({
   const parsedPrice = Number(price.replace(",", "."));
   const previewPrice = formatPrice(
     Number.isFinite(parsedPrice) ? Math.round(parsedPrice * 100) : 0,
-    currency || "EUR",
+    currency,
   );
 
   return (
@@ -549,23 +580,20 @@ function ProductDialog({
               <Textarea
                 name="details"
                 onChange={(event) => setDetails(event.target.value)}
-                placeholder="Details, contenu du pack, dimensions..."
+                placeholder="Détails, contenu du pack, dimensions..."
                 value={details}
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   name="price"
                   onChange={(event) => setPrice(event.target.value)}
-                  placeholder="Prix"
+                  placeholder="Prix en shekels"
                   required
                   value={price}
                 />
-                <Input
-                  name="currency"
-                  onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-                  value={currency}
-                />
+                <Input readOnly value="ILS" />
               </div>
+              <input name="currency" type="hidden" value="ILS" />
               <Input
                 name="stockQuantity"
                 placeholder="Stock optionnel"
@@ -588,10 +616,14 @@ function ProductDialog({
                   Produit recommandé
                 </label>
               </div>
+              <ProductVariantsField
+                onVariantsChange={setVariants}
+                variants={variants}
+              />
             </div>
 
             <ProductPreviewPanel
-              currency={currency || "EUR"}
+              currency={currency}
               description={description}
               details={details}
               featured={featured}
@@ -609,6 +641,137 @@ function ProductDialog({
         </InteractiveForm>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type ProductVariantFormItem = {
+  localId: string;
+  id?: string;
+  size: string;
+  cut: string;
+  stockQuantity: string;
+  active: boolean;
+};
+
+function ProductVariantsField({
+  onVariantsChange,
+  variants,
+}: {
+  onVariantsChange: Dispatch<SetStateAction<ProductVariantFormItem[]>>;
+  variants: ProductVariantFormItem[];
+}) {
+  function addVariant() {
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `new-${Date.now()}`,
+        size: "",
+        cut: "",
+        stockQuantity: "",
+        active: true,
+      },
+    ]);
+  }
+
+  function updateVariant(
+    localId: string,
+    next: Partial<ProductVariantFormItem>,
+  ) {
+    onVariantsChange((current) =>
+      current.map((variant) =>
+        variant.localId === localId ? { ...variant, ...next } : variant,
+      ),
+    );
+  }
+
+  function removeVariant(localId: string) {
+    onVariantsChange((current) =>
+      current.filter((variant) => variant.localId !== localId),
+    );
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <strong className="text-sm text-[var(--primary)]">Variations</strong>
+          <p className="text-xs text-[var(--muted)]">
+            Ajoutez des tailles, puis une coupe si nécessaire.
+          </p>
+        </div>
+        <Button onClick={addVariant} size="sm" type="button" variant="secondary">
+          Ajouter
+        </Button>
+      </div>
+      {variants.length > 0 ? (
+        <div className="grid gap-2">
+          {variants.map((variant, index) => (
+            <div
+              className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_1fr_120px_auto_auto]"
+              key={variant.localId}
+            >
+              <input name="variantId" type="hidden" value={variant.id ?? ""} />
+              <Input
+                name="variantSize"
+                onChange={(event) =>
+                  updateVariant(variant.localId, { size: event.target.value })
+                }
+                placeholder="Taille"
+                value={variant.size}
+              />
+              <Input
+                name="variantCut"
+                onChange={(event) =>
+                  updateVariant(variant.localId, { cut: event.target.value })
+                }
+                placeholder="Coupe"
+                value={variant.cut}
+              />
+              <Input
+                min="0"
+                name="variantStockQuantity"
+                onChange={(event) =>
+                  updateVariant(variant.localId, {
+                    stockQuantity: event.target.value,
+                  })
+                }
+                placeholder="Stock"
+                type="number"
+                value={variant.stockQuantity}
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  checked={variant.active}
+                  onChange={(event) =>
+                    updateVariant(variant.localId, {
+                      active: event.target.checked,
+                    })
+                  }
+                  type="checkbox"
+                />
+                Visible
+              </label>
+              {variant.active ? (
+                <input name="variantActiveIndex" type="hidden" value={index} />
+              ) : null}
+              <Button
+                aria-label="Supprimer la variation"
+                onClick={() => removeVariant(variant.localId)}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+          Aucune variation : le produit sera réservé sans taille ni coupe.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -783,7 +946,7 @@ function ProductImagesField({
                   {image.status === "uploading"
                     ? "Upload..."
                     : image.status === "error"
-                      ? "Echec"
+                      ? "Échec"
                       : index === 0
                         ? "Image principale"
                         : "Glisser pour ordonner"}
@@ -853,11 +1016,11 @@ function ProductPreviewPanel({
   return (
     <div className="grid h-fit gap-4 rounded-xl bg-[var(--subtle)] p-4">
       <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
-        Preview
+        Aperçu
       </span>
       <div>
         <p className="mb-2 text-sm font-semibold text-[var(--muted)]">
-          Card boutique
+          Carte boutique
         </p>
         <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-[0_20px_60px_rgba(6,40,70,0.08)]">
           <div className="flex aspect-[16/10] items-center justify-center overflow-hidden bg-[var(--primary-soft)]">
@@ -871,7 +1034,7 @@ function ProductPreviewPanel({
           <div className="grid gap-2 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                {featured ? <Badge variant="success">Recommande</Badge> : null}
+                {featured ? <Badge variant="success">Recommandé</Badge> : null}
                 <strong className="mt-2 block text-[var(--primary)]">
                   {title || "Nom du produit"}
                 </strong>
@@ -911,7 +1074,7 @@ function ProductPreviewPanel({
               {description || "Description courte du produit."}
             </p>
             <p className="text-sm leading-6 text-[var(--muted)]">
-              {details || "Details, contenu du pack, dimensions..."}
+              {details || "Détails, contenu du pack, dimensions..."}
             </p>
           </div>
         </div>
@@ -927,7 +1090,7 @@ function ProductActiveDialog({ product }: { product: ProductView }) {
     <AlertDialog>
       <AlertDialogTrigger render={<Button size="icon-sm" variant="ghost" />}>
         {nextActive ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-        <span className="sr-only">{nextActive ? "Activer" : "Desactiver"}</span>
+        <span className="sr-only">{nextActive ? "Activer" : "Désactiver"}</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <InteractiveForm
@@ -949,7 +1112,7 @@ function ProductActiveDialog({ product }: { product: ProductView }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <SubmitButton variant="secondary">
-              {nextActive ? "Activer" : "Desactiver"}
+              {nextActive ? "Activer" : "Désactiver"}
             </SubmitButton>
           </AlertDialogFooter>
         </InteractiveForm>
@@ -1034,6 +1197,7 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
                   {reservation.items.map((item) => (
                     <span className="block" key={item.id}>
                       {item.quantity} x {item.productTitle}
+                      {item.variantLabel ? ` (${item.variantLabel})` : ""}
                     </span>
                   ))}
                   {reservation.note ? (
@@ -1106,6 +1270,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
               {reservation.items.map((item) => (
                 <span key={item.id}>
                   {item.quantity} x {item.productTitle}
+                  {item.variantLabel ? ` (${item.variantLabel})` : ""}
                 </span>
               ))}
             </div>
@@ -1187,9 +1352,14 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
           </TableHeader>
           <TableBody>
             {supplyOverview.map((item) => (
-              <TableRow key={item.productId}>
+              <TableRow key={`${item.productId}-${item.productVariantId ?? "base"}`}>
                 <TableCell>
                   <strong>{item.title}</strong>
+                  {item.variantLabel ? (
+                    <small className="block text-[var(--muted)]">
+                      {item.variantLabel}
+                    </small>
+                  ) : null}
                 </TableCell>
                 <TableCell>{item.orderedQuantity}</TableCell>
                 <TableCell>
