@@ -201,7 +201,7 @@ export function StorefrontClient({
         </div>
       </div>
 
-      <div className="container grid gap-4 pt-24">
+      <div className="container grid gap-4 pt-20">
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
             <CheckCircle2 className="size-4" />
@@ -226,8 +226,7 @@ export function StorefrontClient({
 
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow">{storefront.name}</span>
-            <h2 className="mt-2 text-3xl font-semibold">Choisissez vos produits</h2>
+            <h2 className="text-3xl font-semibold">Choisissez vos produits</h2>
             <p className="mt-2 max-w-2xl text-base text-[var(--muted)]">
               {storefront.description}
             </p>
