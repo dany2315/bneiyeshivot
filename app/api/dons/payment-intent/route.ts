@@ -19,8 +19,8 @@ function readString(formData: FormData, key: string) {
 function normalizeCurrency(value: string) {
   const currency = value.toUpperCase();
 
-  if (currency !== "EUR") {
-    throw new Error("Seule la devise EUR est activee pour les dons en ligne.");
+  if (currency !== "EUR" && currency !== "ILS") {
+    throw new Error("Seules les devises EUR et ILS sont activees pour les dons en ligne.");
   }
 
   return currency;

@@ -72,6 +72,8 @@ const steps = [
   { title: "Paiement", icon: ShieldCheck },
 ];
 
+const nedarimPlusPaymentsEnabled = false;
+
 type DonationCurrency = (typeof donationCurrencyOptions)[number]["value"];
 
 type NedarimFields = Record<string, string>;
@@ -385,8 +387,9 @@ export function DonationCheckoutForm({
       : null;
   const donorName = [firstName, lastName].filter(Boolean).join(" ");
   const afterTaxAmount = effectiveAmount * 0.34;
-  const isNedarimPayment = currency === "ILS";
-  const receiptAvailable = currency === "EUR";
+  const isNedarimPayment =
+    nedarimPlusPaymentsEnabled && nedarimPlusEnabled && currency === "ILS";
+  const receiptAvailable = !isNedarimPayment;
   const activeStepHeading =
     activeStep === 0
       ? {
