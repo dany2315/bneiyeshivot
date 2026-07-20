@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const uploads = await Promise.all(
       body.files.map(async (file) => {
         if (file.size > maxFileSize) {
-          throw new Error(`Fichier trop lourd: ${file.fileName}`);
+          throw new Error(`Fichier trop lourd : ${file.fileName}`);
         }
 
         const mimeType = file.mimeType || "application/octet-stream";
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         message:
           error instanceof Error
             ? error.message
-            : "Impossible de preparer l'upload des documents.",
+            : "Impossible de préparer l’upload des documents.",
       },
       { status: 400 },
     );
@@ -75,7 +75,7 @@ export async function DELETE(request: Request) {
 
     if (!body.fileKey.startsWith(prefix)) {
       return NextResponse.json(
-        { ok: false, message: "Cle de fichier invalide." },
+        { ok: false, message: "Clé de fichier invalide." },
         { status: 400 },
       );
     }

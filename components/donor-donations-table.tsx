@@ -114,7 +114,7 @@ export function DonorDonationsTable({
           <div>
             <CardTitle>{title}</CardTitle>
             <CardDescription>
-              Filtrez par date de don et telechargez vos recus.
+              Filtrez par date de don et téléchargez vos reçus.
             </CardDescription>
           </div>
           <DonationReceiptsExportDialog action={exportAction} />
@@ -127,7 +127,7 @@ export function DonorDonationsTable({
           method="get"
         >
           <Input
-            aria-label="Date debut"
+            aria-label="Date début"
             defaultValue={from ?? ""}
             name="donFrom"
             type="date"
@@ -145,7 +145,7 @@ export function DonorDonationsTable({
 
         {donations.length === 0 ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-sm font-bold text-[var(--muted)]">
-            Aucun don trouve sur cette plage.
+            Aucun don trouvé sur cette plage.
           </div>
         ) : (
           <div className="table-wrap">
@@ -154,7 +154,7 @@ export function DonorDonationsTable({
                 <TableRow>
                   <TableHead>Date du don</TableHead>
                   <TableHead>Montant</TableHead>
-                  <TableHead>Frequence</TableHead>
+                  <TableHead>Fréquence</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -215,7 +215,7 @@ export function DonorDonationsTable({
                                 target="_blank"
                               >
                                 <ExternalLink className="size-4" />
-                                Recu
+                                Reçu
                               </a>
                             </Button>
                           ) : null}
@@ -229,7 +229,7 @@ export function DonorDonationsTable({
                           ) : donation.receiptNeeded ? (
                             <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] px-3 text-xs font-bold text-[var(--muted)]">
                               <ReceiptText className="size-4" />
-                              Cerfa en preparation
+                              Cerfa en préparation
                             </span>
                           ) : (
                             <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--border)] px-3 text-xs font-bold text-[var(--muted)]">
@@ -287,7 +287,7 @@ export function DonorDonationsTable({
                                             target="_blank"
                                           >
                                             <ExternalLink className="size-4" />
-                                            Recu
+                                            Reçu
                                           </a>
                                         </Button>
                                       ) : null}

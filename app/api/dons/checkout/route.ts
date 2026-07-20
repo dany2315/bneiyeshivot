@@ -14,7 +14,7 @@ function normalizeCurrency(value: string) {
   const currency = value.toUpperCase();
 
   if (currency !== "EUR") {
-    throw new Error("Seule la devise EUR est activee pour les dons en ligne.");
+    throw new Error("Seule la devise EUR est activée pour les dons en ligne.");
   }
 
   return currency;
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 
   if (!firstName || !lastName || !email || !phone) {
     return NextResponse.json(
-      { error: "Nom, prenom, email et telephone obligatoires." },
+      { error: "Nom, prénom, email et téléphone obligatoires." },
       { status: 400 },
     );
   }
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
 
   if (!session.url) {
     return NextResponse.json(
-      { error: "Session de paiement creee sans URL de paiement." },
+      { error: "Session de paiement créée sans URL de paiement." },
       { status: 500 },
     );
   }

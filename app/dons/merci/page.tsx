@@ -62,8 +62,8 @@ export default async function DonationThanksPage({
                 <CheckCircle2 className="size-10 text-[var(--success)]" />
                 <CardTitle>Merci pour votre soutien</CardTitle>
                 <CardDescription>
-                  Votre don est enregistre. La confirmation finale du paiement
-                  est synchronisee automatiquement.
+                  Votre don est enregistré. La confirmation finale du paiement
+                  est synchronisée automatiquement.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
@@ -73,29 +73,29 @@ export default async function DonationThanksPage({
                       {formatMoney(donation.amountCents, donation.currency)}
                     </strong>
                     <span className="text-sm text-[var(--muted)]">
-                      Statut: {paymentStatusLabels[donation.status]}
+                      Statut : {paymentStatusLabels[donation.status]}
                     </span>
                     {donation.receiptNeeded ? (
                       <span className="flex items-center gap-2 text-sm text-[var(--primary)]">
                         <ReceiptText className="size-4" />
-                        Recu Cerfa demande
+                        Reçu Cerfa demandé
                       </span>
                     ) : (
                       <span className="flex items-center gap-2 text-sm text-[var(--primary)]">
                         <ReceiptText className="size-4" />
-                        Recu fiscal non applicable pour ce paiement
+                        Reçu fiscal non applicable pour ce paiement
                       </span>
                     )}
                     {donation.payments[0]?.installmentNumber ? (
                       <span className="text-sm text-[var(--muted)]">
-                        Paiement: {donation.payments[0].installmentNumber} /{" "}
+                        Paiement : {donation.payments[0].installmentNumber} /{" "}
                         {donation.payments[0].installmentTotal ?? "sans limite"}
                       </span>
                     ) : null}
                     {paymentReceiptUrl ? (
                       <Button asChild variant="secondary" className="mt-2 w-fit">
                         <Link href={paymentReceiptUrl} target="_blank">
-                          Voir le recu de paiement
+                          Voir le reçu de paiement
                         </Link>
                       </Button>
                     ) : null}
@@ -103,7 +103,7 @@ export default async function DonationThanksPage({
                 )}
                 <div className="flex flex-wrap gap-3">
                   <Button asChild>
-                    <Link href="/">Retour a l&apos;accueil</Link>
+                    <Link href="/">Retour à l’accueil</Link>
                   </Button>
                   <Button asChild variant="secondary">
                     <Link href="/dons">Faire un autre don</Link>

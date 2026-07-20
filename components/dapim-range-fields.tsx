@@ -156,21 +156,21 @@ export function DapimRangeFields({
     }
 
     if (key === "to" && fromIndex >= 0 && valueIndex < fromIndex) {
-      return { disabled: true, reason: "avant le daf de debut" };
+      return { disabled: true, reason: "avant le daf de début" };
     }
 
     if (
       ((key === "from" && toIndex >= 0) || (key === "to" && fromIndex >= 0)) &&
       projectedAmudim > 16
     ) {
-      return { disabled: true, reason: "depasse 8 dapim" };
+      return { disabled: true, reason: "dépasse 8 dapim" };
     }
 
     if (
       ((key === "from" && toIndex >= 0) || (key === "to" && fromIndex >= 0)) &&
       projectedAmudim === 16
     ) {
-      return { disabled: false, reason: "arrive a 8 dapim" };
+      return { disabled: false, reason: "arrive à 8 dapim" };
     }
 
     return { disabled: false, reason: "" };
@@ -182,7 +182,7 @@ export function DapimRangeFields({
     const fromIndex = dafValueToIndex(range.from);
 
     if (availableAmudim <= 0) {
-      return "Les autres plages couvrent deja 8 dapim.";
+      return "Les autres plages couvrent déjà 8 dapim.";
     }
 
     if (fromIndex >= 0 && !range.to) {
@@ -192,7 +192,7 @@ export function DapimRangeFields({
       );
 
       if (maxOption) {
-        return `Pour arriver a 8 dapim, cette plage peut aller au maximum jusqu'a ${maxOption.label}.`;
+        return `Pour arriver à 8 dapim, cette plage peut aller au maximum jusqu’à ${maxOption.label}.`;
       }
     }
 
@@ -234,7 +234,7 @@ export function DapimRangeFields({
                   updateRange(index, "from", event.currentTarget.value)
                 }
               >
-                <NativeSelectOption value="">Selectionner</NativeSelectOption>
+                <NativeSelectOption value="">Sélectionner</NativeSelectOption>
                 {dafOptions.map((daf) => (
                   (() => {
                     const state = optionState({
@@ -271,7 +271,7 @@ export function DapimRangeFields({
                   updateRange(index, "to", event.currentTarget.value)
                 }
               >
-                <NativeSelectOption value="">Selectionner</NativeSelectOption>
+                <NativeSelectOption value="">Sélectionner</NativeSelectOption>
                 {dafOptions.map((daf) => (
                   (() => {
                     const state = optionState({
@@ -315,10 +315,10 @@ export function DapimRangeFields({
       </div>
       <FieldDescription>
         {isExact
-          ? "Vous avez selectionne exactement 8 dapim."
+          ? "Vous avez sélectionné exactement 8 dapim."
           : isOver
-            ? `Vous avez depasse de ${formatDapimCount(Math.abs(remainingAmudim))} dapim.`
-            : `Vous avez selectionne ${formatDapimCount(selectedAmudim)} dapim. Il reste ${formatDapimCount(remainingAmudim)} dapim pour arriver a 8.`}
+            ? `Vous avez dépassé de ${formatDapimCount(Math.abs(remainingAmudim))} dapim.`
+            : `Vous avez sélectionné ${formatDapimCount(selectedAmudim)} dapim. Il reste ${formatDapimCount(remainingAmudim)} dapim pour arriver à 8.`}
         {" "}Les options impossibles restent visibles mais non cliquables.
       </FieldDescription>
       <Button

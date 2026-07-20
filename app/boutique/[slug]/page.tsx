@@ -83,7 +83,7 @@ export default async function StoreProductPage({
                 <div className="grid content-start gap-4">
                   {product.featured ? (
                     <Badge className="w-fit" variant="success">
-                      Recommande
+                      Recommandé
                     </Badge>
                   ) : null}
                   <div>
@@ -100,7 +100,7 @@ export default async function StoreProductPage({
                   {product.details ? (
                     <div className="rounded-xl border border-[var(--border)] bg-white p-5">
                       <h2 className="text-lg font-bold text-[var(--primary)]">
-                        Details du produit
+                        Détails du produit
                       </h2>
                       <p className="mt-2 whitespace-pre-line text-base leading-7 text-[var(--muted)]">
                         {product.details}
@@ -114,19 +114,19 @@ export default async function StoreProductPage({
             <aside className="lg:sticky lg:top-6 lg:self-start">
               <Card>
                 <CardHeader>
-                  <CardTitle>Reserver ce produit</CardTitle>
+                  <CardTitle>Réserver ce produit</CardTitle>
                   <CardDescription>
-                    Aucun paiement en ligne. L&apos;equipe confirme ensuite.
+                    Aucun paiement en ligne. L’équipe confirme ensuite.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {!storefront.active ? (
                     <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-950">
                       <ShoppingBag className="size-4" />
-                      <AlertTitle>Boutique fermee</AlertTitle>
+                      <AlertTitle>Boutique fermée</AlertTitle>
                       <AlertDescription>
-                        Les reservations sont momentanement fermees. Il n&apos;est
-                        pas possible de reserver ce produit pour le moment.
+                        Les réservations sont momentanément fermées. Il n’est
+                        pas possible de réserver ce produit pour le moment.
                       </AlertDescription>
                     </Alert>
                   ) : null}
@@ -151,12 +151,12 @@ export default async function StoreProductPage({
                     />
                     <Textarea
                       name="note"
-                      placeholder="Note pour l'equipe : livraison, adresse, besoin particulier..."
+                      placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
                       disabled={!storefront.active}
                     />
                     <Button disabled={!storefront.active}>
                       <ShoppingBag className="size-4" />
-                      {storefront.active ? "Envoyer la reservation" : "Reservations fermees"}
+                      {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
                     </Button>
                   </form>
                 </CardContent>

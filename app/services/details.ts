@@ -19,106 +19,106 @@ export const serviceDetails: ServiceDetail[] = [
     eyebrow: "Assurance maladie",
     title: "Notre accompagnement assurance maladie",
     intro:
-      "Bnei Yeshivot accompagne gratuitement les etudiants francophones dans leurs demarches d'inscription aupres d'une caisse d'assurance maladie israelienne, afin de beneficier d'une couverture sante des l'arrivee en Israel.",
-    actionLabel: "Faire ma demande d'assurance maladie",
+      "Bnei Yeshivot accompagne gratuitement les étudiants francophones dans leurs démarches d’inscription auprès d’une caisse d’assurance maladie israélienne, afin de bénéficier d’une couverture santé dès l’arrivée en Israël.",
+    actionLabel: "Faire ma demande d’assurance maladie",
     actionHref: "/demandes/koupat-holim",
     sections: [
       {
         title: "Notre accompagnement",
         body: [
-          "Nous travaillons actuellement principalement avec Meuhedet pour les etudiants majeurs et avec Maccabi pour certaines situations concernant les etudiants mineurs.",
-          "Notre equipe vous guide dans les demarches administratives, repond a vos questions et assure un suivi personnalise de votre dossier, sans frais d'accompagnement.",
+          "Nous travaillons actuellement principalement avec Meuhedet pour les étudiants majeurs et avec Maccabi pour certaines situations concernant les étudiants mineurs.",
+          "Notre équipe vous guide dans les démarches administratives, répond à vos questions et assure un suivi personnalisé de votre dossier, sans frais d’accompagnement.",
         ],
       },
       {
-        title: "Qui peut beneficier de ce service ?",
+        title: "Qui peut bénéficier de ce service ?",
         body: [
-          "Ce service est destine aux etudiants francophones venant etudier en Israel.",
-          "Pour les personnes de 18 ans et plus, nous proposons un accompagnement pour l'inscription a Meuhedet. La demande peut etre effectuee avant l'arrivee en Israel.",
-          "Pour les moins de 18 ans, nous pouvons accompagner certaines inscriptions a Maccabi. Les delais sont generalement plus longs.",
+          "Ce service est destiné aux étudiants francophones venant étudier en Israël.",
+          "Pour les personnes de 18 ans et plus, nous proposons un accompagnement pour l’inscription à Meuhedet. La demande peut être effectuée avant l’arrivée en Israël.",
+          "Pour les moins de 18 ans, nous pouvons accompagner certaines inscriptions à Maccabi. Les délais sont généralement plus longs.",
         ],
       },
       {
-        title: "Documents a preparer",
+        title: "Documents à préparer",
         bullets: [
-          "Formulaire d'inscription complete et signe.",
-          "Ichour Limoudim, certificat d'etudes delivre par la yeshiva.",
-          "Photocopie lisible du passeport, page d'identite.",
+          "Formulaire d’inscription complété et signé.",
+          "Ichour Limoudim, certificat d’études délivré par la yeshiva.",
+          "Photocopie lisible du passeport, page d’identité.",
         ],
       },
       {
-        title: "Cout et delais",
+        title: "Coût et délais",
         body: [
-          "La cotisation est actuellement de 135 NIS par mois, a regler directement aupres de la caisse d'assurance maladie. Lors de l'inscription, 6 mois de cotisation sont demandes a l'avance.",
-          "En regle generale, le traitement d'un dossier prend entre 48 heures et une semaine. En debut d'annee, les delais peuvent etre plus longs.",
+          "La cotisation est actuellement de 135 NIS par mois, à régler directement auprès de la caisse d’assurance maladie. Lors de l’inscription, 6 mois de cotisation sont demandés à l’avance.",
+          "En règle générale, le traitement d’un dossier prend entre 48 heures et une semaine. En début d’année, les délais peuvent être plus longs.",
         ],
       },
       {
         title: "Validation de votre assurance",
         body: [
-          "Une fois votre inscription validee, vous recevez un email de confirmation. Vous pourrez ensuite recuperer votre carte d'assurance maladie dans nos locaux : Bnei Yeshivot, 17 Rehov HaPisga, Bayit Vagan, Jerusalem.",
+          "Une fois votre inscription validée, vous recevez un email de confirmation. Vous pourrez ensuite récupérer votre carte d’assurance maladie dans nos locaux : Bnei Yeshivot, 17 Rehov HaPisga, Bayit Vagan, Jérusalem.",
         ],
       },
       {
-        title: "Bon a savoir",
+        title: "Bon à savoir",
         body: [
-          "L'accompagnement propose par Bnei Yeshivot est entierement gratuit. Vous ne reglez aucun frais d'accompagnement a Bnei Yeshivot.",
+          "L’accompagnement proposé par Bnei Yeshivot est entièrement gratuit. Vous ne réglez aucun frais d’accompagnement à Bnei Yeshivot.",
         ],
       },
     ],
   },
   {
     slug: "visa-etudiant",
-    eyebrow: "Visa etudiant",
-    title: "Accompagnement pour une demande de visa etudiant",
+    eyebrow: "Visa étudiant",
+    title: "Accompagnement pour une demande de visa étudiant",
     intro:
-      "Bnei Yeshivot accompagne gratuitement les etudiants francophones dans leurs demarches de demande ou de renouvellement de visa etudiant en Israel.",
+      "Bnei Yeshivot accompagne gratuitement les étudiants francophones dans leurs démarches de demande ou de renouvellement de visa étudiant en Israël.",
     actionLabel: "Faire ma demande de visa",
     actionHref: "/demandes/visa",
     sections: [
       {
-        title: "Notre role",
+        title: "Notre rôle",
         body: [
-          "Nous vous aidons a preparer votre dossier, a comprendre les etapes de la procedure et a suivre votre demande.",
-          "Aucun frais d'accompagnement n'est demande par Bnei Yeshivot.",
+          "Nous vous aidons à préparer votre dossier, à comprendre les étapes de la procédure et à suivre votre demande.",
+          "Aucun frais d’accompagnement n’est demandé par Bnei Yeshivot.",
         ],
       },
       {
-        title: "Qui peut beneficier de cet accompagnement ?",
+        title: "Qui peut bénéficier de cet accompagnement ?",
         body: [
-          "Ce service concerne actuellement les Bahourim et jeunes etudiants inscrits dans une yeshiva en Israel.",
-          "Pour le moment, il concerne uniquement les etudiants venant etudier en yeshiva et n'est pas ouvert aux personnes mariees.",
+          "Ce service concerne actuellement les Bahourim et jeunes étudiants inscrits dans une yeshiva en Israël.",
+          "Pour le moment, il concerne uniquement les étudiants venant étudier en yeshiva et n’est pas ouvert aux personnes mariées.",
         ],
       },
       {
-        title: "Conditions generales",
+        title: "Conditions générales",
         bullets: [
-          "Etre age de 18 ans ou plus.",
-          "Etre present sur le territoire israelien au moment de la demande.",
-          "Etre inscrit ou en cours d'inscription dans une yeshiva reconnue.",
-          "Ne pas relever d'une autre procedure administrative liee a la nationalite israelienne.",
+          "Être âgé de 18 ans ou plus.",
+          "Être présent sur le territoire israélien au moment de la demande.",
+          "Être inscrit ou en cours d’inscription dans une yeshiva reconnue.",
+          "Ne pas relever d’une autre procédure administrative liée à la nationalité israélienne.",
         ],
       },
       {
-        title: "Documents necessaires",
+        title: "Documents nécessaires",
         bullets: [
-          "Formulaire de demande de visa complete et signe.",
-          "Ichour Limoudim, certificat de scolarite pour la demande de visa.",
+          "Formulaire de demande de visa complété et signé.",
+          "Ichour Limoudim, certificat de scolarité pour la demande de visa.",
           "Acte de naissance datant de moins de 3 mois.",
           "Photocopie lisible du passeport.",
         ],
       },
       {
-        title: "Delais de traitement",
+        title: "Délais de traitement",
         body: [
-          "Les delais varient selon les autorites competentes et la situation de chaque dossier. A titre indicatif, il faut generalement compter environ un mois.",
-          "Bnei Yeshivot accompagne la preparation et le suivi du dossier, mais ne peut garantir ni le delai ni la decision finale.",
+          "Les délais varient selon les autorités compétentes et la situation de chaque dossier. À titre indicatif, il faut généralement compter environ un mois.",
+          "Bnei Yeshivot accompagne la préparation et le suivi du dossier, mais ne peut garantir ni le délai ni la décision finale.",
         ],
       },
       {
-        title: "Avant de deposer votre demande",
+        title: "Avant de déposer votre demande",
         body: [
-          "Si vous prevoyez de quitter Israel prochainement, il peut etre preferable d'attendre votre retour avant d'entamer la procedure.",
+          "Si vous prévoyez de quitter Israël prochainement, il peut être préférable d’attendre votre retour avant d’entamer la procédure.",
         ],
       },
     ],
@@ -126,52 +126,52 @@ export const serviceDetails: ServiceDetail[] = [
   {
     slug: "eta-il",
     eyebrow: "ETA-IL",
-    title: "Autorisation electronique d'entree en Israel",
+    title: "Autorisation électronique d’entrée en Israël",
     intro:
-      "L'ETA-IL est une autorisation de voyage electronique a obtenir avant le depart pour pouvoir embarquer vers Israel dans certaines situations.",
+      "L’ETA-IL est une autorisation de voyage électronique à obtenir avant le départ pour pouvoir embarquer vers Israël dans certaines situations.",
     actionLabel: "Faire ma demande ETA-IL",
     actionHref: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     external: true,
     sections: [
       {
-        title: "Nouvelle procedure d'entree",
+        title: "Nouvelle procédure d’entrée",
         body: [
-          "Depuis le 1er janvier 2025, une procedure d'autorisation electronique d'entree en Israel est mise en place pour certains voyageurs.",
-          "Elle concerne notamment les personnes qui ne disposent pas d'un numero d'identite israelien ou d'un visa etudiant valide.",
+          "Depuis le 1er janvier 2025, une procédure d’autorisation électronique d’entrée en Israël est mise en place pour certains voyageurs.",
+          "Elle concerne notamment les personnes qui ne disposent pas d’un numéro d’identité israélien ou d’un visa étudiant valide.",
         ],
       },
       {
         title: "Qui doit effectuer une demande ?",
         bullets: [
-          "Les personnes venant en Israel avec un passeport etranger.",
-          "Les personnes qui ne possedent pas encore de Mispar Zehout.",
-          "Les etudiants qui n'ont pas encore obtenu leur visa etudiant avant l'arrivee.",
+          "Les personnes venant en Israël avec un passeport étranger.",
+          "Les personnes qui ne possèdent pas encore de Mispar Zehout.",
+          "Les étudiants qui n’ont pas encore obtenu leur visa étudiant avant l’arrivée.",
         ],
       },
       {
         title: "Pourquoi faire cette demande ?",
         body: [
-          "L'ETA-IL est necessaire pour voyager vers Israel. Elle ne remplace pas un visa etudiant et ne donne pas un statut d'etudiant en Israel.",
-          "Elle permet uniquement d'obtenir une autorisation de voyage avant l'arrivee sur le territoire israelien.",
+          "L’ETA-IL est nécessaire pour voyager vers Israël. Elle ne remplace pas un visa étudiant et ne donne pas un statut d’étudiant en Israël.",
+          "Elle permet uniquement d’obtenir une autorisation de voyage avant l’arrivée sur le territoire israélien.",
         ],
       },
       {
-        title: "Cout et validite",
+        title: "Coût et validité",
         body: [
-          "La demande d'ETA-IL est soumise a des frais administratifs de 25 NIS.",
-          "L'autorisation est valable pendant deux ans, ou jusqu'a l'expiration du passeport selon la premiere echeance.",
+          "La demande d’ETA-IL est soumise à des frais administratifs de 25 NIS.",
+          "L’autorisation est valable pendant deux ans, ou jusqu’à l’expiration du passeport selon la première échéance.",
         ],
       },
       {
-        title: "Delais de reponse",
+        title: "Délais de réponse",
         body: [
-          "La majorite des demandes recoivent une reponse rapidement. Dans certains cas, le traitement peut prendre jusqu'a 72 heures.",
+          "La majorité des demandes reçoivent une réponse rapidement. Dans certains cas, le traitement peut prendre jusqu’à 72 heures.",
         ],
       },
       {
         title: "Pour les mineurs",
         body: [
-          "Les personnes agees de moins de 18 ans ne peuvent pas effectuer seules une demande d'ETA-IL. La demande doit etre realisee par un adulte responsable.",
+          "Les personnes âgées de moins de 18 ans ne peuvent pas effectuer seules une demande d’ETA-IL. La demande doit être réalisée par un adulte responsable.",
         ],
       },
     ],

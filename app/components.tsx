@@ -24,7 +24,7 @@ export function SiteHeader() {
           />
           <span className="brand-text">
             <strong>Bnei Yeshivot</strong>
-            <small>France - Israel</small>
+            <small>France - Israël</small>
           </span>
         </Link>
         <SiteNavLinks />
@@ -45,16 +45,16 @@ export function SiteFooter() {
         <div>
           <h3>Bnei Yeshivot</h3>
           <p>
-            Accompagnement des jeunes francophones en Israel, avant leur depart
+            Accompagnement des jeunes francophones en Israël, avant leur départ
             et pendant leur parcours.
           </p>
         </div>
         <div>
           <h4>Services</h4>
-          <Link href="/venir-etudier">Je viens etudier en Israel</Link>
-          <Link href="/a-propos">A propos</Link>
+          <Link href="/venir-etudier">Je viens étudier en Israël</Link>
+          <Link href="/a-propos">À propos</Link>
           <Link href="/services">Tous les services</Link>
-          <Link href="/demandes/visa">Visa etudiant</Link>
+          <Link href="/demandes/visa">Visa étudiant</Link>
           <Link href="/demandes/koupat-holim">Koupat Holim</Link>
           <Link href="/dvar-torah">Dvar Torah</Link>
           <a href="https://israel-entry.piba.gov.il/apply-for-an-eta-il-1">ETA-IL officiel</a>
@@ -63,7 +63,7 @@ export function SiteFooter() {
           <h4>Plateforme</h4>
           <Link href="/admin">Admin</Link>
           <Link href="/client">Espace Bahour</Link>
-          <Link href="/evenements">Evenements</Link>
+          <Link href="/evenements">Événements</Link>
           <Link href="/programme">Programme</Link>
           <Link href="/guide">Guide PDF</Link>
         </div>
@@ -87,7 +87,7 @@ export function SiteFooter() {
           </a>
           <span>
             <MapPin className="size-4" aria-hidden="true" />
-            17 Rehov Apisga, Bayit Vagan, Jerusalem
+            17 Rehov Apisga, Bayit Vagan, Jérusalem
           </span>
         </div>
       </div>

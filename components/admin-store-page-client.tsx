@@ -135,11 +135,11 @@ type SupplyView = {
 
 const statusLabels: Record<StoreReservationStatus, string> = {
   SUBMITTED: "Nouvelle",
-  CONFIRMED: "Confirmee",
-  PREPARING: "En preparation",
-  READY: "Prete",
-  COLLECTED: "Recuperee",
-  CANCELED: "Annulee",
+  CONFIRMED: "Confirmée",
+  PREPARING: "En préparation",
+  READY: "Prête",
+  COLLECTED: "Récupérée",
+  CANCELED: "Annulée",
 };
 
 function statusTone(status: StoreReservationStatus) {
@@ -160,7 +160,7 @@ function moneyInput(cents: number) {
 }
 
 function formatDateTime(value: string | null) {
-  if (!value) return "Non renseigne";
+  if (!value) return "Non renseigné";
 
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "medium",
@@ -178,7 +178,7 @@ function toDatetimeLocal(value: string | null) {
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
-    : "Une erreur est survenue. Reessayez.";
+    : "Une erreur est survenue. Réessayez.";
 }
 
 async function uploadProductImage(file: File): Promise<string> {
@@ -197,7 +197,7 @@ async function uploadProductImage(file: File): Promise<string> {
   } | null;
 
   if (!response.ok || !data?.ok || !data.keys?.[0]) {
-    throw new Error(data?.message ?? "Upload echoue.");
+    throw new Error(data?.message ?? "Upload échoué.");
   }
 
   return data.keys[0];
@@ -221,7 +221,7 @@ async function deleteProductImage(value: string) {
   } | null;
 
   if (!response.ok || !data?.ok) {
-    throw new Error(data?.message ?? "Suppression image echouee.");
+    throw new Error(data?.message ?? "Suppression image échouée.");
   }
 }
 
@@ -318,13 +318,13 @@ export function AdminStorePageClient({
         <Card>
           <CardHeader>
             <CardTitle>{openReservations.length}</CardTitle>
-            <CardDescription>Reservations a suivre</CardDescription>
+            <CardDescription>Réservations à suivre</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>{reservedUnits}</CardTitle>
-            <CardDescription>Articles a preparer ou ravitailler</CardDescription>
+            <CardDescription>Articles à préparer ou ravitailler</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -353,7 +353,7 @@ export function AdminStorePageClient({
             className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
             value="settings"
           >
-            Parametres
+            Paramètres
           </TabsTrigger>
         </TabsList>
 
@@ -384,7 +384,7 @@ function ProductsTab({ products }: { products: ProductView[] }) {
         <div>
           <CardTitle>Produits</CardTitle>
           <CardDescription>
-            {products.length} produit(s) configures pour la boutique.
+            {products.length} produit(s) configuré(s) pour la boutique.
           </CardDescription>
         </div>
         <ProductDialog mode="create" />
@@ -427,7 +427,7 @@ function ProductsTab({ products }: { products: ProductView[] }) {
                 </TableCell>
                 <TableCell>
                   <Badge variant={product.active ? "success" : "outline"}>
-                    {product.active ? "Visible" : "Masque"}
+                    {product.active ? "Visible" : "Masqué"}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -510,20 +510,20 @@ function ProductDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "Modifier le produit" : "Nouveau produit"}</DialogTitle>
           <DialogDescription>
-            Gere le nom, le prix, l&apos;image, la visibilite et le stock disponible.
+            Gère le nom, le prix, l’image, la visibilité et le stock disponible.
           </DialogDescription>
         </DialogHeader>
         <InteractiveForm
           action={async (formData) => {
             if (imageUploadPending) {
-              throw new Error("Attendez la fin de l'upload des images avant d'enregistrer.");
+              throw new Error("Attendez la fin de l’upload des images avant d’enregistrer.");
             }
 
             await (isEdit ? updateStoreProduct : createStoreProduct)(formData);
           }}
           className="grid gap-5"
           onSuccess={() => setOpen(false)}
-          successMessage={isEdit ? "Produit modifie." : "Produit cree."}
+          successMessage={isEdit ? "Produit modifié." : "Produit créé."}
         >
           {product ? <input name="productId" type="hidden" value={product.id} /> : null}
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -585,7 +585,7 @@ function ProductDialog({
                     onChange={(event) => setFeatured(event.target.checked)}
                     type="checkbox"
                   />
-                  Produit recommande
+                  Produit recommandé
                 </label>
               </div>
             </div>
@@ -709,7 +709,7 @@ function ProductImagesField({
       setDeletingId(imageToRemove.id);
       try {
         await deleteProductImage(imageToRemove.value);
-        toast.success("Image supprimee.");
+        toast.success("Image supprimée.");
       } catch (error) {
         toast.error(errorMessage(error));
         return;
@@ -759,7 +759,7 @@ function ProductImagesField({
                   {index + 1}
                 </span>
                 <button
-                  aria-label="Supprimer l'image"
+                  aria-label="Supprimer l’image"
                   className="absolute right-2 top-2 z-10 grid size-7 place-items-center rounded-full bg-white text-[var(--primary)] shadow transition hover:bg-[var(--accent-soft)]"
                   disabled={deletingId === image.id}
                   onClick={() => removeImage(image)}
@@ -932,7 +932,7 @@ function ProductActiveDialog({ product }: { product: ProductView }) {
       <AlertDialogContent>
         <InteractiveForm
           action={setStoreProductActive}
-          successMessage={nextActive ? "Produit active." : "Produit masque."}
+          successMessage={nextActive ? "Produit activé." : "Produit masqué."}
         >
           <input name="productId" type="hidden" value={product.id} />
           <input name="active" type="hidden" value={String(nextActive)} />
@@ -942,8 +942,8 @@ function ProductActiveDialog({ product }: { product: ProductView }) {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {nextActive
-                ? "Le produit redeviendra reservable dans la boutique publique."
-                : "Le produit restera dans l'admin mais ne sera plus reservable."}
+                ? "Le produit redeviendra réservable dans la boutique publique."
+                : "Le produit restera dans l’admin mais ne sera plus réservable."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -968,14 +968,14 @@ function ProductDeleteDialog({ product }: { product: ProductView }) {
       <AlertDialogContent>
         <InteractiveForm
           action={deleteStoreProduct}
-          successMessage="Produit supprime ou masque."
+          successMessage="Produit supprimé ou masqué."
         >
           <input name="productId" type="hidden" value={product.id} />
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
             <AlertDialogDescription>
-              S&apos;il existe deja dans une reservation, il sera masque au lieu
-              d&apos;etre supprime afin de conserver l&apos;historique.
+              S’il existe déjà dans une réservation, il sera masqué au lieu
+              d’être supprimé afin de conserver l’historique.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1038,7 +1038,7 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
                   ))}
                   {reservation.note ? (
                     <small className="mt-2 block text-[var(--muted)]">
-                      Note: {reservation.note}
+                      Note : {reservation.note}
                     </small>
                   ) : null}
                 </TableCell>
@@ -1069,7 +1069,7 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
         </Table>
         {reservations.length === 0 ? (
           <p className="py-6 text-center text-base text-[var(--muted)]">
-            Aucune reservation recue pour le moment.
+            Aucune réservation reçue pour le moment.
           </p>
         ) : null}
       </CardContent>
@@ -1086,15 +1086,15 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Suivi reservation</DialogTitle>
+          <DialogTitle>Suivi réservation</DialogTitle>
           <DialogDescription>
-            Confirme, renseigne le retrait et envoie une mise a jour au client.
+            Confirmez, renseignez le retrait et envoyez une mise à jour au client.
           </DialogDescription>
         </DialogHeader>
         <InteractiveForm
           action={updateStoreReservation}
           className="grid gap-4"
-          successMessage="Reservation mise a jour."
+          successMessage="Réservation mise à jour."
         >
           <input name="reservationId" type="hidden" value={reservation.id} />
           <div className="rounded-lg border border-[var(--border)] p-3">
@@ -1122,7 +1122,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
               </NativeSelect>
             </label>
             <label className="grid gap-1 text-sm font-medium">
-              Date de recuperation
+              Date de récupération
               <Input
                 name="pickupDate"
                 type="datetime-local"
@@ -1132,12 +1132,12 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
           </div>
           <Input
             name="pickupLocation"
-            placeholder="Lieu de recuperation"
+            placeholder="Lieu de récupération"
             defaultValue={reservation.pickupLocation ?? ""}
           />
           <Textarea
             name="unavailableItems"
-            placeholder="Produits indisponibles ou ajustements proposes"
+            placeholder="Produits indisponibles ou ajustements proposés"
             defaultValue={reservation.unavailableItems ?? ""}
           />
           <Textarea
@@ -1147,7 +1147,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
           />
           <Textarea
             name="customerMessage"
-            placeholder="Message a ajouter dans l'email client"
+            placeholder="Message à ajouter dans l’email client"
           />
           <label className="flex items-center gap-2 text-sm">
             <input name="notifyCustomer" type="checkbox" />
@@ -1156,7 +1156,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
           <DialogFooter>
             <SubmitButton>
               <CheckCircle2 className="size-4" />
-              Mettre a jour
+              Mettre à jour
             </SubmitButton>
           </DialogFooter>
         </InteractiveForm>
@@ -1171,7 +1171,7 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
       <CardHeader>
         <CardTitle>Approvisionnement</CardTitle>
         <CardDescription>
-          Compte uniquement les reservations non recuperees et non annulees.
+          Compte uniquement les réservations non récupérées et non annulées.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -1179,9 +1179,9 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>Produit</TableHead>
-              <TableHead>Quantite reservee</TableHead>
+              <TableHead>Quantité réservée</TableHead>
               <TableHead>Stock saisi</TableHead>
-              <TableHead>A ravitailler</TableHead>
+              <TableHead>À ravitailler</TableHead>
               <TableHead>Statut produit</TableHead>
             </TableRow>
           </TableHeader>
@@ -1193,24 +1193,24 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
                 </TableCell>
                 <TableCell>{item.orderedQuantity}</TableCell>
                 <TableCell>
-                  {item.stockQuantity == null ? "Non renseigne" : item.stockQuantity}
+                  {item.stockQuantity == null ? "Non renseigné" : item.stockQuantity}
                 </TableCell>
                 <TableCell>
                   {item.missingQuantity == null ? (
-                    <Badge variant="warning">Stock a saisir</Badge>
+                    <Badge variant="warning">Stock à saisir</Badge>
                   ) : item.missingQuantity > 0 ? (
                     <Badge variant="destructive">{item.missingQuantity}</Badge>
                   ) : (
                     <Badge variant="success">OK</Badge>
                   )}
                 </TableCell>
-                <TableCell>{item.active ? "Visible" : "Masque"}</TableCell>
+                <TableCell>{item.active ? "Visible" : "Masqué"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
         <p className="mt-4 text-sm text-[var(--muted)]">
-          Quand une reservation passe en Recuperee ou Annulee, ses articles ne
+          Quand une réservation passe en Récupérée ou Annulée, ses articles ne
           comptent plus dans les besoins de ravitaillement.
         </p>
       </CardContent>
@@ -1222,16 +1222,16 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Parametres boutique</CardTitle>
+        <CardTitle>Paramètres boutique</CardTitle>
         <CardDescription>
-          Texte public, contact et ouverture des reservations.
+          Texte public, contact et ouverture des réservations.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <InteractiveForm
           action={updateStorefront}
           className="grid gap-3"
-          successMessage="Parametres boutique enregistres."
+          successMessage="Paramètres boutique enregistrés."
         >
           <Input name="name" defaultValue={storefront.name} required />
           <Input name="heroTitle" defaultValue={storefront.heroTitle} required />
@@ -1255,7 +1255,7 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
           <Input
             name="contactPhone"
             defaultValue={storefront.contactPhone ?? ""}
-            placeholder="Telephone"
+            placeholder="Téléphone"
           />
           <label className="flex items-center gap-2 text-sm">
             <input name="active" type="checkbox" defaultChecked={storefront.active} />
@@ -1263,7 +1263,7 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
           </label>
           <SubmitButton>
             <Settings className="size-4" />
-            Enregistrer les parametres
+            Enregistrer les paramètres
           </SubmitButton>
         </InteractiveForm>
       </CardContent>

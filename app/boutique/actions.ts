@@ -30,7 +30,7 @@ export async function createStoreReservation(formData: FormData) {
   const yeshiva = readString(formData, "yeshiva") || user?.yeshiva || null;
 
   if (!storefront.active) {
-    throw new Error("La boutique n'est pas ouverte aux reservations.");
+    throw new Error("La boutique n’est pas ouverte aux réservations.");
   }
 
   if (!customerName || !customerEmail) {
@@ -59,7 +59,7 @@ export async function createStoreReservation(formData: FormData) {
       item.product.stockQuantity != null &&
       item.quantity > item.product.stockQuantity
     ) {
-      throw new Error(`${item.product.title} n'est pas disponible dans cette quantite.`);
+      throw new Error(`${item.product.title} n’est pas disponible dans cette quantité.`);
     }
   }
 

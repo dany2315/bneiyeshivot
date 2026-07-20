@@ -66,7 +66,7 @@ const adminGroups: Array<{
   {
     label: "Pilotage",
     items: [
-      ["Dashboard", "/admin", LayoutDashboard],
+      ["Tableau de bord", "/admin", LayoutDashboard],
       ["Utilisateurs", "/admin/utilisateurs", Users],
     ],
   },
@@ -74,9 +74,9 @@ const adminGroups: Array<{
     label: "Services",
     items: [
       ["Contact", "/admin/contact", MessageSquare],
-      ["Visa etudiant", "/admin/visa", FileCheck],
+      ["Visa étudiant", "/admin/visa", FileCheck],
       ["Koupat Holim", "/admin/koupat-holim", ClipboardList],
-      ["Evenements", "/admin/evenements", CalendarDays],
+      ["Événements", "/admin/evenements", CalendarDays],
       ["Galerie", "/admin/galerie", Images],
       ["Dvar Torah", "/admin/dvar-torah", BookOpenText],
       ["Talmoudo Beyado", "/admin/talmoudo-beyado", Trophy],
@@ -87,12 +87,12 @@ const adminGroups: Array<{
     label: "Paiements",
     items: [
       ["Dons", "/admin/dons", Gift],
-      ["Recus", "/admin/recus", FileCheck],
+      ["Reçus", "/admin/recus", FileCheck],
     ],
   },
   {
-    label: "Systeme",
-    items: [["Parametres", "/admin/parametres", Settings]],
+    label: "Système",
+    items: [["Paramètres", "/admin/parametres", Settings]],
   },
 ];
 
@@ -124,11 +124,11 @@ export function AdminSidebarClient({
       await signOutRequest();
     } catch {
       setSigningOut(false);
-      toast.error("Impossible de se deconnecter pour le moment.");
+      toast.error("Impossible de se déconnecter pour le moment.");
       return;
     }
 
-    toast.success("Vous etes deconnecte.");
+    toast.success("Vous êtes déconnecté.");
     router.push("/admin/connexion");
     router.refresh();
   }
@@ -205,7 +205,7 @@ export function AdminSidebarClient({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Deconnexion"
+                aria-label="Déconnexion"
                 disabled={signingOut}
                 onClick={handleSignOut}
               >

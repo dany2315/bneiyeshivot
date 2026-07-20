@@ -21,24 +21,24 @@ type RegionMap = {
 
 const regions: RegionMap[] = [
   {
-    name: "Ile-de-France",
-    subtitle: "Paris et region parisienne",
+    name: "Île-de-France",
+    subtitle: "Paris et région parisienne",
     map: "/maps/regions/ile-de-france.svg",
     cities: [
       { name: "Le Raincy", area: "Seine-Saint-Denis", x: 50.83, y: 32.46 },
       { name: "Épinay-sur-Seine", area: "Seine-Saint-Denis", x: 42.48, y: 27.95 },
       { name: "Paris 19", area: "Paris", x: 45.22, y: 33.77 },
-      { name: "Sarcelles", area: "Val-d'Oise", x: 45.07, y: 24.56 },
+      { name: "Sarcelles", area: "Val-d’Oise", x: 45.07, y: 24.56 },
       { name: "Centre Alef", area: "Paris", x: 43.9, y: 35.7 },
       { name: "Bonneuil-sur-Marne", area: "Val-de-Marne", x: 49.42, y: 42.43 },
       { name: "Clichy-sous-Bois", area: "Seine-Saint-Denis", x: 53.3, y: 32.1 },
     ],
   },
   {
-    name: "Provence-Alpes-Cote d'Azur",
+    name: "Provence-Alpes-Côte d’Azur",
     subtitle: "Marseille",
     map: "/maps/regions/paca.svg",
-    cities: [{ name: "Marseille", area: "Bouches-du-Rhone", x: 36.33, y: 81.61 }],
+    cities: [{ name: "Marseille", area: "Bouches-du-Rhône", x: 36.33, y: 81.61 }],
   },
   {
     name: "Grand Est",
@@ -47,7 +47,7 @@ const regions: RegionMap[] = [
     cities: [{ name: "Strasbourg", area: "Alsace", x: 81.57, y: 57.66 }],
   },
   {
-    name: "Auvergne-Rhone-Alpes",
+    name: "Auvergne-Rhône-Alpes",
     subtitle: "Aix-les-Bains",
     map: "/maps/regions/auvergne-rhone-alpes.svg",
     cities: [{ name: "Aix-les-Bains", area: "Savoie", x: 72.78, y: 42.96 }],
@@ -88,11 +88,11 @@ export function BenHazmanimFranceMap() {
         <div className="section-header">
           <div>
             <span className="eyebrow">France</span>
-            <h2>Les regions ou les programmes ont pris vie</h2>
+            <h2>Les régions où les programmes ont pris vie</h2>
           </div>
           <p>
-            Un reseau de lieux d&apos;etude qui a grandi avec les communautes
-            locales, de la region parisienne jusqu&apos;a Jerusalem.
+            Un réseau de lieux d’étude qui a grandi avec les communautés
+            locales, de la région parisienne jusqu’à Jérusalem.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export function BenHazmanimFranceMap() {
                           alt=""
                           className="ben-region-map-img"
                           fill
-                          priority={region.name === "Ile-de-France"}
+                          priority={region.name === "Île-de-France"}
                           sizes="(max-width: 980px) 100vw, 32vw"
                           src={region.map}
                           unoptimized
@@ -186,7 +186,7 @@ export function BenHazmanimFranceMap() {
                       separator=" "
                     />
                   </strong>
-                  <span>heures etudiees cette annee</span>
+                  <span>heures étudiées cette année</span>
                 </CardContent>
               </Card>
 
@@ -219,7 +219,7 @@ export function BenHazmanimFranceMap() {
                       separator=" "
                     />
                   </strong>
-                  <span>heures de Torah cumulees</span>
+                  <span>heures de Torah cumulées</span>
                 </CardContent>
               </Card>
             </div>
@@ -240,7 +240,7 @@ export function BenHazmanimFranceMap() {
             </div>
 
             <p className="ben-map-source">
-              Cartes regionales: france-geojson, donnees ouvertes IGN/INSEE.
+              Cartes régionales : france-geojson, données ouvertes IGN/INSEE.
             </p>
           </div>
         </div>

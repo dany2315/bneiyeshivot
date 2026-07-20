@@ -79,9 +79,9 @@ export default async function ServiceDetailPage({
               </CardHeader>
               <CardContent className="grid gap-4 text-base leading-7 text-white/82">
                 <p>
-                  Notre objectif est de rendre chaque demarche plus claire,
-                  plus simple et mieux suivie pour les etudiants francophones
-                  qui viennent etudier en Israel.
+                  Notre objectif est de rendre chaque démarche plus claire,
+                  plus simple et mieux suivie pour les étudiants francophones
+                  qui viennent étudier en Israël.
                 </p>
                 <Button asChild variant="accent">
                   <Link

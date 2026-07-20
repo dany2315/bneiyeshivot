@@ -117,32 +117,32 @@ const steps: JourneyStep[] = [
   {
     id: "depart",
     step: "01",
-    short: "Preparation",
-    eyebrow: "Avant mon depart",
-    title: "Je prepare mon arrivee",
+    short: "Préparation",
+    eyebrow: "Avant mon départ",
+    title: "Je prépare mon arrivée",
     description:
-      "Nous vous aidons a preparer votre arrivee sereinement, bien avant de monter dans l'avion.",
+      "Nous vous aidons à préparer votre arrivée sereinement, bien avant de monter dans l’avion.",
     bullets: [
-      "Notre guide complet d'installation en Israel.",
+      "Notre guide complet d’installation en Israël.",
       "Les informations pratiques essentielles.",
       "La checklist des choses importantes.",
-      "Les conseils pour organiser votre depart.",
+      "Les conseils pour organiser votre départ.",
     ],
-    cta: { label: "Telecharger le guide d'arrivee", href: "/guide" },
+    cta: { label: "Télécharger le guide d’arrivée", href: "/guide" },
     icon: Luggage,
   },
   {
     id: "visa",
     step: "02",
     short: "Visa",
-    eyebrow: "Mon visa etudiant",
-    title: "Je prepare mon visa",
+    eyebrow: "Mon visa étudiant",
+    title: "Je prépare mon visa",
     description:
-      "Nous vous accompagnons dans vos demarches de visa etudiant afin de faciliter votre arrivee en Israel.",
+      "Nous vous accompagnons dans vos démarches de visa étudiant afin de faciliter votre arrivée en Israël.",
     bullets: [
-      "Comprendre les demarches.",
-      "Preparer les documents.",
-      "Deposer votre demande.",
+      "Comprendre les démarches.",
+      "Préparer les documents.",
+      "Déposer votre demande.",
       "Suivre votre dossier.",
     ],
     cta: { label: "Faire ma demande de visa", href: "/demandes/visa" },
@@ -151,11 +151,11 @@ const steps: JourneyStep[] = [
   {
     id: "sante",
     step: "03",
-    short: "Sante",
+    short: "Santé",
     eyebrow: "Mon assurance maladie",
-    title: "Je prepare ma couverture sante",
+    title: "Je prépare ma couverture santé",
     description:
-      "Nous vous accompagnons pour effectuer votre inscription aupres des caisses d'assurance maladie israeliennes.",
+      "Nous vous accompagnons pour effectuer votre inscription auprès des caisses d’assurance maladie israéliennes.",
     cta: {
       label: "Demander mon assurance",
       href: "/demandes/koupat-holim",
@@ -167,9 +167,9 @@ const steps: JourneyStep[] = [
     step: "04",
     short: "ETA-IL",
     eyebrow: "Mon autorisation ETA-IL",
-    title: "Je prepare mon entree en Israel",
+    title: "Je prépare mon entrée en Israël",
     description:
-      "Nous vous aidons a comprendre et effectuer votre demande ETA-IL lorsque celle-ci est necessaire.",
+      "Nous vous aidons à comprendre et effectuer votre demande ETA-IL lorsque celle-ci est nécessaire.",
     cta: {
       label: "Faire ma demande ETA-IL",
       href: "https://israel-entry.piba.gov.il/",
@@ -182,44 +182,44 @@ const steps: JourneyStep[] = [
     step: "05",
     short: "Installation",
     eyebrow: "Mon installation",
-    title: "J'arrive avec tout le necessaire",
+    title: "J’arrive avec tout le nécessaire",
     description:
-      "Pour faciliter votre installation, Bnei Yeshivot propose des solutions pratiques des votre arrivee.",
+      "Pour faciliter votre installation, Bnei Yeshivot propose des solutions pratiques dès votre arrivée.",
     bullets: [
-      "Literie et kit d'installation.",
+      "Literie et kit d’installation.",
       "Informations utiles.",
       "Conseils pratiques.",
       "Contacts importants.",
     ],
-    cta: { label: "Preparer mon installation", href: "/boutique" },
+    cta: { label: "Préparer mon installation", href: "/boutique" },
     icon: BedDouble,
   },
   {
     id: "communaute",
     step: "06",
-    short: "Communaute",
-    eyebrow: "Rejoindre la communaute",
-    title: "Une fois arrive, vous n'etes pas seul",
+    short: "Communauté",
+    eyebrow: "Rejoindre la communauté",
+    title: "Une fois arrivé, vous n’êtes pas seul",
     description:
-      "Apres votre arrivee, vous pouvez rejoindre nos differents programmes et retrouver un cadre chaleureux.",
+      "Après votre arrivée, vous pouvez rejoindre nos différents programmes et retrouver un cadre chaleureux.",
     bullets: [
       "Beth Hamidrach.",
       "Talmoudo Beyado.",
       "Ben Hazmanim.",
-      "Shabbatot, Leil Chichi et evenements.",
+      "Shabbatot, Leil Chichi et événements.",
     ],
-    cta: { label: "Decouvrir nos programmes", href: "/programme" },
+    cta: { label: "Découvrir nos programmes", href: "/programme" },
     icon: HeartHandshake,
   },
   {
     id: "connecte",
     step: "07",
-    short: "Rester connecte",
-    eyebrow: "Rester connecte",
+    short: "Rester connecté",
+    eyebrow: "Rester connecté",
     title: "Recevez toutes les informations utiles",
     description:
-      "Rejoignez notre groupe WhatsApp pour recevoir les prochains evenements et rester en lien avec l'equipe.",
-    bullets: ["Groupe WhatsApp de l'association.", "Prochains evenements."],
+      "Rejoignez notre groupe WhatsApp pour recevoir les prochains événements et rester en lien avec l’équipe.",
+    bullets: ["Groupe WhatsApp de l’association.", "Prochains événements."],
     cta: { label: "Rejoindre WhatsApp", href: WHATSAPP_URL, external: true },
     icon: MessageCircle,
   },
@@ -371,8 +371,8 @@ export function ArrivalJourney() {
               <p className="arrival-progress-title">Ma progression</p>
               <p className="arrival-progress-sub">
                 {allDone
-                  ? "Parcours termine, bravo !"
-                  : `${percent}% du parcours complete`}
+                  ? "Parcours terminé, bravo !"
+                  : `${percent}% du parcours complété`}
               </p>
             </div>
           </div>
@@ -417,7 +417,7 @@ export function ArrivalJourney() {
               className="arrival-progress-reset"
             >
               <RotateCcw className="size-3.5" />
-              Reinitialiser
+              Réinitialiser
             </button>
           ) : null}
         </aside>
@@ -490,7 +490,7 @@ export function ArrivalJourney() {
                         <span className="arrival-step-check">
                           {isDone ? <Check className="size-3.5" /> : null}
                         </span>
-                        {isDone ? "Etape validee" : "Marquer comme fait"}
+                        {isDone ? "Étape validée" : "Marquer comme fait"}
                       </button>
                     </div>
                   </CardContent>
@@ -510,10 +510,10 @@ export function ArrivalJourney() {
           <PartyPopper className="size-6" />
         </span>
         <div>
-          <h3>Vous avez parcouru toutes les etapes !</h3>
+          <h3>Vous avez parcouru toutes les étapes !</h3>
           <p>
-            Vous etes pret pour votre arrivee en Israel. Notre equipe reste a vos
-            cotes pour la suite du parcours.
+            Vous êtes prêt pour votre arrivée en Israël. Notre équipe reste à vos
+            côtés pour la suite du parcours.
           </p>
         </div>
         <div className="arrival-complete-actions">

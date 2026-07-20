@@ -20,14 +20,14 @@ const pageServices = [
     title: "Assurance maladie",
     subtitle: "Votre couverture santé en Israël, sans stress.",
     description:
-      "Nous vous accompagnons gratuitement dans toutes vos démarches afin d'obtenir rapidement votre assurance maladie.",
+      "Nous vous accompagnons gratuitement dans toutes vos démarches afin d’obtenir rapidement votre assurance maladie.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
     learnMoreHref: "/services/assurance-maladie",
     image: "/services/assurance-maladie.jpg",
   },
   {
-    title: "Visa etudiant",
+    title: "Visa étudiant",
     subtitle: "Étudiez en Israël en toute sérénité.",
     description:
       "De la première demande au renouvellement, notre équipe vous accompagne à chaque étape de votre dossier.",
@@ -40,7 +40,7 @@ const pageServices = [
     title: "ETA-IL",
     subtitle: "Préparez votre entrée en Israël en quelques clics.",
     description:
-      "Nous vous guidons pour effectuer votre demande d'ETA-IL rapidement et sans erreur.",
+      "Nous vous guidons pour effectuer votre demande d’ETA-IL rapidement et sans erreur.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     learnMoreHref: "/services/eta-il",
@@ -48,7 +48,7 @@ const pageServices = [
   },
   {
     title: "Installation en Israël",
-    subtitle: "Tout ce qu'il faut pour bien démarrer votre nouvelle vie.",
+    subtitle: "Tout ce qu’il faut pour bien démarrer votre nouvelle vie.",
     description:
       "Retrouvez toutes les informations essentielles pour préparer sereinement votre arrivée en Israël.",
     action: "Préparer mon arrivée",
@@ -58,7 +58,7 @@ const pageServices = [
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Boutique Literie",
+    title: "Boutique literie",
     subtitle: "Installez-vous dès votre arrivée.",
     description:
       "Commandez votre kit de literie complet et retrouvez un logement prêt à vous accueillir.",
@@ -89,9 +89,9 @@ export default function ServicesPage() {
             <span className="eyebrow">Accompagnement</span>
             <h1>Services</h1>
             <p>
-              Des services concrets pour preparer votre arrivee, regulariser
-              vos demarches et garder un accompagnement fiable tout au long de
-              votre installation en Israel.
+              Des services concrets pour préparer votre arrivée, régulariser
+              vos démarches et garder un accompagnement fiable tout au long de
+              votre installation en Israël.
             </p>
           </div>
         </section>
@@ -150,17 +150,17 @@ export default function ServicesPage() {
               <span className="eyebrow">Suivi simple</span>
               <h2>Un dossier clair pour chaque demande</h2>
               <p>
-                Chaque demande administrative pourra etre suivie par le Bahour :
-                statut, documents manquants, messages de l&apos;equipe et actions
-                a completer.
+                Chaque demande administrative pourra être suivie par le Bahour :
+                statut, documents manquants, messages de l’équipe et actions
+                à compléter.
               </p>
             </div>
             <Card>
               <CardHeader>
                 <CardTitle>Parcours type</CardTitle>
                 <CardDescription>
-                  Depot de demande, envoi des pieces, verification par l&apos;equipe,
-                  relance si besoin, puis suivi depuis l&apos;Espace Bahour.
+                  Dépôt de demande, envoi des pièces, vérification par l’équipe,
+                  relance si besoin, puis suivi depuis l’Espace Bahour.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">

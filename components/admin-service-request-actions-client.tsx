@@ -59,10 +59,10 @@ import {
 const statusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
   IN_REVIEW: "En traitement",
-  MISSING_DOCUMENTS: "Elements a modifier",
-  APPROVED: "Approuvee",
-  REJECTED: "Refusee",
-  COMPLETED: "Terminee",
+  MISSING_DOCUMENTS: "Éléments à modifier",
+  APPROVED: "Approuvée",
+  REJECTED: "Refusée",
+  COMPLETED: "Terminée",
 };
 
 function statusTone(status: ServiceRequestStatus) {
@@ -86,25 +86,25 @@ function payloadText(payload: Record<string, unknown>, key: string) {
 }
 
 const editableFieldLabels = [
-  ["firstName", "Prenom"],
+  ["firstName", "Prénom"],
   ["lastName", "Nom"],
-  ["phone", "Telephone"],
-  ["parentPhone", "Telephone des parents"],
+  ["phone", "Téléphone"],
+  ["parentPhone", "Téléphone des parents"],
   ["birthDate", "Date de naissance"],
-  ["nationality", "Nationalite"],
-  ["passportNumber", "Numero de passeport"],
+  ["nationality", "Nationalité"],
+  ["passportNumber", "Numéro de passeport"],
   ["school", "Yeshiva / programme"],
   ["personStatus", "Statut visa"],
 ] as const;
 
 const mainDataLabels = [
-  ["firstName", "Prenom"],
+  ["firstName", "Prénom"],
   ["lastName", "Nom"],
   ["email", "Email"],
-  ["phone", "Telephone"],
+  ["phone", "Téléphone"],
   ["parentPhone", "Parents"],
   ["birthDate", "Naissance"],
-  ["nationality", "Nationalite"],
+  ["nationality", "Nationalité"],
   ["passportNumber", "Passeport"],
   ["school", "Yeshiva"],
   ["personStatus", "Statut visa"],
@@ -144,7 +144,7 @@ export function AdminServiceRequestActionsClient({
 }) {
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
-  const finalDocumentLabel = isVisa ? "Visa recu" : "Document koupat holim final";
+  const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
   const requestedFields = new Set(
     Array.isArray(request.payload.__requestedFields)
       ? request.payload.__requestedFields.filter(
@@ -180,7 +180,7 @@ export function AdminServiceRequestActionsClient({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDialog("data")}>
             <Pencil className="size-4" />
-            Modifier les donnees
+            Modifier les données
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDialog("final")}>
             <Upload className="size-4" />
@@ -200,9 +200,9 @@ export function AdminServiceRequestActionsClient({
       <Dialog open={openDialog === "detail"} onOpenChange={(open) => !open && setOpenDialog(null)}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Detail de la demande</DialogTitle>
+            <DialogTitle>Détail de la demande</DialogTitle>
             <DialogDescription>
-              Informations completes, messages et documents recus.
+              Informations complètes, messages et documents reçus.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -288,7 +288,7 @@ export function AdminServiceRequestActionsClient({
             </div>
           ) : (
             <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
-              Aucun document attache a cette demande.
+              Aucun document attaché à cette demande.
             </p>
           )}
         </DialogContent>
@@ -299,7 +299,7 @@ export function AdminServiceRequestActionsClient({
           <DialogHeader>
             <DialogTitle>Modifier le statut et notifier</DialogTitle>
             <DialogDescription>
-              Envoyez une mise a jour ou demandez des corrections precises au bahour.
+              Envoyez une mise à jour ou demandez des corrections précises au Bahour.
             </DialogDescription>
           </DialogHeader>
           <form action={updateServiceRequest} className="grid gap-4">
@@ -325,16 +325,16 @@ export function AdminServiceRequestActionsClient({
               </label>
             </div>
             <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
-              Message visible par le bahour
+              Message visible par le Bahour
               <Textarea
                 defaultValue={request.publicNote ?? ""}
                 name="publicNote"
-                placeholder="Expliquez exactement ce qui manque ou ce qu'il doit modifier."
+                placeholder="Expliquez exactement ce qui manque ou ce qu’il doit modifier."
               />
             </label>
             <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
               <strong className="text-sm text-[var(--primary)]">
-                Donnees a modifier dans son espace
+                Données à modifier dans son espace
               </strong>
               <div className="grid gap-2 md:grid-cols-3">
                 {visibleEditableFields.map(([field, label]) => (
@@ -364,9 +364,9 @@ export function AdminServiceRequestActionsClient({
       <Dialog open={openDialog === "data"} onOpenChange={(open) => !open && setOpenDialog(null)}>
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Modifier les donnees du dossier</DialogTitle>
+            <DialogTitle>Modifier les données du dossier</DialogTitle>
             <DialogDescription>
-              Correction manuelle par l&apos;admin, sans email automatique.
+              Correction manuelle par l’admin, sans email automatique.
             </DialogDescription>
           </DialogHeader>
           <form action={updateServiceRequestData} className="grid gap-4">
@@ -404,7 +404,7 @@ export function AdminServiceRequestActionsClient({
           <DialogHeader>
             <DialogTitle>Uploader le document final</DialogTitle>
             <DialogDescription>
-              Le fichier sera ajoute au dossier, le bahour sera notifie et la demande passera en terminee.
+              Le fichier sera ajouté au dossier, le Bahour sera notifié et la demande passera en terminée.
             </DialogDescription>
           </DialogHeader>
           <form action={uploadServiceRequestFinalDocument} className="grid gap-4">
@@ -442,7 +442,7 @@ export function AdminServiceRequestActionsClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
             <AlertDialogDescription>
-              La demande de {userName(request.user)} sera supprimee avec ses messages,
+              La demande de {userName(request.user)} sera supprimée avec ses messages,
               ses documents et les fichiers S3 attaches.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -23,17 +23,17 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 const paymentStatuses = [
-  { label: "Reussi", value: "PAID" },
+  { label: "Réussi", value: "PAID" },
   { label: "En attente", value: "PENDING" },
-  { label: "Echoue", value: "FAILED" },
-  { label: "Rembourse", value: "REFUNDED" },
-  { label: "Partiellement rembourse", value: "PARTIALLY_REFUNDED" },
-  { label: "Annule", value: "CANCELED" },
+  { label: "Échoué", value: "FAILED" },
+  { label: "Remboursé", value: "REFUNDED" },
+  { label: "Partiellement remboursé", value: "PARTIALLY_REFUNDED" },
+  { label: "Annulé", value: "CANCELED" },
 ];
 
 const donationSources = [
-  { label: "Especes", value: "ADMIN_CASH" },
-  { label: "Cheque", value: "ADMIN_CHECK" },
+  { label: "Espèces", value: "ADMIN_CASH" },
+  { label: "Chèque", value: "ADMIN_CHECK" },
   { label: "Virement", value: "ADMIN_BANK_TRANSFER" },
   { label: "Autre manuel", value: "ADMIN_OTHER" },
 ];
@@ -62,7 +62,7 @@ function SubmitButton({ children }: { children: ReactNode }) {
   return (
     <Button disabled={pending} type="submit">
       {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-      {pending ? "Creation..." : children}
+      {pending ? "Création..." : children}
     </Button>
   );
 }
@@ -75,14 +75,14 @@ export function ManualDonationDialog() {
   const receiptType = donorType === "ENTREPRISE" ? "ENTREPRISE" : "PARTICULIER";
 
   async function handleSubmit(formData: FormData) {
-    const toastId = toast.loading("Creation du don manuel...");
+    const toastId = toast.loading("Création du don manuel...");
 
     try {
       await createManualDonation(formData);
       setOpen(false);
-      toast.success("Don manuel cree.", { id: toastId });
+      toast.success("Don manuel créé.", { id: toastId });
     } catch (error) {
-      toast.error(actionErrorMessage(error, "Impossible de creer le don manuel."), {
+      toast.error(actionErrorMessage(error, "Impossible de créer le don manuel."), {
         id: toastId,
       });
     }
@@ -98,14 +98,14 @@ export function ManualDonationDialog() {
         <DialogHeader>
           <DialogTitle>Don manuel</DialogTitle>
           <DialogDescription>
-            Especes, cheque, virement ou autre. Le Cerfa est choisi
+            Espèces, chèque, virement ou autre. Le Cerfa est choisi
             automatiquement selon le type de donateur.
           </DialogDescription>
         </DialogHeader>
         <form action={handleSubmit} className="grid gap-3">
           <input name="receiptType" type="hidden" value={receiptType} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input name="firstName" placeholder="Prenom" />
+            <Input name="firstName" placeholder="Prénom" />
             <Input name="lastName" placeholder="Nom" />
             <Input name="email" placeholder="Email" required type="email" />
             <PhoneInputGroup id="manual-donation-phone" name="phone" />
@@ -134,7 +134,7 @@ export function ManualDonationDialog() {
               ))}
             </NativeSelect>
             <Input name="paidAt" placeholder="Date du don" type="date" />
-            <Input name="paymentReference" placeholder="Reference cheque/virement" />
+            <Input name="paymentReference" placeholder="Référence chèque/virement" />
             <NativeSelect
               className="w-full"
               name="donorType"
@@ -154,7 +154,7 @@ export function ManualDonationDialog() {
 
           {donorType === "ENTREPRISE" ? (
             <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 sm:grid-cols-3">
-              <Input name="companyName" placeholder="Societe" />
+              <Input name="companyName" placeholder="Société" />
               <NativeSelect className="w-full" defaultValue="SAS" name="companyLegalForm">
                 {companyLegalFormOptions.map((form) => (
                   <NativeSelectOption key={form} value={form}>
@@ -166,13 +166,13 @@ export function ManualDonationDialog() {
             </div>
           ) : null}
 
-          <Textarea name="dedication" placeholder="Dedicace ou note" />
+          <Textarea name="dedication" placeholder="Dédicace ou note" />
           <div className="grid gap-3 sm:grid-cols-2">
-            <Input name="fiscalYear" placeholder="Annee fiscale" type="number" />
+            <Input name="fiscalYear" placeholder="Année fiscale" type="number" />
             <Input
               className="sm:col-span-2"
               name="receiptEmail"
-              placeholder="Email d'envoi des recus (si different)"
+              placeholder="Email d’envoi des reçus (si différent)"
               type="email"
             />
             <Input
@@ -187,18 +187,18 @@ export function ManualDonationDialog() {
           <Textarea name="adminNote" placeholder="Note interne" />
           <div className="grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3">
             <strong className="text-sm text-[var(--primary)]">
-              Envois automatiques si le don est paye
+              Envois automatiques si le don est payé
             </strong>
             <label className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
               <input name="sendPaymentReceipt" type="checkbox" />
-              Envoyer automatiquement le recu / mail de remerciement
+              Envoyer automatiquement le reçu / mail de remerciement
             </label>
             <label className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
               <input name="sendCerfaReceipt" type="checkbox" />
-              Envoyer automatiquement le recu Cerfa
+              Envoyer automatiquement le reçu Cerfa
             </label>
           </div>
-          <SubmitButton>Creer le don</SubmitButton>
+          <SubmitButton>Créer le don</SubmitButton>
         </form>
       </DialogContent>
     </Dialog>

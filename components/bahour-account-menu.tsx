@@ -50,11 +50,11 @@ export function BahourAccountMenu({
       await signOutRequest();
     } catch {
       setLoading(false);
-      toast.error("Impossible de se deconnecter pour le moment.");
+      toast.error("Impossible de se déconnecter pour le moment.");
       return;
     }
 
-    toast.success("Vous etes deconnecte.");
+    toast.success("Vous êtes déconnecté.");
     router.push("/connexion");
     router.refresh();
   }
@@ -105,7 +105,7 @@ export function BahourAccountMenu({
             className="gap-2 px-3 py-2 text-sm font-bold"
           >
             <LogOut className="size-4" />
-            {loading ? "Deconnexion..." : "Se deconnecter"}
+            {loading ? "Déconnexion..." : "Se déconnecter"}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

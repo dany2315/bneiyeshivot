@@ -58,14 +58,14 @@ import {
 import { CalendarDays, Trash2, Users } from "lucide-react";
 
 export const metadata = {
-  title: "Admin evenements",
+  title: "Admin événements",
 };
 
 const registrationLabels: Record<EventRegistrationStatus, string> = {
-  SUBMITTED: "Demande recue",
-  CONFIRMED: "Confirmee",
-  WAITLISTED: "Liste d'attente",
-  CANCELED: "Annulee",
+  SUBMITTED: "Demande reçue",
+  CONFIRMED: "Confirmée",
+  WAITLISTED: "Liste d’attente",
+  CANCELED: "Annulée",
 };
 
 function registrationTone(status: EventRegistrationStatus) {
@@ -93,7 +93,7 @@ export default async function AdminEventsPage() {
       <div className="admin-header">
         <div>
           <span className="eyebrow">Back-office</span>
-          <h1>Evenements</h1>
+          <h1>Événements</h1>
         </div>
         <EventFormDialog action={createEvent} mode="create" />
       </div>
@@ -118,7 +118,7 @@ export default async function AdminEventsPage() {
                   )}
                   <div className="absolute left-3 right-3 top-3 flex flex-wrap gap-2">
                     <StatusBadge tone={isPast ? "gold" : "blue"}>
-                      {isPast ? "Passe" : "A venir"}
+                      {isPast ? "Passé" : "À venir"}
                     </StatusBadge>
                     {isPast &&
                       (content.pastPublished ? (
@@ -132,7 +132,7 @@ export default async function AdminEventsPage() {
                   <CardTitle>{event.title}</CardTitle>
                   <CardDescription>
                     {formatDateTime(event.startsAt)} -{" "}
-                    {event.location || "Lieu a confirmer"}
+                    {event.location || "Lieu à confirmer"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-3">
@@ -142,14 +142,14 @@ export default async function AdminEventsPage() {
                   <p className="text-sm text-[var(--muted)]">
                     {event._count.registrations} inscription(s)
                     {content.videoUrls.length > 0 &&
-                      ` - ${content.videoUrls.length} video(s)`}
+                      ` - ${content.videoUrls.length} vidéo(s)`}
                     {content.gallery.length > 0 &&
                       ` - ${content.gallery.length} photo(s)`}
                   </p>
                   {isPast && !content.pastPublished && (
                     <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                      Cet evenement passe n&apos;est pas encore visible sur le
-                      site. Modifiez-le (texte, photos, videos) pour le publier.
+                      Cet événement passé n’est pas encore visible sur le
+                      site. Modifiez-le (texte, photos, vidéos) pour le publier.
                     </p>
                   )}
 
@@ -172,7 +172,7 @@ export default async function AdminEventsPage() {
                           <DialogTitle>Inscriptions - {event.title}</DialogTitle>
                           <DialogDescription>
                             {event._count.registrations} inscription(s) pour cet
-                            evenement.
+                            événement.
                           </DialogDescription>
                         </div>
                         <DialogClose
@@ -307,12 +307,12 @@ export default async function AdminEventsPage() {
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>
-                          Supprimer cet evenement ?
+                          Supprimer cet événement ?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          Action irreversible. « {event.title} » et ses{" "}
+                          Action irréversible. « {event.title} » et ses{" "}
                           {event._count.registrations} inscription(s) seront
-                          definitivement supprimes.
+                          définitivement supprimés.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

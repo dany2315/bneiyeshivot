@@ -50,25 +50,25 @@ export const metadata = {
 };
 
 const requestStatusLabels: Record<ServiceRequestStatus, string> = {
-  SUBMITTED: "Deposee",
+  SUBMITTED: "Déposée",
   IN_REVIEW: "En traitement",
-  MISSING_DOCUMENTS: "Elements a modifier",
-  APPROVED: "Approuvee",
-  REJECTED: "Refusee",
-  COMPLETED: "Terminee",
+  MISSING_DOCUMENTS: "Éléments à modifier",
+  APPROVED: "Approuvée",
+  REJECTED: "Refusée",
+  COMPLETED: "Terminée",
 };
 
 const requestTypeLabels: Record<ServiceRequestType, string> = {
-  VISA_STUDENT: "Visa etudiant",
+  VISA_STUDENT: "Visa étudiant",
   KOUPAT_HOLIM: "Koupat Holim",
   GENERAL_CONTACT: "Contact",
 };
 
 const registrationLabels: Record<EventRegistrationStatus, string> = {
-  SUBMITTED: "Demande recue",
-  CONFIRMED: "Confirmee",
-  WAITLISTED: "Liste d'attente",
-  CANCELED: "Annulee",
+  SUBMITTED: "Demande reçue",
+  CONFIRMED: "Confirmée",
+  WAITLISTED: "Liste d’attente",
+  CANCELED: "Annulée",
 };
 
 function requestTone(status: ServiceRequestStatus) {
@@ -120,13 +120,13 @@ function requestSubjectName(
 }
 
 const editableRequestFields = [
-  ["firstName", "Prenom", "text"],
+  ["firstName", "Prénom", "text"],
   ["lastName", "Nom", "text"],
-  ["phone", "Telephone", "text"],
-  ["parentPhone", "Telephone des parents", "text"],
+  ["phone", "Téléphone", "text"],
+  ["parentPhone", "Téléphone des parents", "text"],
   ["birthDate", "Date de naissance", "date"],
-  ["nationality", "Nationalite", "text"],
-  ["passportNumber", "Numero passeport", "text"],
+  ["nationality", "Nationalité", "text"],
+  ["passportNumber", "Numéro passeport", "text"],
   ["school", "Yeshiva / programme", "text"],
   ["personStatus", "Statut visa : bahour-yeshiva ou massa", "text"],
 ] as const;
@@ -311,7 +311,7 @@ export default async function ClientPage({
                   <Link href="/services">Nouvelle demande</Link>
                 </Button>
                 <Button asChild variant="secondary">
-                  <Link href="/evenements">Voir les evenements</Link>
+                  <Link href="/evenements">Voir les événements</Link>
                 </Button>
               </div>
             </div>
@@ -326,7 +326,7 @@ export default async function ClientPage({
                 )}
                 {missingDocsCount > 0 && (
                   <StatusBadge tone="gold">
-                    {missingDocsCount} demande(s) a modifier
+                    {missingDocsCount} demande(s) à modifier
                   </StatusBadge>
                 )}
                 {registrations.length > 0 && (
@@ -358,7 +358,7 @@ export default async function ClientPage({
                 className="bahour-tabs-list"
               >
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
-                <TabsTrigger value="events">Evenements</TabsTrigger>
+                <TabsTrigger value="events">Événements</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
                 {donations.length > 0 && (
                   <TabsTrigger value="dons">Dons</TabsTrigger>
@@ -371,7 +371,7 @@ export default async function ClientPage({
                     <CheckCircle2 />
                     <AlertTitle>Aucune demande active</AlertTitle>
                     <AlertDescription>
-                      Deposez une demande visa ou koupat holim depuis la page
+                      Déposez une demande visa ou koupat holim depuis la page
                       services.
                     </AlertDescription>
                   </Alert>
@@ -399,7 +399,7 @@ export default async function ClientPage({
                                 </div>
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs leading-5 text-[var(--muted)]">
                                   <span>
-                                    Creee le {request.createdAt.toLocaleDateString("fr-FR")}
+                                    Créée le {request.createdAt.toLocaleDateString("fr-FR")}
                                   </span>
                                   <span>
                                     <span className="font-bold text-[var(--primary)]">
@@ -434,7 +434,7 @@ export default async function ClientPage({
                                   >
                                     <a href={`/api/requests/documents/${document.id}/download`}>
                                       <Download className="size-4" />
-                                      Telecharger
+                                      Télécharger
                                     </a>
                                   </Button>
                                 ))}
@@ -451,7 +451,7 @@ export default async function ClientPage({
                                 value={request.id}
                               />
                               <div className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--primary)]">
-                                A modifier :{" "}
+                                À modifier :{" "}
                                 {requestedFieldsFromPayload(
                                   request.payload,
                                   request.type,
@@ -477,7 +477,7 @@ export default async function ClientPage({
                                 disabled
                                 value={
                                   request.publicNote ||
-                                  "Modifiez uniquement les informations demandees par l'equipe."
+                                  "Modifiez uniquement les informations demandées par l’équipe."
                                 }
                               />
                               <Button type="submit">
@@ -497,9 +497,9 @@ export default async function ClientPage({
                 {registrations.length === 0 ? (
                   <Alert>
                     <CalendarCheck />
-                    <AlertTitle>Aucune inscription evenement</AlertTitle>
+                    <AlertTitle>Aucune inscription événement</AlertTitle>
                     <AlertDescription>
-                      Les inscriptions aux evenements apparaitront ici.
+                      Les inscriptions aux événements apparaîtront ici.
                     </AlertDescription>
                   </Alert>
                 ) : (
@@ -519,7 +519,7 @@ export default async function ClientPage({
                           </StatusBadge>
                           <Button asChild variant="secondary">
                             <Link href={`/evenements/${registration.event.slug}`}>
-                              Voir l&apos;evenement
+                              Voir l’événement
                             </Link>
                           </Button>
                         </CardContent>
@@ -548,7 +548,7 @@ export default async function ClientPage({
                     <span className="text-2xl font-bold text-[var(--primary)]">
                       {formatReward(totalRewardCents, "ILS")}
                     </span>
-                    <span className="text-sm text-[var(--muted)]">recues</span>
+                    <span className="text-sm text-[var(--muted)]">reçues</span>
                   </div>
                 </div>
 
@@ -562,8 +562,8 @@ export default async function ClientPage({
                     <Trophy />
                     <AlertTitle>Aucun mivhan pour le moment</AlertTitle>
                     <AlertDescription>
-                      Vos inscriptions, notes et recompenses Talmoudo Beyado
-                      apparaitront ici.
+                      Vos inscriptions, notes et récompenses Talmoudo Beyado
+                      apparaîtront ici.
                     </AlertDescription>
                   </Alert>
                 ) : (

@@ -29,21 +29,21 @@ const impactCards = [
   },
   {
     icon: UsersRound,
-    title: "Yechivot Ben Hazmanim",
+    title: "Yéchivot Ben Hazmanim",
     description:
-      "150 Ba'hourim, eleves, etudiants, Avrekhim a Paris et Banlieue : Tefila, etude, chiour.",
+      "150 Ba’hourim, élèves, étudiants, Avrekhim à Paris et Banlieue : Tefila, étude, chiour.",
   },
   {
     icon: CalendarDays,
     title: "Beth Hamidrach Lel Chichi",
     description:
-      "Etude le jeudi soir, a Jerusalem pour plusieurs dizaines de Avrekhim, Ba'hourim, etudiants.",
+      "Étude le jeudi soir, à Jérusalem pour plusieurs dizaines de Avrekhim, Ba’hourim, étudiants.",
   },
   {
     icon: HeartHandshake,
     title: "Soirees Hizouk",
     description:
-      "Grandes soirees tout au long de l'annee reunissant des dizaines de Ba'hourim Francais en France et en Israel.",
+      "Grandes soirées tout au long de l’année réunissant des dizaines de Ba’hourim français en France et en Israël.",
   },
 ];
 
@@ -61,8 +61,8 @@ export function DonationImpactGrid() {
             </h2>
           </div>
           <p className="text-base leading-7 text-[var(--muted)]">
-            Des cadres de Torah, des temps d'etude et des rassemblements qui
-            continuent toute l'annee grace aux donateurs.
+            Des cadres de Torah, des temps d’étude et des rassemblements qui
+            continuent toute l’année grâce aux donateurs.
           </p>
         </div>
 

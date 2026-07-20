@@ -22,16 +22,16 @@ export default async function AdminPage() {
       <div className="admin-header">
         <div>
           <span className="eyebrow">Back-office Bnei Yeshivot</span>
-          <h1>Dashboard admin</h1>
+          <h1>Tableau de bord admin</h1>
         </div>
       </div>
 
       <Card className="max-w-3xl">
         <CardHeader>
-          <CardTitle>Dashboard en cours de developpement</CardTitle>
+          <CardTitle>Tableau de bord en cours de développement</CardTitle>
           <CardDescription>
-            Les KPI, resumes de donnees et actions rapides seront construits
-            apres les pages de gestion dediees.
+            Les KPI, résumés de données et actions rapides seront construits
+            après les pages de gestion dédiées.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
@@ -42,7 +42,7 @@ export default async function AdminPage() {
             <Link href="/admin/koupat-holim">Gestion koupat holim</Link>
           </Button>
           <Button asChild variant="secondary">
-            <Link href="/admin/evenements">Gestion evenements</Link>
+            <Link href="/admin/evenements">Gestion événements</Link>
           </Button>
           <Button asChild variant="secondary">
             <Link href="/admin/boutique">Gestion boutique</Link>

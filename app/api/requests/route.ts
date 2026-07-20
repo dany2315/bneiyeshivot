@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const fullName = `${firstName} ${lastName}`.trim() || email || "Sans nom";
     const typeLabel =
       kind === "visa"
-        ? "visa etudiant"
+        ? "visa étudiant"
         : kind === "koupat"
           ? "koupat holim"
           : "demande";
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        message: "Impossible de creer la demande pour le moment.",
+        message: "Impossible de créer la demande pour le moment.",
       },
       { status: 500 },
     );

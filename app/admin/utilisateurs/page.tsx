@@ -97,7 +97,7 @@ export default async function AdminUsersPage({
               className="pl-9"
               defaultValue={q ?? ""}
               name="q"
-              placeholder="Rechercher prenom, nom ou email..."
+              placeholder="Rechercher prénom, nom ou email..."
             />
           </div>
           <NativeSelect
@@ -105,7 +105,7 @@ export default async function AdminUsersPage({
             defaultValue={selectedRole ?? ""}
             name="role"
           >
-            <NativeSelectOption value="">Tous les roles</NativeSelectOption>
+            <NativeSelectOption value="">Tous les rôles</NativeSelectOption>
             <NativeSelectOption value={UserRole.CLIENT}>Bahour</NativeSelectOption>
             <NativeSelectOption value={UserRole.ADMIN}>Admin</NativeSelectOption>
             <NativeSelectOption value={UserRole.SUPER_ADMIN}>
@@ -123,11 +123,11 @@ export default async function AdminUsersPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Utilisateur</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>Rôle</TableHead>
                 <TableHead>Demandes</TableHead>
-                <TableHead>Evenements</TableHead>
+                <TableHead>Événements</TableHead>
                 <TableHead>Dons</TableHead>
-                <TableHead>Creation</TableHead>
+                <TableHead>Création</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

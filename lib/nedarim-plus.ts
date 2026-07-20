@@ -444,8 +444,8 @@ async function sendNedarimDonationFailureAdminEmail(donationId: string) {
     donorPhone: donation.donorPhone,
     failureReason: donation.failureReason,
     frequency,
-    heading: "Don en echec",
-    paymentStatusLabel: "Echec",
+    heading: "Don en échec",
+    paymentStatusLabel: "Échec",
     receiptNumber: "Non applicable",
   });
   const sent = await sendEmail({
@@ -510,7 +510,7 @@ export async function sendNedarimDonationEmails(donationId: string) {
       donorName: donation.donorName,
       donorPhone: donation.donorPhone,
       frequency,
-      heading: "Nouveau don confirme",
+      heading: "Nouveau don confirmé",
       receiptNumber: "Non applicable",
     });
     const sent = await sendEmail({

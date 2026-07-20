@@ -19,8 +19,8 @@ export default async function LoginPage() {
             <span className="eyebrow">Mon espace</span>
             <h1>Connexion</h1>
             <p>
-              Accede a ton suivi, tes demandes ou tes recus de dons avec un code
-              temporaire envoye par email. La session reste active pendant 30 jours.
+              Accède à ton suivi, tes demandes ou tes reçus de dons avec un code
+              temporaire envoyé par email. La session reste active pendant 30 jours.
             </p>
           </div>
         </section>
@@ -33,11 +33,11 @@ export default async function LoginPage() {
                   Pas encore inscrit ?
                 </h2>
                 <p className="text-base text-[var(--muted)]">
-                  Cree ton acces avec nom, prenom, email et telephone.
+                  Crée ton accès avec nom, prénom, email et téléphone.
                 </p>
               </div>
               <Button asChild variant="secondary">
-                <Link href="/inscription">S&apos;enregistrer</Link>
+                <Link href="/inscription">S’enregistrer</Link>
               </Button>
             </div>
           </div>

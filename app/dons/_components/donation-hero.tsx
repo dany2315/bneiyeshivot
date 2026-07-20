@@ -18,7 +18,7 @@ const heroImpact = [
   { icon: GraduationCap, label: "Collelim", value: "22 avrekhim" },
   { icon: BookOpenText, label: "Leachlim", value: "150 participants" },
   { icon: UsersRound, label: "Ben Hazmanim", value: "150 jeunes" },
-  { icon: CalendarDays, label: "Lel Chichi", value: "Jerusalem" },
+  { icon: CalendarDays, label: "Lel Chichi", value: "Jérusalem" },
 ];
 
 export function DonationHero({ children }: { children: ReactNode }) {
@@ -30,14 +30,14 @@ export function DonationHero({ children }: { children: ReactNode }) {
             <div>
               <Badge variant="warning" className="mb-4 gap-2 px-3 py-2">
                 <Sparkles className="size-4" />
-                Grace a vous
+                Grâce à vous
               </Badge>
               <h1 className="max-w-2xl font-serif text-3xl leading-[1.03] font-bold text-[var(--primary-strong)] sm:text-5xl sm:leading-[0.98] lg:text-6xl">
-                Aidez-nous a faire perdurer ce magnifique projet !
+                Aidez-nous à faire perdurer ce magnifique projet !
               </h1>
               <p className="mt-4 max-w-xl text-base leading-7 text-[var(--muted)]">
                 Votre participation fait vivre les collelim, les programmes
-                d&apos;etude, les Yechivot Ben Hazmanim et les soirees de hizouk.
+                d’étude, les Yéchivot Ben Hazmanim et les soirées de hizouk.
               </p>
             </div>
 
@@ -104,11 +104,11 @@ export function DonationHero({ children }: { children: ReactNode }) {
           <div className="flex flex-wrap gap-3">
             <Badge variant="info" className="gap-2 px-3 py-2">
               <ShieldCheck className="size-4" />
-              Paiement securise
+              Paiement sécurisé
             </Badge>
             <Badge variant="success" className="gap-2 px-3 py-2">
               <ReceiptText className="size-4" />
-              Cerfa rattache au don
+              Cerfa rattaché au don
             </Badge>
           </div>
           </div>

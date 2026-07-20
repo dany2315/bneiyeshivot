@@ -31,7 +31,7 @@ export async function createVisaRequest(formData: FormData) {
     adminPath: "visa",
     payload,
     requestId: request.id,
-    typeLabel: "visa etudiant",
+    typeLabel: "visa étudiant",
   });
 
   return {
@@ -47,7 +47,7 @@ export async function createKoupatHolimRequest(formData: FormData) {
     adminPath: "koupat-holim",
     payload,
     requestId: request.id,
-    typeLabel: "koupat holim",
+    typeLabel: "Koupat Holim",
   });
 
   return {

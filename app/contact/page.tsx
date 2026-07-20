@@ -26,8 +26,8 @@ export default function ContactPage() {
             <span className="eyebrow">Nous contacter</span>
             <h1>Contact</h1>
             <p>
-              Une question, une demande d&apos;accompagnement ou un besoin pratique ?
-              Notre equipe vous repond en France comme en Israel.
+              Une question, une demande d’accompagnement ou un besoin pratique ?
+              Notre équipe vous répond en France comme en Israël.
             </p>
           </div>
         </section>
@@ -64,8 +64,8 @@ export default function ContactPage() {
                   </CardTitle>
                   <CardDescription className="space-y-3">
                     <span>
-                      Recevez les annonces et les prochaines activites de
-                      l&apos;association.
+                      Recevez les annonces et les prochaines activités de
+                      l’association.
                     </span>
                     <Button asChild className="h-auto w-full justify-between rounded-lg border border-[var(--border)] bg-white px-4 py-3 text-[var(--primary)] shadow-sm transition hover:border-[rgba(242,99,0,0.32)] hover:bg-[var(--subtle)]">
                       <a
@@ -84,7 +84,7 @@ export default function ContactPage() {
                           <span className="text-left">
                             <span className="block font-bold">Rejoindre le groupe</span>
                             <span className="block text-xs font-medium text-[var(--muted)]">
-                              Annonces et activites
+                              Annonces et activités
                             </span>
                           </span>
                         </span>
@@ -111,11 +111,11 @@ export default function ContactPage() {
                 <CardHeader>
                   <CardTitle className="contact-card-title">
                     <Phone className="size-5" aria-hidden="true" />
-                    Telephone
+                    Téléphone
                   </CardTitle>
                   <CardDescription>
                     <a href="tel:+33767967148">France : +33 7 67 96 71 48</a>
-                    <a href="tel:+972534727103">Israel : +972 53 472 7103</a>
+                    <a href="tel:+972534727103">Israël : +972 53 472 7103</a>
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -126,7 +126,7 @@ export default function ContactPage() {
                     Adresse
                   </CardTitle>
                   <CardDescription>
-                    17 Rehov Apisga, Bayit Vagan, Jerusalem
+                    17 Rehov Apisga, Bayit Vagan, Jérusalem
                   </CardDescription>
                 </CardHeader>
               </Card>

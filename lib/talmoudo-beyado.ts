@@ -55,7 +55,7 @@ function validateDapimRanges(value: string, context: z.RefinementCtx) {
     if (toIndex < fromIndex) {
       context.addIssue({
         code: "custom",
-        message: "Le daf de fin doit etre apres le daf de debut.",
+      message: "Le daf de fin doit être après le daf de début.",
       });
       return z.NEVER;
     }
@@ -76,14 +76,14 @@ function validateDapimRanges(value: string, context: z.RefinementCtx) {
 
 export const talmoudoRegistrationSchema = z.object({
   sessionId: z.string().trim().min(1, "Mivhan requis"),
-  firstName: z.string().trim().min(2, "Prenom requis"),
+  firstName: z.string().trim().min(2, "Prénom requis"),
   lastName: z.string().trim().min(2, "Nom requis"),
   email: z
     .string()
     .trim()
     .email("Email invalide")
     .transform((value) => value.toLowerCase()),
-  phone: z.string().trim().min(6, "Telephone requis"),
+  phone: z.string().trim().min(6, "Téléphone requis"),
   parentPhone: z.string().trim().optional().default(""),
   yeshiva: z.string().trim().min(2, "Yeshiva requise"),
   massehet: z.string().trim().min(2, "Massehet requise"),
@@ -144,7 +144,7 @@ export async function createTalmoudoRegistration(
     }
 
     if (!options.allowClosed && !isMivhanRegistrationOpen(session)) {
-      throw new Error("Les inscriptions sont fermees pour ce mivhan.");
+      throw new Error("Les inscriptions sont fermées pour ce mivhan.");
     }
 
     const fullName = `${input.firstName} ${input.lastName}`.trim();

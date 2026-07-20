@@ -55,14 +55,14 @@ const homeServices = [
     title: "Assurance maladie",
     subtitle: "Votre couverture santé en Israël, sans stress.",
     description:
-      "Nous vous accompagnons gratuitement dans toutes vos démarches afin d'obtenir rapidement votre assurance maladie.",
+      "Nous vous accompagnons gratuitement dans toutes vos démarches afin d’obtenir rapidement votre assurance maladie.",
     action: "Faire une demande",
     href: "/demandes/koupat-holim",
     learnMoreHref: "/services/assurance-maladie",
     image: "/services/assurance-maladie.jpg",
   },
   {
-    title: "Visa etudiant",
+    title: "Visa étudiant",
     subtitle: "Étudiez en Israël en toute sérénité.",
     description:
       "De la première demande au renouvellement, notre équipe vous accompagne à chaque étape de votre dossier.",
@@ -75,7 +75,7 @@ const homeServices = [
     title: "ETA-IL",
     subtitle: "Préparez votre entrée en Israël en quelques clics.",
     description:
-      "Nous vous guidons pour effectuer votre demande d'ETA-IL rapidement et sans erreur.",
+      "Nous vous guidons pour effectuer votre demande d’ETA-IL rapidement et sans erreur.",
     action: "Commencer ma demande",
     href: "https://israel-entry.piba.gov.il/apply-for-an-eta-il-1",
     learnMoreHref: "/services/eta-il",
@@ -83,7 +83,7 @@ const homeServices = [
   },
   {
     title: "Installation en Israël",
-    subtitle: "Tout ce qu'il faut pour bien démarrer votre nouvelle vie.",
+    subtitle: "Tout ce qu’il faut pour bien démarrer votre nouvelle vie.",
     description:
       "Retrouvez toutes les informations essentielles pour préparer sereinement votre arrivée en Israël.",
     action: "Préparer mon arrivée",
@@ -93,7 +93,7 @@ const homeServices = [
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
   },
   {
-    title: "Boutique Literie",
+    title: "Boutique literie",
     subtitle: "Installez-vous dès votre arrivée.",
     description:
       "Commandez votre kit de literie complet et retrouvez un logement prêt à vous accueillir.",
@@ -143,7 +143,7 @@ const galleryAlbums = [
     ],
   },
   {
-    title: "Videos",
+    title: "Vidéos",
     description: "Captures de cours, prises de parole et moments forts.",
     photos: [
       "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=900&q=80",
@@ -155,8 +155,8 @@ const galleryAlbums = [
     ],
   },
   {
-    title: "Evenements",
-    description: "Soirees, rassemblements et rendez-vous communautaires.",
+    title: "Événements",
+    description: "Soirées, rassemblements et rendez-vous communautaires.",
     photos: [
       "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
@@ -168,7 +168,7 @@ const galleryAlbums = [
   },
   {
     title: "Voyages",
-    description: "Sorties, decouvertes et temps forts en Israel.",
+    description: "Sorties, découvertes et temps forts en Israël.",
     photos: [
       "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1549989476-69a92fa57c36?auto=format&fit=crop&w=900&q=80",
@@ -180,7 +180,7 @@ const galleryAlbums = [
   },
   {
     title: "Cours",
-    description: "Etude, ateliers et accompagnement personnel.",
+    description: "Étude, ateliers et accompagnement personnel.",
     photos: [
       "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=900&q=80",
@@ -272,28 +272,28 @@ const testimonials = [
     name: "Rav D.",
     role: "Rav accompagnateur",
     quote:
-      "Bnei Yeshivot donne aux jeunes un cadre clair, chaleureux et serieux pour avancer en Israel.",
+      "Bnei Yeshivot donne aux jeunes un cadre clair, chaleureux et sérieux pour avancer en Israël.",
     tag: "Rabbanim",
   },
   {
     name: "Yaakov B.",
     role: "Bahour",
     quote:
-      "J'ai pu gerer mes demarches et rejoindre les programmes sans me perdre dans l'administratif.",
+      "J’ai pu gérer mes démarches et rejoindre les programmes sans me perdre dans l’administratif.",
     tag: "Bahourim",
   },
   {
     name: "Famille C.",
     role: "Parents",
     quote:
-      "Le suivi nous a rassures avant le depart et pendant l'installation de notre fils.",
+      "Le suivi nous a rassurés avant le départ et pendant l’installation de notre fils.",
     tag: "Parents",
   },
   {
     name: "Ariel M.",
     role: "Ancien participant",
     quote:
-      "Les Chabbatot, les cours et le lien avec l'equipe m'ont marque durablement.",
+      "Les Chabbatot, les cours et le lien avec l’équipe m’ont marqué durablement.",
     tag: "Anciens",
   },
 ];
@@ -376,22 +376,22 @@ export default async function Home() {
                 className="hero-logo"
                 priority
               />
-              <span className="eyebrow">France - Israel</span>
+              <span className="eyebrow">France - Israël</span>
               <h1>Bnei Yeshivot</h1>
               <p>
-                La plateforme de reference pour accompagner les etudiants,
-                bahourim, avrekhim et familles francophones : demarches,
-                programmes Torah, evenements, dons et Espace Bahour.
+                La plateforme de référence pour accompagner les étudiants,
+                bahourim, avrekhim et familles francophones : démarches,
+                programmes Torah, événements, dons et Espace Bahour.
               </p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
-                  <Link href="/venir-etudier">Je viens etudier en Israel</Link>
+                  <Link href="/venir-etudier">Je viens étudier en Israël</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
                   <Link href="/dons">Faire un don</Link>
                 </Button>
                 <Button asChild size="lg">
-                  <Link href="/inscription">M&apos;inscrire</Link>
+                  <Link href="/inscription">M’inscrire</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
                   <Link className="relative" href="/dvar-torah">
@@ -411,7 +411,7 @@ export default async function Home() {
               </CardHeader>
               <ul className="journey-list">
                 <li>
-                  <span>Visa etudiant</span>
+                  <span>Visa étudiant</span>
                   <Badge variant="warning">Formulaire</Badge>
                 </li>
                 <li>
@@ -449,12 +449,12 @@ export default async function Home() {
           <div className="container">
             <div className="home-video-frame">
               <div className="home-video-copy">
-                <span className="eyebrow">Video de presentation</span>
-                <h2>Decouvrir Bnei Yeshivot en quelques minutes</h2>
+                <span className="eyebrow">Vidéo de présentation</span>
+                <h2>Découvrir Bnei Yeshivot en quelques minutes</h2>
                 <p>
-                  Une presentation claire de l&apos;accompagnement Bnei Yeshivot,
-                  des services et de la vision portee pour les jeunes
-                  francophones en Israel.
+                  Une présentation claire de l’accompagnement Bnei Yeshivot,
+                  des services et de la vision portée pour les jeunes
+                  francophones en Israël.
                 </p>
               </div>
               <div className="home-video-player overflow-hidden" aria-label="Video de presentation">
@@ -476,9 +476,9 @@ export default async function Home() {
             <div className="section-header">
               <h2>Notre impact</h2>
               <p>
-                Chaque chiffre represente une action concrete menee aupres des
-                jeunes francophones : accueil, demarches, installation et
-                programmes pendant l&apos;annee.
+                Chaque chiffre représente une action concrète menée auprès des
+                jeunes francophones : accueil, démarches, installation et
+                programmes pendant l’année.
               </p>
             </div>
             <div className="grid grid-4">
@@ -494,8 +494,8 @@ export default async function Home() {
             <div className="section-header">
               <h2>Nos services</h2>
               <p>
-                Avant l&apos;arrivee comme pendant l&apos;annee, notre equipe vous
-                accompagne dans les demarches qui comptent pour vous installer
+                Avant l’arrivée comme pendant l’année, notre équipe vous
+                accompagne dans les démarches qui comptent pour vous installer
                 sereinement et garder un lien clair avec Bnei Yeshivot.
               </p>
             </div>
@@ -535,7 +535,7 @@ export default async function Home() {
             <div className="section-header">
               <h2>Nos programmes</h2>
               <p>
-                Les differents poles de Bnei Yeshivot : etude, vacances,
+                Les différents pôles de Bnei Yeshivot : étude, vacances,
                 examens, Chabbatot et accompagnement personnel.
               </p>
             </div>
@@ -588,8 +588,8 @@ export default async function Home() {
             <div className="section-header">
               <h2>Galerie</h2>
               <p>
-                Une galerie moderne pour mettre en avant photos, videos,
-                evenements, voyages, cours et Shabbatot.
+                Une galerie moderne pour mettre en avant photos, vidéos,
+                événements, voyages, cours et Shabbatot.
               </p>
             </div>
             <div className="gallery-grid">
@@ -617,7 +617,7 @@ export default async function Home() {
                       </div>
                       <CardHeader>
                         <Badge variant={index % 2 === 0 ? "info" : "warning"}>
-                          {album.items.length} media(s)
+                          {album.items.length} média(s)
                         </Badge>
                         <CardTitle>{album.title}</CardTitle>
                         <CardDescription>{album.description}</CardDescription>
@@ -679,7 +679,7 @@ export default async function Home() {
           <div className="container">
             <div className="section-header">
               <div>
-                <h2>Les prochains evenements</h2>
+                <h2>Les prochains événements</h2>
               </div>
               <Button asChild variant="secondary">
                 <Link href="/evenements">Voir tout</Link>
@@ -720,11 +720,11 @@ export default async function Home() {
                     <CardContent className="grid gap-4">
                       <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--muted)]">
                         <MapPin className="size-4" />
-                        {event.location || "Lieu a confirmer"}
+                        {event.location || "Lieu à confirmer"}
                       </span>
                       <Button asChild variant={event.requiresRegistration ? "accent" : "secondary"}>
                         <Link href={event.requiresRegistration ? "/evenements" : "/contact"}>
-                          {event.requiresRegistration ? "S'inscrire" : "Contactez-nous"}
+                          {event.requiresRegistration ? "S’inscrire" : "Contactez-nous"}
                           <ArrowRight className="size-4" />
                         </Link>
                       </Button>
@@ -735,7 +735,7 @@ export default async function Home() {
             ) : (
               <Card>
                 <CardContent className="py-10 text-center text-base text-[var(--muted)]">
-                  Aucun evenement a venir pour le moment.
+                  Aucun événement à venir pour le moment.
                 </CardContent>
               </Card>
             )}
@@ -745,9 +745,9 @@ export default async function Home() {
         <section className="section">
           <div className="container">
             <div className="section-header">
-              <h2>Temoignages</h2>
+              <h2>Témoignages</h2>
               <p>
-                Une dizaine de temoignages videos : Rabbanim, Bahourim,
+                Une dizaine de témoignages vidéo : Rabbanim, Bahourim,
                 parents et anciens participants.
               </p>
             </div>
@@ -769,7 +769,7 @@ export default async function Home() {
                           </span>
                           <span className="testimonial-video">
                             <Film className="size-4" />
-                            Video
+                            Vidéo
                           </span>
                         </div>
                         <CardDescription className="testimonial-quote">
@@ -795,20 +795,20 @@ export default async function Home() {
           <div className="container donation-home-inner">
             <div>
               <span className="eyebrow">Kesher Nitsri</span>
-              <h2>Une communaute engagee</h2>
+              <h2>Une communauté engagée</h2>
               <p>
-                Ensemble, faisons grandir la solidarite francophone en Israel.
-                Kesher Nitsri est la communaute des personnes qui souhaitent
+                Ensemble, faisons grandir la solidarité francophone en Israël.
+                Kesher Nitsri est la communauté des personnes qui souhaitent
                 soutenir durablement les actions de Bnei Yeshivot.
               </p>
               <ul className="donation-list kesher-home-list">
                 <li>
                   <Gift className="size-4" />
-                  Distributions pour les fetes
+                  Distributions pour les fêtes
                 </li>
                 <li>
                   <ShoppingBasket className="size-4" />
-                  Bons d&apos;achat pour les familles
+                  Bons d’achat pour les familles
                 </li>
                 <li>
                   <School className="size-4" />
@@ -816,7 +816,7 @@ export default async function Home() {
                 </li>
                 <li>
                   <Heart className="size-4" />
-                  Actions de solidarite
+                  Actions de solidarité
                 </li>
               </ul>
               <Button asChild variant="accent" size="lg">
@@ -827,8 +827,8 @@ export default async function Home() {
               <CardHeader>
                 <CardTitle>Soutenir les jeunes, les Avrekhim et les familles</CardTitle>
                 <CardDescription>
-                  Grace a l&apos;engagement de ses membres, Bnei Yeshivot developpe
-                  des actions concretes tout au long de l&apos;annee.
+                  Grâce à l’engagement de ses membres, Bnei Yeshivot développe
+                  des actions concrètes tout au long de l’année.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -847,19 +847,19 @@ export default async function Home() {
             </div>
             <div>
               <span className="eyebrow">Faire un don</span>
-              <h2>Ensemble, construisons l&apos;avenir des jeunes francophones.</h2>
+              <h2>Ensemble, construisons l’avenir des jeunes francophones.</h2>
               <p>
                 Votre soutien permet de financer les programmes Torah, les aides
-                administratives, les Shabbatot, les kits d&apos;installation et
-                les etudiants en difficulte.
+                administratives, les Shabbatot, les kits d’installation et
+                les étudiants en difficulté.
               </p>
               <ul className="donation-list">
                 {[
                   "Programmes Torah",
                   "Aides administratives",
                   "Shabbatot",
-                  "Kits d'installation",
-                  "Etudiants en difficulte",
+                  "Kits d’installation",
+                  "Étudiants en difficulté",
                 ].map((item) => (
                   <li key={item}>
                     <CheckCircle2 className="size-4" />

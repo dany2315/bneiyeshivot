@@ -17,7 +17,7 @@ import {
 import { ArrowRight, CalendarDays, MapPin, Users } from "lucide-react";
 
 export const metadata = {
-  title: "Evenements",
+  title: "Événements",
 };
 
 export default async function EventsPage() {
@@ -47,11 +47,11 @@ export default async function EventsPage() {
       <main>
         <section className="page-hero">
           <div className="container">
-            <span className="eyebrow">Communaute Bnei Yeshivot</span>
-            <h1>Evenements</h1>
+            <span className="eyebrow">Communauté Bnei Yeshivot</span>
+            <h1>Événements</h1>
             <p>
-              Retrouvez les prochains rendez-vous ouverts a la communaute et les
-              souvenirs des evenements passes.
+              Retrouvez les prochains rendez-vous ouverts à la communauté et les
+              souvenirs des événements passés.
             </p>
           </div>
         </section>
@@ -59,8 +59,8 @@ export default async function EventsPage() {
         <section className="section">
           <div className="container">
             <div className="section-header">
-              <h2>Evenements a venir</h2>
-              <p>Les prochains rendez-vous de la communaute.</p>
+              <h2>Événements à venir</h2>
+              <p>Les prochains rendez-vous de la communauté.</p>
             </div>
             {upcoming.length > 0 ? (
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -74,7 +74,7 @@ export default async function EventsPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState message="Aucun evenement a venir pour le moment." />
+              <EmptyState message="Aucun événement à venir pour le moment." />
             )}
           </div>
         </section>
@@ -83,8 +83,8 @@ export default async function EventsPage() {
           <section className="section band">
             <div className="container">
               <div className="section-header">
-                <h2>Evenements passes</h2>
-                <p>Photos, videos et souvenirs des rencontres precedentes.</p>
+                <h2>Événements passés</h2>
+                <p>Photos, vidéos et souvenirs des rencontres précédentes.</p>
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {past.map((event) => (
@@ -151,7 +151,7 @@ function EventMeta({ event }: { event: EventWithMeta }) {
       </span>
       <span className="inline-flex items-center gap-1">
         <MapPin className="size-4" />
-        {event.location || "Lieu a confirmer"}
+        {event.location || "Lieu à confirmer"}
       </span>
       {event.capacity != null && (
         <span className="inline-flex items-center gap-1">
@@ -177,7 +177,7 @@ function UpcomingCard({
       <EventImage
         badge={
           <>
-            <StatusBadge tone="blue">A venir</StatusBadge>
+            <StatusBadge tone="blue">À venir</StatusBadge>
             {event.requiresRegistration && (
               <Badge variant="success">Inscription</Badge>
             )}
@@ -193,19 +193,19 @@ function UpcomingCard({
         <EventMeta event={event} />
         {event.requiresRegistration ? (
           isRegistered ? (
-            <StatusBadge tone="green">Deja inscrit</StatusBadge>
+            <StatusBadge tone="green">Déjà inscrit</StatusBadge>
           ) : (
             <form action={registerForEvent}>
               <input name="eventId" type="hidden" value={event.id} />
               <input name="slug" type="hidden" value={event.slug} />
               <Button className="w-full text-white sm:w-fit" type="submit">
-                S&apos;inscrire
+                S’inscrire
                 <ArrowRight />
               </Button>
               {!loggedIn && (
                 <span className="mt-2 block text-sm text-[var(--muted)] ">
-                  Connexion a l&apos;Espace Bahour demandee avant
-                  l&apos;inscription.
+                  Connexion à l’Espace Bahour demandée avant
+                  l’inscription.
                 </span>
               )}
             </form>
@@ -227,7 +227,7 @@ function PastCard({ event }: { event: EventWithMeta }) {
   return (
     <Card className="overflow-hidden border-[var(--border)] bg-white shadow-[0_20px_70px_rgba(6,40,70,0.08)] pt-0">
       <EventImage
-        badge={<StatusBadge tone="gold">Passe</StatusBadge>}
+        badge={<StatusBadge tone="gold">Passé</StatusBadge>}
         imageKey={event.imageKey}
       />
       <CardHeader>

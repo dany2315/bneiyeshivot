@@ -104,7 +104,7 @@ export function StorefrontClient({
               {storefront.name}
             </strong>
             <small className="block truncate text-[var(--muted)]">
-              Reservation sans paiement
+              Réservation sans paiement
             </small>
           </div>
           <CartSheet
@@ -123,10 +123,10 @@ export function StorefrontClient({
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
             <CheckCircle2 className="size-4" />
-            <AlertTitle>Reservation envoyee</AlertTitle>
+            <AlertTitle>Réservation envoyée</AlertTitle>
             <AlertDescription>
-              Nous avons bien recu votre reservation. L&apos;equipe vous
-              recontactera pour confirmer la disponibilite.
+              Nous avons bien reçu votre réservation. L’équipe vous
+              recontactera pour confirmer la disponibilité.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -134,10 +134,10 @@ export function StorefrontClient({
         {!storefront.active ? (
           <Alert className="border-amber-200 bg-amber-50 text-amber-950">
             <ShoppingBag className="size-4" />
-            <AlertTitle>Boutique fermee</AlertTitle>
+            <AlertTitle>Boutique fermée</AlertTitle>
             <AlertDescription>
-              Les reservations sont momentanement fermees. Vous pouvez consulter les produits,
-              mais il n&apos;est pas possible de reserver pour le moment.
+              Les réservations sont momentanément fermées. Vous pouvez consulter les produits,
+              mais il n’est pas possible de réserver pour le moment.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -163,7 +163,7 @@ export function StorefrontClient({
                 />
                 <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
                   {product.featured ? (
-                    <Badge className="w-fit" variant="success">Recommande</Badge>
+                    <Badge className="w-fit" variant="success">Recommandé</Badge>
                   ) : null}
                   <CardTitle className="text-base md:text-lg">
                     <Link href={`/boutique/${product.slug}`}>
@@ -187,9 +187,9 @@ export function StorefrontClient({
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Boutique en preparation</CardTitle>
+              <CardTitle>Boutique en préparation</CardTitle>
               <CardDescription>
-                Les produits seront bientot disponibles a la reservation.
+                Les produits seront bientôt disponibles à la réservation.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -227,9 +227,9 @@ function CartSheet({
       </SheetTrigger>
       <SheetContent className="w-full max-w-full overflow-x-hidden overflow-y-auto sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Panier de reservation</SheetTitle>
+          <SheetTitle>Panier de réservation</SheetTitle>
           <SheetDescription>
-            Aucun paiement en ligne. L&apos;equipe confirme ensuite.
+            Aucun paiement en ligne. L’équipe confirme ensuite.
           </SheetDescription>
         </SheetHeader>
         <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pb-4">
@@ -280,7 +280,7 @@ function CartSheet({
           />
           <Textarea
             name="note"
-            placeholder="Note pour l'equipe : livraison, adresse, besoin particulier..."
+            placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
           />
 
           {storefront.pickupDetails ? (
@@ -293,7 +293,7 @@ function CartSheet({
             disabled={!storefront.active || products.length === 0 || cartItems.length === 0}
           >
             <ShoppingBag className="size-4" />
-            {storefront.active ? "Envoyer la reservation" : "Reservations fermees"}
+            {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
           </Button>
         </form>
       </SheetContent>
@@ -316,7 +316,7 @@ export function StoreReservationCustomerFields({
   if (!isConnected) {
     return (
       <>
-        <Input disabled={disabled} name="customerName" placeholder="Nom et prenom" required />
+        <Input disabled={disabled} name="customerName" placeholder="Nom et prénom" required />
         <Input disabled={disabled} name="customerEmail" placeholder="Email" required type="email" />
         <PhoneInputGroup
           disabled={disabled}

@@ -139,7 +139,7 @@ function isOpen(session: AdminSession) {
 }
 
 function formatReward(amountCents: number | null, currency: string) {
-  if (amountCents === null) return "Non renseigne";
+  if (amountCents === null) return "Non renseigné";
 
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -187,7 +187,7 @@ function masechtotStats(registrations: AdminRegistration[]) {
   const counts = new Map<string, number>();
 
   registrations.forEach((registration) => {
-    const key = registration.massehet?.trim() || "Non renseignee";
+    const key = registration.massehet?.trim() || "Non renseignée";
     counts.set(key, (counts.get(key) ?? 0) + 1);
   });
 
@@ -201,8 +201,8 @@ function EditMivhanDialog({ session }: { session: AdminSession }) {
     <TalmoudoDialogActionForm
       action={updateMivhanSessionSettingsState}
       className="sm:max-w-2xl"
-      description="Modifiez la date, le lieu, le delai de fermeture et le statut des inscriptions."
-      submitLabel="Enregistrer les reglages"
+      description="Modifiez la date, le lieu, le délai de fermeture et le statut des inscriptions."
+      submitLabel="Enregistrer les réglages"
       title="Modifier le mivhan"
       trigger={
         <Button className="w-full justify-start" size="sm" variant="secondary">
@@ -253,7 +253,7 @@ function EditMivhanDialog({ session }: { session: AdminSession }) {
         Fermer les inscriptions manuellement
       </label>
       <p className="text-sm text-[var(--muted)]">
-        Fermeture automatique prevue le {formatDate(getCloseDate(session))}.
+        Fermeture automatique prévue le {formatDate(getCloseDate(session))}.
       </p>
     </TalmoudoDialogActionForm>
   );
@@ -269,7 +269,7 @@ function RegistrationIdentityFields({
       <Input
         defaultValue={registration?.firstName ?? registration?.user?.firstName ?? ""}
         name="firstName"
-        placeholder="Prenom"
+        placeholder="Prénom"
         required
       />
       <Input
@@ -288,13 +288,13 @@ function RegistrationIdentityFields({
       <Input
         defaultValue={registration?.phone ?? registration?.user?.phone ?? ""}
         name="phone"
-        placeholder="Telephone"
+        placeholder="Téléphone"
         required
       />
       <Input
         defaultValue={registration?.user?.parentPhone ?? ""}
         name="parentPhone"
-        placeholder="Telephone parents"
+        placeholder="Téléphone des parents"
       />
       <Input
         defaultValue={registration?.yeshiva ?? registration?.user?.yeshiva ?? ""}
@@ -311,7 +311,7 @@ function AddRegistrationDialog({ sessionId }: { sessionId: string }) {
     <TalmoudoDialogActionForm
       action={createAdminTalmoudoRegistrationState}
       className="sm:max-w-3xl"
-      description="Vous pouvez inscrire un utilisateur existant ou creer son compte a partir de son email."
+      description="Vous pouvez inscrire un utilisateur existant ou créer son compte à partir de son email."
       submitLabel="Inscrire"
       title="Inscription admin"
       trigger={
@@ -367,7 +367,7 @@ function DeleteMivhanDialog({ session }: { session: AdminSession }) {
           <AlertDialogTitle>Supprimer ce mivhan ?</AlertDialogTitle>
           <AlertDialogDescription>
             Cette action supprimera le mivhan &quot;{session.title}&quot; et
-            toutes ses inscriptions. Elle est definitive.
+            toutes ses inscriptions. Elle est définitive.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -375,7 +375,7 @@ function DeleteMivhanDialog({ session }: { session: AdminSession }) {
           <form action={formAction}>
             <input name="sessionId" type="hidden" value={session.id} />
             <AlertDialogAction disabled={pending} type="submit">
-              Oui je supprime
+              Oui, je supprime
             </AlertDialogAction>
           </form>
         </AlertDialogFooter>
@@ -393,9 +393,9 @@ function EditRegistrationDialog({
     <TalmoudoDialogActionForm
       action={updateAdminTalmoudoRegistrationState}
       className="sm:max-w-3xl"
-      description="Modifiez les informations de l'inscription de ce mivhan."
+      description="Modifiez les informations de l’inscription de ce mivhan."
       submitLabel="Enregistrer"
-      title="Modifier l'inscription"
+      title="Modifier l’inscription"
       trigger={
         <Button size="sm" variant="secondary">
           <Edit3 />
@@ -420,13 +420,13 @@ function ResultDialog({ registration }: { registration: AdminRegistration }) {
     <TalmoudoDialogActionForm
       action={updateMivhanRegistrationResultState}
       className="sm:max-w-xl"
-      description="La note et la recompense sont renseignees ensemble. Un email est envoye au Bahour."
-      submitLabel="Enregistrer et envoyer l'email"
-      title="Note et recompense"
+      description="La note et la récompense sont renseignées ensemble. Un email est envoyé au Bahour."
+      submitLabel="Enregistrer et envoyer l’email"
+      title="Note et récompense"
       trigger={
         <Button size="sm" variant="secondary">
           <ClipboardCheck />
-          Resultat
+          Résultat
         </Button>
       }
     >
@@ -445,7 +445,7 @@ function ResultDialog({ registration }: { registration: AdminRegistration }) {
           />
         </div>
         <div className="grid gap-2">
-          <Label>Montant recompense</Label>
+          <Label>Montant récompense</Label>
           <Input
             defaultValue={
               registration.rewardAmountCents === null
@@ -477,7 +477,7 @@ function ResultDialog({ registration }: { registration: AdminRegistration }) {
           name="rewardPaid"
           type="checkbox"
         />
-        Recompense deja donnee
+        Récompense déjà donnée
       </label>
       <Input
         defaultValue={registration.note ?? ""}
@@ -594,9 +594,9 @@ export function AdminTalmoudoPageClient({
         <TalmoudoDialogActionForm
           action={createMivhanSessionState}
           className="sm:max-w-2xl"
-          description="Fixez la date mensuelle, le lieu et le delai de fermeture des inscriptions."
-          submitLabel="Creer"
-          title="Creer un mivhan"
+          description="Fixez la date mensuelle, le lieu et le délai de fermeture des inscriptions."
+          submitLabel="Créer"
+          title="Créer un mivhan"
           trigger={
             <Button>
               <CalendarPlus />
@@ -620,7 +620,7 @@ export function AdminTalmoudoPageClient({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="new-location">Lieu</Label>
-              <Input id="new-location" name="location" placeholder="Jerusalem" />
+              <Input id="new-location" name="location" placeholder="Jérusalem" />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="new-close-days">Fermeture X jours avant</Label>
@@ -649,7 +649,7 @@ export function AdminTalmoudoPageClient({
           <Card>
             <CardHeader>
               <CardTitle>{sessions.length}</CardTitle>
-              <CardDescription>Mivhanim crees</CardDescription>
+              <CardDescription>Mivhanim créés</CardDescription>
             </CardHeader>
           </Card>
           <Card>
@@ -661,7 +661,7 @@ export function AdminTalmoudoPageClient({
           <Card>
             <CardHeader>
               <CardTitle>{gradedCount}</CardTitle>
-              <CardDescription>Resultats renseignes</CardDescription>
+              <CardDescription>Résultats renseignés</CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -672,8 +672,8 @@ export function AdminTalmoudoPageClient({
             <h2>Gestion par mivhan</h2>
           </div>
           <p>
-            Selectionnez un mivhan pour voir ses inscriptions, rechercher un
-            Bahour et mettre a jour les resultats.
+            Sélectionnez un mivhan pour voir ses inscriptions, rechercher un
+            Bahour et mettre à jour les résultats.
           </p>
         </div>
 
@@ -682,7 +682,7 @@ export function AdminTalmoudoPageClient({
             <CardHeader>
               <CardTitle>Aucun mivhan</CardTitle>
               <CardDescription>
-                Creez le premier mivhan mensuel pour ouvrir les inscriptions.
+                Créez le premier mivhan mensuel pour ouvrir les inscriptions.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -735,7 +735,7 @@ export function AdminTalmoudoPageClient({
                     >
                       <div className="flex flex-wrap gap-2">
                         <StatusBadge tone={open ? "green" : "gold"}>
-                          {open ? "Ouvert" : "Ferme"}
+                          {open ? "Ouvert" : "Fermé"}
                         </StatusBadge>
                         <StatusBadge tone="blue">
                           {stats.total} inscrit(s)
@@ -752,17 +752,17 @@ export function AdminTalmoudoPageClient({
                           <strong className="block text-sm text-[var(--primary)]">
                             {stats.paid}
                           </strong>
-                          <span className="text-[11px] text-[var(--muted)]">payes</span>
+                          <span className="text-[11px] text-[var(--muted)]">payés</span>
                         </div>
                         <div className="rounded-md bg-[var(--subtle)] px-2 py-1">
                           <strong className="block text-sm text-[var(--primary)]">
                             {stats.unpaid}
                           </strong>
-                          <span className="text-[11px] text-[var(--muted)]">a payer</span>
+                          <span className="text-[11px] text-[var(--muted)]">à payer</span>
                         </div>
                       </div>
                       <p className="truncate text-xs text-[var(--muted)]">
-                        Ferme le {formatDate(getCloseDate(session))}
+                        Fermé le {formatDate(getCloseDate(session))}
                       </p>
                     </CardContent>
                   </Card>
@@ -777,7 +777,7 @@ export function AdminTalmoudoPageClient({
                     <div>
                       <CardTitle>{selectedSession.title}</CardTitle>
                       <CardDescription>
-                        Detail du mivhan, inscriptions et resultats.
+                        Détail du mivhan, inscriptions et résultats.
                       </CardDescription>
                     </div>
                   </div>
@@ -804,7 +804,7 @@ export function AdminTalmoudoPageClient({
                         </div>
                         <div>
                           <span className="text-xs font-semibold uppercase text-[var(--muted)]">
-                            Payes
+                            Payés
                           </span>
                           <p className="mt-1 text-2xl font-bold text-[var(--primary)]">
                             {selectedStats.paid}
@@ -812,7 +812,7 @@ export function AdminTalmoudoPageClient({
                         </div>
                         <div>
                           <span className="text-xs font-semibold uppercase text-[var(--muted)]">
-                            A payer
+                            À payer
                           </span>
                           <p className="mt-1 text-2xl font-bold text-[var(--primary)]">
                             {selectedStats.unpaid}
@@ -823,7 +823,7 @@ export function AdminTalmoudoPageClient({
                       <div className="grid gap-2">
                         <div className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
                           <BookOpen className="size-4 text-[var(--accent)]" />
-                          Repartition par massehet
+                          Répartition par massehet
                         </div>
                         {selectedMasechtotStats.length > 0 ? (
                           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -843,7 +843,7 @@ export function AdminTalmoudoPageClient({
                           </div>
                         ) : (
                           <p className="text-sm text-[var(--muted)]">
-                            Aucune massehet renseignee pour ce mivhan.
+                            Aucune massehet renseignée pour ce mivhan.
                           </p>
                         )}
                       </div>
@@ -872,19 +872,19 @@ export function AdminTalmoudoPageClient({
                           className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
                           value="pending-grade"
                         >
-                          A noter ({(selectedStats?.total ?? 0) - (selectedStats?.graded ?? 0)})
+                          À noter ({(selectedStats?.total ?? 0) - (selectedStats?.graded ?? 0)})
                         </TabsTrigger>
                         <TabsTrigger
                           className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
                           value="paid"
                         >
-                          Payes ({selectedStats?.paid ?? 0})
+                          Payés ({selectedStats?.paid ?? 0})
                         </TabsTrigger>
                         <TabsTrigger
                           className="text-[var(--primary)] data-active:bg-[var(--primary)] data-active:text-white hover:bg-[var(--subtle)]"
                           value="unpaid"
                         >
-                          A payer ({selectedStats?.unpaid ?? 0})
+                          À payer ({selectedStats?.unpaid ?? 0})
                         </TabsTrigger>
                       </TabsList>
                     </Tabs>
@@ -907,7 +907,7 @@ export function AdminTalmoudoPageClient({
                           <TableHead>Yeshiva</TableHead>
                           <TableHead>Limoud</TableHead>
                           <TableHead>Note</TableHead>
-                          <TableHead>Recompense</TableHead>
+                          <TableHead>Récompense</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Action</TableHead>
                         </TableRow>
@@ -946,7 +946,7 @@ export function AdminTalmoudoPageClient({
                             </TableCell>
                             <TableCell>
                               {registration.grade === null
-                                ? "A saisir"
+                                ? "À saisir"
                                 : `${registration.grade} / 100`}
                             </TableCell>
                             <TableCell>
@@ -958,15 +958,15 @@ export function AdminTalmoudoPageClient({
                                   )}
                                 </span>
                                 {registration.rewardPaid ? (
-                                  <StatusBadge tone="green">Donnee</StatusBadge>
+                                  <StatusBadge tone="green">Donnée</StatusBadge>
                                 ) : null}
                               </div>
                             </TableCell>
                             <TableCell>
                               {registration.resultEmailSentAt ? (
-                                <StatusBadge tone="green">Envoye</StatusBadge>
+                                <StatusBadge tone="green">Envoyé</StatusBadge>
                               ) : registration.grade !== null ? (
-                                <StatusBadge tone="gold">Non envoye</StatusBadge>
+                                <StatusBadge tone="gold">Non envoyé</StatusBadge>
                               ) : (
                                 "-"
                               )}
@@ -988,7 +988,7 @@ export function AdminTalmoudoPageClient({
                       <CardHeader>
                         <CardTitle>Aucune inscription</CardTitle>
                         <CardDescription>
-                          Aucune inscription ne correspond a ce mivhan ou a la
+                          Aucune inscription ne correspond à ce mivhan ou à la
                           recherche actuelle.
                         </CardDescription>
                       </CardHeader>

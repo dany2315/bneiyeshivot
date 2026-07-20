@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   if (!donationId || !line1 || !city || !zip || !country) {
     return NextResponse.json(
-      { error: "Adresse fiscale complete obligatoire pour le recu Cerfa." },
+      { error: "Adresse fiscale complète obligatoire pour le reçu Cerfa." },
       { status: 400 },
     );
   }

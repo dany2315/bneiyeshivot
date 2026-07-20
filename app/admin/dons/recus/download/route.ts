@@ -48,9 +48,9 @@ export async function GET(request: Request) {
 
   const indexRows = [
     [
-      "numero",
-      "date_emission",
-      "annee_fiscale",
+      "numéro",
+      "date_émission",
+      "année_fiscale",
       "donateur",
       "email",
       "montant",

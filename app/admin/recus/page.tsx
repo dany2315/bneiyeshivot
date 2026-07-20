@@ -66,16 +66,16 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Admin recus",
+  title: "Admin reçus",
 };
 
 type ReceiptDonation = Awaited<ReturnType<typeof getReceiptDonations>>[number];
 
 const receiptStatusLabels: Record<ReceiptStatus, string> = {
-  NOT_REQUESTED: "Non demande",
-  REQUESTED: "Demande",
-  GENERATED: "Genere",
-  SENT: "Envoye",
+  NOT_REQUESTED: "Non demandé",
+  REQUESTED: "Demandé",
+  GENERATED: "Généré",
+  SENT: "Envoyé",
 };
 
 function dateLabel(date: Date | null) {
@@ -234,11 +234,11 @@ function FilterBar({
         <InputGroupInput
           defaultValue={params.q ?? ""}
           name="q"
-          placeholder="Donateur, email, don, numero recu, Cerfa..."
+          placeholder="Donateur, email, don, numéro reçu, Cerfa..."
         />
       </InputGroup>
       <NativeSelect defaultValue={params.status ?? ""} name="status">
-        <NativeSelectOption value="">Statut recu</NativeSelectOption>
+        <NativeSelectOption value="">Statut reçu</NativeSelectOption>
         {Object.values(ReceiptStatus).map((status) => (
           <NativeSelectOption key={status} value={status}>
             {receiptStatusLabels[status]}
@@ -247,9 +247,9 @@ function FilterBar({
       </NativeSelect>
       <NativeSelect defaultValue={params.cerfa ?? ""} name="cerfa">
         <NativeSelectOption value="">Cerfa</NativeSelectOption>
-        <NativeSelectOption value="eligible">Eligible Cerfa</NativeSelectOption>
-        <NativeSelectOption value="missing">Cerfa a creer</NativeSelectOption>
-        <NativeSelectOption value="generated">PDF genere</NativeSelectOption>
+        <NativeSelectOption value="eligible">Éligible Cerfa</NativeSelectOption>
+        <NativeSelectOption value="missing">Cerfa à créer</NativeSelectOption>
+        <NativeSelectOption value="generated">PDF généré</NativeSelectOption>
       </NativeSelect>
       <NativeSelect defaultValue={params.type ?? ""} name="type">
         <NativeSelectOption value="">Type</NativeSelectOption>
@@ -262,7 +262,7 @@ function FilterBar({
       <Input
         defaultValue={params.fiscalYear ?? ""}
         name="fiscalYear"
-        placeholder="Annee"
+        placeholder="Année"
         type="number"
       />
       <Button type="submit">
@@ -270,7 +270,7 @@ function FilterBar({
         Filtrer
       </Button>
       <Button asChild variant="secondary">
-        <Link href="/admin/recus">Reset</Link>
+        <Link href="/admin/recus">Réinitialiser</Link>
       </Button>
     </form>
   );
@@ -318,25 +318,25 @@ function ReceiptActions({ donation }: { donation: ReceiptDonation }) {
         {stripeReceiptUrl ? (
           <DropdownMenuItem render={<a href={stripeReceiptUrl} rel="noreferrer" target="_blank" />}>
             <ExternalLink className="size-4" />
-            Voir le recu paiement
+            Voir le reçu de paiement
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem render={<form action={sendPaymentReceipt} />}>
           <input name="donationId" type="hidden" value={donation.id} />
           <button className="flex w-full items-center gap-2" type="submit">
             <Mail className="size-4" />
-            Envoyer le recu paiement
+            Envoyer le reçu de paiement
           </button>
         </DropdownMenuItem>
         {eligibleCerfa ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>Recu Cerfa</DropdownMenuLabel>
+            <DropdownMenuLabel>Reçu Cerfa</DropdownMenuLabel>
             <DropdownMenuItem render={<form action={sendCerfaReceipt} />}>
               <input name="donationId" type="hidden" value={donation.id} />
               <button className="flex w-full items-center gap-2" type="submit">
                 <Send className="size-4" />
-                Generer / envoyer le Cerfa
+                Générer / envoyer le Cerfa
               </button>
             </DropdownMenuItem>
             {cerfaUrl ? (
@@ -347,7 +347,7 @@ function ReceiptActions({ donation }: { donation: ReceiptDonation }) {
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<a download href={cerfaUrl} />}>
                   <Download className="size-4" />
-                  Telecharger le Cerfa
+                  Télécharger le Cerfa
                 </DropdownMenuItem>
               </>
             ) : null}
@@ -362,9 +362,9 @@ function ReceiptBulkDownloadCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Export groupe des recus Cerfa</CardTitle>
+        <CardTitle>Export groupé des reçus Cerfa</CardTitle>
         <CardDescription>
-          Le ZIP contient un index CSV et les PDF Cerfa emis sur la plage choisie.
+          Le ZIP contient un index CSV et les PDF Cerfa émis sur la plage choisie.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -373,11 +373,11 @@ function ReceiptBulkDownloadCard() {
           className="grid gap-3 md:grid-cols-[180px_180px_auto]"
           method="get"
         >
-          <Input aria-label="Date debut" name="from" type="date" />
+          <Input aria-label="Date début" name="from" type="date" />
           <Input aria-label="Date fin" name="to" type="date" />
           <Button className="w-fit" type="submit" variant="secondary">
             <Download className="size-4" />
-            Telecharger les Cerfa
+            Télécharger les Cerfa
           </Button>
         </form>
       </CardContent>
@@ -403,7 +403,7 @@ export default async function AdminReceiptsPage({
       <div className="admin-header">
         <div>
           <span className="eyebrow">Paiements</span>
-          <h1>Recus</h1>
+          <h1>Reçus</h1>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
@@ -415,7 +415,7 @@ export default async function AdminReceiptsPage({
           <Button asChild>
             <Link href="/admin/dons">
               <FileCheck className="size-4" />
-              Gerer les dons
+              Gérer les dons
             </Link>
           </Button>
         </div>
@@ -437,13 +437,13 @@ export default async function AdminReceiptsPage({
         <Card>
           <CardHeader>
             <CardTitle>{stats.generated}</CardTitle>
-            <CardDescription>{stats.sent} envoyes</CardDescription>
+            <CardDescription>{stats.sent} envoyés</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>{stats.missing}</CardTitle>
-            <CardDescription>Cerfa a creer</CardDescription>
+            <CardDescription>Cerfa à créer</CardDescription>
           </CardHeader>
         </Card>
       </section>
@@ -456,13 +456,13 @@ export default async function AdminReceiptsPage({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle>Gestion des recus</CardTitle>
+              <CardTitle>Gestion des reçus</CardTitle>
               <CardDescription>
-                Recherche par donateur, don, recu de paiement et recu Cerfa.
+                Recherche par donateur, don, reçu de paiement et reçu Cerfa.
               </CardDescription>
             </div>
             <Badge variant="info" className="px-3 py-2">
-              {donations.length} resultat(s)
+              {donations.length} résultat(s)
             </Badge>
           </div>
         </CardHeader>
@@ -474,8 +474,8 @@ export default async function AdminReceiptsPage({
                 <TableRow>
                   <TableHead>Donateur</TableHead>
                   <TableHead>Don</TableHead>
-                  <TableHead>Recu paiement</TableHead>
-                  <TableHead>Recu Cerfa</TableHead>
+                  <TableHead>Reçu paiement</TableHead>
+                  <TableHead>Reçu Cerfa</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -501,7 +501,7 @@ export default async function AdminReceiptsPage({
                             {donation.donorEmail}
                           </span>
                           <span className="text-xs font-bold text-[var(--muted)]">
-                            Envoi recus: {receiptEmail(donation)}
+                            Envoi reçus : {receiptEmail(donation)}
                           </span>
                         </div>
                       </TableCell>
@@ -543,15 +543,15 @@ export default async function AdminReceiptsPage({
                         <div className="grid gap-1">
                           <strong>
                             {eligibleCerfa
-                              ? donation.receipt?.number ?? "A creer"
+                              ? donation.receipt?.number ?? "À créer"
                               : "Sans Cerfa"}
                           </strong>
                           <span className="text-sm text-[var(--muted)]">
                             {donation.receipt
                               ? `${receiptTypeLabels[donation.receipt.type]} - ${dateLabel(donation.receipt.issuedAt)}`
                               : eligibleCerfa
-                                ? "Recu fiscal non genere"
-                                : "Don non eligible"}
+                                ? "Reçu fiscal non généré"
+                                : "Don non éligible"}
                           </span>
                           {cerfaUrl ? (
                             <Button asChild className="w-fit" size="sm" variant="secondary">

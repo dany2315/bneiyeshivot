@@ -160,16 +160,16 @@ export function DonationActionsDropdown({
     setFiscalUpdated(false);
     setSentCerfa(false);
     setIsUpdatingFiscal(true);
-    const toastId = toast.loading("Mise a jour des donnees fiscales...");
+    const toastId = toast.loading("Mise à jour des données fiscales...");
 
     try {
       await updateDonationDetails(formData);
       setFiscalUpdated(true);
-      toast.success("Donnees fiscales mises a jour.", { id: toastId });
+      toast.success("Données fiscales mises à jour.", { id: toastId });
     } catch (error) {
       const message = actionErrorMessage(
         error,
-        "Impossible de mettre a jour les donnees fiscales.",
+        "Impossible de mettre à jour les données fiscales.",
       );
       setFiscalError(message);
       toast.error(message, { id: toastId });
@@ -179,26 +179,26 @@ export function DonationActionsDropdown({
   }
 
   async function handlePaymentReceiptSubmit(formData: FormData) {
-    const toastId = toast.loading("Envoi du recu de paiement...");
+    const toastId = toast.loading("Envoi du reçu de paiement...");
 
     try {
       await sendPaymentReceipt(formData);
-      toast.success("Recu de paiement envoye.", { id: toastId });
+      toast.success("Reçu de paiement envoyé.", { id: toastId });
     } catch (error) {
-      toast.error(actionErrorMessage(error, "Impossible d'envoyer le recu."), {
+      toast.error(actionErrorMessage(error, "Impossible d’envoyer le reçu."), {
         id: toastId,
       });
     }
   }
 
   async function handleCerfaReceiptSubmit(formData: FormData) {
-    const toastId = toast.loading("Generation et envoi du Cerfa...");
+    const toastId = toast.loading("Génération et envoi du Cerfa...");
 
     try {
       await sendCerfaReceipt(formData);
-      toast.success("Cerfa envoye.", { id: toastId });
+      toast.success("Cerfa envoyé.", { id: toastId });
     } catch (error) {
-      toast.error(actionErrorMessage(error, "Impossible d'envoyer le Cerfa."), {
+      toast.error(actionErrorMessage(error, "Impossible d’envoyer le Cerfa."), {
         id: toastId,
       });
     }
@@ -210,7 +210,7 @@ export function DonationActionsDropdown({
     try {
       await refundDonation(formData);
       setRefundOpen(false);
-      toast.success("Remboursement effectue.", { id: toastId });
+      toast.success("Remboursement effectué.", { id: toastId });
     } catch (error) {
       toast.error(actionErrorMessage(error, "Remboursement impossible."), {
         id: toastId,
@@ -228,9 +228,9 @@ export function DonationActionsDropdown({
     try {
       await sendCerfaReceipt(formData);
       setSentCerfa(true);
-      toast.success("Cerfa envoye.", { id: toastId });
+      toast.success("Cerfa envoyé.", { id: toastId });
     } catch (error) {
-      const message = actionErrorMessage(error, "Impossible d'envoyer le Cerfa.");
+      const message = actionErrorMessage(error, "Impossible d’envoyer le Cerfa.");
       setFiscalError(message);
       toast.error(message, { id: toastId });
     } finally {
@@ -262,14 +262,14 @@ export function DonationActionsDropdown({
               target="_blank"
             >
               <ExternalLink className="size-4" />
-              Voir le recu Stripe
+              Voir le reçu Stripe
             </a>
           ) : null}
           <form action={handlePaymentReceiptSubmit}>
             <input name="donationId" type="hidden" value={donationId} />
             <ActionSubmitButton pendingLabel="Envoi...">
               <Mail className="size-4" />
-              Envoyer le recu
+              Envoyer le reçu
             </ActionSubmitButton>
           </form>
           {canRefund ? (
@@ -289,7 +289,7 @@ export function DonationActionsDropdown({
               type="button"
             >
               <Edit3 className="size-4" />
-              Modifier les donnees fiscales
+              Modifier les données fiscales
             </button>
           ) : null}
           {hasCerfa ? (
@@ -318,7 +318,7 @@ export function DonationActionsDropdown({
                   </a>
                   <a className={actionItemClassName} download href={cerfaUrl}>
                     <Download className="size-4" />
-                    Telecharger le Cerfa
+                    Télécharger le Cerfa
                   </a>
                 </>
               ) : null}
@@ -332,13 +332,13 @@ export function DonationActionsDropdown({
           <DialogHeader>
             <DialogTitle>Rembourser le don</DialogTitle>
             <DialogDescription>
-              Solde remboursable: {refundableAmountLabel ?? "-"}.
+              Solde remboursable : {refundableAmountLabel ?? "-"}.
               Laisser vide pour rembourser le solde complet.
             </DialogDescription>
           </DialogHeader>
           <form action={handleRefundSubmit} className="grid gap-3">
             <input name="donationId" type="hidden" value={donationId} />
-            <Input name="refundAmount" placeholder="Montant a rembourser" type="number" />
+            <Input name="refundAmount" placeholder="Montant à rembourser" type="number" />
             <RefundSubmitButton />
           </form>
         </DialogContent>
@@ -357,10 +357,10 @@ export function DonationActionsDropdown({
       >
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Modifier les donnees fiscales</DialogTitle>
+            <DialogTitle>Modifier les données fiscales</DialogTitle>
             <DialogDescription>
-              Ces donnees servent au Cerfa. Le montant et le paiement restent
-              inchanges.
+              Ces données servent au Cerfa. Le montant et le paiement restent
+              inchangés.
             </DialogDescription>
           </DialogHeader>
           <form action={handleFiscalSubmit} className="grid gap-3">
@@ -396,7 +396,7 @@ export function DonationActionsDropdown({
               <Input
                 defaultValue={fiscalDefaults.receiptEmail}
                 name="receiptEmail"
-                placeholder="Email d'envoi des recus"
+                placeholder="Email d’envoi des reçus"
                 type="email"
               />
               <div className="sm:col-span-2">
@@ -404,7 +404,7 @@ export function DonationActionsDropdown({
                   defaultValue={fiscalDefaults.phone}
                   id="fiscal-phone"
                   name="phone"
-                  placeholder="Numero de telephone"
+                  placeholder="Numéro de téléphone"
                 />
               </div>
               {donorType === "ENTREPRISE" ? (
@@ -412,7 +412,7 @@ export function DonationActionsDropdown({
                   <Input
                     defaultValue={fiscalDefaults.companyName}
                     name="companyName"
-                    placeholder="Societe"
+                    placeholder="Société"
                   />
                   <NativeSelect
                     className="w-full"
@@ -468,13 +468,13 @@ export function DonationActionsDropdown({
                   <CheckCircle2 className="size-4" />
                 )}
                 {isUpdatingFiscal
-                  ? "Mise a jour..."
-                  : "Enregistrer et mettre a jour le Cerfa"}
+                  ? "Mise à jour..."
+                  : "Enregistrer et mettre à jour le Cerfa"}
               </Button>
               {fiscalUpdated ? (
                 <span className="inline-flex animate-in fade-in-0 zoom-in-95 items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-2 text-sm font-bold text-green-700">
                   <CheckCircle2 className="size-4" />
-                  Donnees fiscales mises a jour
+                  Données fiscales mises à jour
                 </span>
               ) : null}
             </div>
@@ -486,7 +486,7 @@ export function DonationActionsDropdown({
                   Envoyer le Cerfa maintenant ?
                 </strong>
                 <span className="text-sm text-[var(--muted)]">
-                  Le PDF a ete regenere avec les nouvelles donnees fiscales.
+                  Le PDF a été régénéré avec les nouvelles données fiscales.
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -502,7 +502,7 @@ export function DonationActionsDropdown({
                     <Send className="size-4" />
                   )}
                   {sentCerfa
-                    ? "Cerfa envoye"
+                    ? "Cerfa envoyé"
                     : isSendingCerfa
                       ? "Envoi..."
                       : "Envoyer le Cerfa"}
@@ -510,7 +510,7 @@ export function DonationActionsDropdown({
                 {sentCerfa ? (
                   <span className="inline-flex items-center gap-2 text-sm font-bold text-green-700">
                     <CheckCircle2 className="size-4" />
-                    Envoi effectue
+                    Envoi effectué
                   </span>
                 ) : null}
               </div>

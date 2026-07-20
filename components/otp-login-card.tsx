@@ -74,20 +74,20 @@ export function OtpLoginCard({
 
     if (audience === "bahour" && isAdmin) {
       await signOutRejectedSession();
-      toast.error("Ce compte est administrateur. Connecte-toi depuis l'espace admin.");
+      toast.error("Ce compte est administrateur. Connecte-toi depuis l’espace admin.");
       setState({
         status: "error",
-        message: "Compte admin refuse sur l'Espace Bahour.",
+        message: "Compte admin refusé sur l’Espace Bahour.",
       });
       return false;
     }
 
     if (audience === "admin" && !isAdmin) {
       await signOutRejectedSession();
-      toast.error("Ce compte n'a pas les droits administrateur.");
+      toast.error("Ce compte n’a pas les droits administrateur.");
       setState({
         status: "error",
-        message: "Acces admin refuse.",
+        message: "Accès admin refusé.",
       });
       return false;
     }
@@ -148,7 +148,7 @@ export function OtpLoginCard({
       setState({
         status: "error",
         message:
-          result?.message ?? "Impossible d'envoyer le code pour le moment.",
+          result?.message ?? "Impossible d’envoyer le code pour le moment.",
       });
       return;
     }
@@ -156,13 +156,13 @@ export function OtpLoginCard({
     setStep("otp");
     setState({
       status: "success",
-      message: "Code envoye. Verifie ta boite email.",
+      message: "Code envoyé. Vérifie ta boîte email.",
     });
   }
 
   async function verifyOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setState({ status: "loading", message: "Verification du code..." });
+    setState({ status: "loading", message: "Vérification du code..." });
 
     const response = await fetch("/api/auth/sign-in/email-otp", {
       method: "POST",
@@ -186,7 +186,7 @@ export function OtpLoginCard({
       } | null;
       setState({
         status: "error",
-        message: result?.message ?? "Code invalide ou expire.",
+        message: result?.message ?? "Code invalide ou expiré.",
       });
       return;
     }
@@ -199,9 +199,9 @@ export function OtpLoginCard({
 
     setState({
       status: "success",
-      message: "Connexion reussie. Redirection...",
+      message: "Connexion réussie. Redirection...",
     });
-    toast.success("Connexion reussie.");
+    toast.success("Connexion réussie.");
 
     if (redirectTo === "auto") {
       const destinationResponse = await fetch("/api/auth/resolve-destination");
@@ -220,7 +220,7 @@ export function OtpLoginCard({
       <CardHeader className="gap-3">
         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--subtle)] px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
           <UserRound className="size-4 text-[var(--primary)]" />
-          Code securise
+          Code sécurisé
         </div>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -234,7 +234,7 @@ export function OtpLoginCard({
                   autoComplete="given-name"
                   name="firstName"
                   onChange={(event) => setFirstName(event.target.value)}
-                  placeholder="Prenom"
+                  placeholder="Prénom"
                   required
                   value={firstName}
                 />
@@ -275,7 +275,7 @@ export function OtpLoginCard({
           <form className="grid gap-4" onSubmit={verifyOtp}>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--subtle)] p-4">
               <p className="text-sm font-semibold text-[var(--muted)]">
-                Code envoye a
+                Code envoyé à
               </p>
               <p className="mt-1 break-all text-base font-bold text-[var(--primary)]">
                 {email}
@@ -304,7 +304,7 @@ export function OtpLoginCard({
                 type="button"
                 variant="secondary"
               >
-                Changer d&apos;email
+                Changer d’email
               </Button>
             </div>
           </form>

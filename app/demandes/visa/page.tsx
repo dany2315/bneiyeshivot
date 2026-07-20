@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Demande visa etudiant",
+  title: "Demande visa étudiant",
 };
 
 export default async function VisaRequestPage() {
@@ -22,11 +22,11 @@ export default async function VisaRequestPage() {
       <main>
         <section className="page-hero">
           <div className="container">
-            <span className="eyebrow">Visa etudiant</span>
+            <span className="eyebrow">Visa étudiant</span>
             <h1>Demande visa</h1>
             <p>
-              Formulaire dedie pour deposer une demande de visa etudiant avec
-              passeport non israelien, statut yeshiva ou Massa et pieces
+              Formulaire dédié pour déposer une demande de visa étudiant avec
+              passeport non israélien, statut yeshiva ou Massa et pièces
               justificatives.
             </p>
           </div>
@@ -40,20 +40,20 @@ export default async function VisaRequestPage() {
                 <CardHeader>
                   <CardTitle>Suivi du dossier</CardTitle>
                   <CardDescription>
-                    Apres depot, le Bahour pourra suivre le statut, ajouter des
-                    documents et lire les messages de l&apos;equipe.
+                    Après dépôt, le Bahour pourra suivre le statut, ajouter des
+                    documents et lire les messages de l’équipe.
                   </CardDescription>
                 </CardHeader>
               </Card>
               <Card className="mt-4">
                 <CardHeader>
-                  <CardTitle>Besoin d&apos;un autre service ?</CardTitle>
+                  <CardTitle>Besoin d’un autre service ?</CardTitle>
                   <CardDescription>
-                    La demande koupat holim a sa propre page separee.
+                    La demande Koupat Holim a sa propre page séparée.
                   </CardDescription>
                   <Button asChild variant="secondary">
                     <Link href="/demandes/koupat-holim">
-                      Aller a Koupat Holim
+                      Aller à Koupat Holim
                     </Link>
                   </Button>
                 </CardHeader>

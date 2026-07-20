@@ -103,91 +103,91 @@ const benHazmanimPhotos = benHazmanimGallery.items
 const programDetails: Record<string, ProgramDetail> = {
   "beth-hamidrach": {
     heroText:
-      "Le rendez-vous hebdomadaire de Torah des jeunes francophones en Israel. Chaque jeudi soir a Bayit Vagan, pres d'une centaine de Bahourim et d'etudiants se retrouvent autour du Limoud, d'un Vaad, de themes pratiques et de moments de partage.",
-    primaryCta: "Je m'inscris au Beth Hamidrach",
+      "Le rendez-vous hebdomadaire de Torah des jeunes francophones en Israël. Chaque jeudi soir à Bayit Vagan, près d’une centaine de Bahourim et d’étudiants se retrouvent autour du Limoud, d’un Vaad, de thèmes pratiques et de moments de partage.",
+    primaryCta: "Je m’inscris au Beth Hamidrach",
     intro: {
       eyebrow: "Beth Hamidrach Leil Shishi",
-      title: "Bien plus qu'un Beth Hamidrach, construire une communaute de Torah",
+      title: "Bien plus qu’un Beth Hamidrach, construire une communauté de Torah",
       paragraphs: [
-        "Etudier la Torah ne se resume pas a assister a un cours. C'est evoluer dans un environnement qui inspire, encourage et permet a chacun de progresser.",
-        "Le Beth Hamidrach Leil Shishi a ete cree pour offrir aux jeunes francophones en Israel un cadre regulier ou ils peuvent approfondir leur Limoud, echanger avec des Rabbanim, decouvrir des domaines essentiels de la Halakha et tisser des liens durables avec d'autres Bahourim partageant les memes aspirations.",
-        "Chaque rencontre est pensee pour renforcer l'attachement a la Torah, transmettre des enseignements de qualite et faire du Beth Hamidrach un veritable point de rassemblement pour la jeunesse francophone.",
+        "Étudier la Torah ne se résume pas à assister à un cours. C’est évoluer dans un environnement qui inspire, encourage et permet à chacun de progresser.",
+        "Le Beth Hamidrach Leil Shishi a été créé pour offrir aux jeunes francophones en Israël un cadre régulier où ils peuvent approfondir leur Limoud, échanger avec des Rabbanim, découvrir des domaines essentiels de la Halakha et tisser des liens durables avec d’autres Bahourim partageant les mêmes aspirations.",
+        "Chaque rencontre est pensée pour renforcer l’attachement à la Torah, transmettre des enseignements de qualité et faire du Beth Hamidrach un véritable point de rassemblement pour la jeunesse francophone.",
       ],
       bullets: [
-        "Bayit Vagan - Jerusalem",
-        "Pres de 100 participants chaque semaine",
-        "Rabbanim invites",
-        "Un nouveau theme chaque semaine",
+        "Bayit Vagan - Jérusalem",
+        "Près de 100 participants chaque semaine",
+        "Rabbanim invités",
+        "Un nouveau thème chaque semaine",
       ],
     },
-    featureTitle: "Une soiree construite autour de la Torah",
+    featureTitle: "Une soirée construite autour de la Torah",
     featureDescription:
-      "Chaque jeudi soir s'articule autour de temps forts clairs, dans l'ambiance authentique d'un Beth Hamidrach.",
+      "Chaque jeudi soir s’articule autour de temps forts clairs, dans l’ambiance authentique d’un Beth Hamidrach.",
     features: [
       {
         title: "Seder Limoud",
         description:
-          "Une etude approfondie dans une ambiance de Limoud serieuse et vivante.",
+          "Une étude approfondie dans une ambiance de Limoud sérieuse et vivante.",
       },
       {
         title: "Vaad",
         description:
-          "Des enseignements dispenses par des Rabbanim et intervenants autour de themes fondamentaux de la Torah et de la vie juive.",
+          "Des enseignements dispensés par des Rabbanim et intervenants autour de thèmes fondamentaux de la Torah et de la vie juive.",
       },
       {
-        title: "Themes pratiques",
+        title: "Thèmes pratiques",
         description:
-          "Chaque semaine, un nouveau sujet est developpe afin d'aborder la Halakha de maniere concrete.",
+          "Chaque semaine, un nouveau sujet est développé afin d’aborder la Halakha de manière concrète.",
       },
       {
         title: "Kumzitz et partage",
         description:
-          "La soiree se conclut dans une ambiance chaleureuse autour d'un Kumzitz, d'une collation et d'echanges entre les participants.",
+          "La soirée se conclut dans une ambiance chaleureuse autour d’un Kumzitz, d’une collation et d’échanges entre les participants.",
       },
     ],
     audience: [
-      "Bahourim des Yechivot",
-      "Etudiants francophones en Israel",
+      "Bahourim des Yéchivot",
+      "Étudiants francophones en Israël",
       "Jeunes souhaitant approfondir leur Limoud",
-      "Toute personne recherchant un cadre regulier de Torah et de progression",
+      "Toute personne recherchant un cadre régulier de Torah et de progression",
     ],
     values: [
       {
         title: "Limoud",
-        description: "Approfondir l'etude chaque semaine avec un cadre regulier.",
+        description: "Approfondir l’étude chaque semaine avec un cadre régulier.",
       },
       {
-        title: "Communaute",
+        title: "Communauté",
         description:
-          "Creer des liens durables entre jeunes francophones partageant les memes aspirations.",
+          "Créer des liens durables entre jeunes francophones partageant les mêmes aspirations.",
       },
       {
         title: "Rabbanim",
-        description: "Recevoir une Torah transmise par des Rabbanim et intervenants de qualite.",
+        description: "Recevoir une Torah transmise par des Rabbanim et intervenants de qualité.",
       },
       {
         title: "Halakha pratique",
         description:
-          "Relier les enseignements a des sujets concrets de la vie juive.",
+          "Relier les enseignements à des sujets concrets de la vie juive.",
       },
     ],
     rabbis: [
-      "Rabbanim invites",
+      "Rabbanim invités",
       "Intervenants de Torah",
-      "Rabbanim de Yechivot",
+      "Rabbanim de Yéchivot",
       "Responsables communautaires",
       "Maggidei Shiour",
     ],
     practical: [
-      { label: "Lieu", value: "Bayit Vagan - Jerusalem" },
-      { label: "Rencontres", value: "Rencontres exceptionnelles a Bnei Brak" },
+      { label: "Lieu", value: "Bayit Vagan - Jérusalem" },
+      { label: "Rencontres", value: "Rencontres exceptionnelles à Bnei Brak" },
       { label: "Jour", value: "Chaque jeudi soir" },
-      { label: "Participants", value: "Pres de 100 jeunes chaque semaine" },
+      { label: "Participants", value: "Près de 100 jeunes chaque semaine" },
     ],
     gallery: [
       "Seder Limoud",
       "Vaad",
-      "Themes pratiques",
+      "Thèmes pratiques",
       "Kumzitz",
       "Moments de partage",
     ],
@@ -205,128 +205,128 @@ const programDetails: Record<string, ProgramDetail> = {
         "Bien plus qu’un simple programme de vacances, Ben Hazmanim est devenu un véritable mouvement de Torah, porté par des Rabbanim, des responsables de Kehilot et des équipes locales qui partagent une même ambition : permettre à chaque Bahour de continuer à grandir dans la Torah, où qu’il se trouve.",
       ],
       bullets: [
-        "Un reseau structure en France et en Israel",
+        "Un réseau structuré en France et en Israël",
         "Des centaines de Bahourim francophones",
         "Des Rabbanim et responsables de Kehilot",
-        "Un veritable Makom Torah pendant les vacances",
+        "Un véritable Makom Torah pendant les vacances",
       ],
     },
-    featureTitle: "Un reseau de programmes en France et en Israel",
+    featureTitle: "Un réseau de programmes en France et en Israël",
     featureDescription:
-      "Bnei Yeshivot developpe un reseau de Yechivot Ben Hazmanim pour permettre a chaque Bahour de trouver un cadre proche, adapte et motivant.",
+      "Bnei Yeshivot développe un réseau de Yéchivot Ben Hazmanim pour permettre à chaque Bahour de trouver un cadre proche, adapté et motivant.",
     features: [
       {
         title: "En France",
         description:
-          "Des programmes organises dans plusieurs villes de Paris et de sa region avec des communautes locales.",
+          "Des programmes organisés dans plusieurs villes de Paris et de sa région avec des communautés locales.",
       },
       {
-        title: "En Israel",
+        title: "En Israël",
         description:
-          "Des cadres notamment a Jerusalem pour accompagner les jeunes presents en Israel pendant les vacances.",
+          "Des cadres notamment à Jérusalem pour accompagner les jeunes présents en Israël pendant les vacances.",
       },
       {
         title: "Dynamique communautaire",
         description:
-          "Une collaboration avec des Kehilot, Yechivot et acteurs de terrain.",
+          "Une collaboration avec des Kehilot, Yéchivot et acteurs de terrain.",
       },
       {
         title: "Plus de 300 participants par an",
         description:
-          "Les dernieres editions ont reuni des Bahourim, Avrekhim et etudiants en France et en Israel.",
+          "Les dernières éditions ont réuni des Bahourim, Avrekhim et étudiants en France et en Israël.",
       },
     ],
     audience: [
-      "Bahourim francophones etudiant en Yechiva",
+      "Bahourim francophones étudiant en Yéchiva",
       "Jeunes souhaitant garder un cadre de Torah pendant les vacances",
-      "Etudiants recherchant une experience enrichissante avec d'autres jeunes",
+      "Étudiants recherchant une expérience enrichissante avec d’autres jeunes",
     ],
     values: [
-      { title: "Torah", description: "Maintenir un lien fort avec l'etude." },
-      { title: "Fraternite", description: "Creer des liens entre jeunes francophones." },
-      { title: "Motivation", description: "Donner une dynamique positive pour continuer a avancer." },
-      { title: "Accompagnement", description: "Permettre a chacun de trouver sa place." },
+      { title: "Torah", description: "Maintenir un lien fort avec l’étude." },
+      { title: "Fraternité", description: "Créer des liens entre jeunes francophones." },
+      { title: "Motivation", description: "Donner une dynamique positive pour continuer à avancer." },
+      { title: "Accompagnement", description: "Permettre à chacun de trouver sa place." },
     ],
     gallery: [
-      "Etudes",
+      "Études",
       "Sederim",
       "Moments de partage",
-      "Activites",
+      "Activités",
       "Participants",
-      "Communautes partenaires",
+      "Communautés partenaires",
     ],
   },
   shabbatot: {
     heroText:
-      "Le rendez-vous incontournable de la jeunesse francophone. Bien plus qu'un simple programme : un Chabbat d'exception place sous le signe de la Torah, de la fraternite et de la Sim'ha.",
+      "Le rendez-vous incontournable de la jeunesse francophone. Bien plus qu’un simple programme : un Chabbat d’exception placé sous le signe de la Torah, de la fraternité et de la Sim’ha.",
     primaryCta: "Rejoindre le prochain Chabbat Plein",
     intro: {
       eyebrow: "Notre vision",
-      title: "Creer des moments qui construisent une generation",
+      title: "Créer des moments qui construisent une génération",
       paragraphs: [
-        "Chez Bnei Yeshivot, nous sommes convaincus que certains moments ont la capacite de marquer profondement un parcours.",
-        "Un echange avec un Rav, un divrei Torah inspirant, un repas de Chabbat partage, un chant ou une rencontre peuvent devenir des souvenirs qui accompagnent une personne pendant des annees.",
-        "C'est cette vision qui anime les Chabbat Plein : un cadre chaleureux et inspirant ou chaque participant se renforce dans la Torah, rencontre d'autres jeunes partageant les memes valeurs et ressent pleinement l'appartenance a une communaute francophone unie.",
+        "Chez Bnei Yeshivot, nous sommes convaincus que certains moments ont la capacité de marquer profondément un parcours.",
+        "Un échange avec un Rav, un divrei Torah inspirant, un repas de Chabbat partagé, un chant ou une rencontre peuvent devenir des souvenirs qui accompagnent une personne pendant des années.",
+        "C’est cette vision qui anime les Chabbat Plein : un cadre chaleureux et inspirant où chaque participant se renforce dans la Torah, rencontre d’autres jeunes partageant les mêmes valeurs et ressent pleinement l’appartenance à une communauté francophone unie.",
       ],
       bullets: [
         "Se renforcer dans la Torah",
-        "Rencontrer d'autres jeunes francophones",
-        "Ressentir l'appartenance a une communaute",
-        "Repartir avec une nouvelle energie",
+        "Rencontrer d’autres jeunes francophones",
+        "Ressentir l’appartenance à une communauté",
+        "Repartir avec une nouvelle énergie",
       ],
     },
-    featureTitle: "Une experience pensee dans les moindres details",
+    featureTitle: "Une expérience pensée dans les moindres détails",
     featureDescription:
-      "Chaque Chabbat Plein allie qualite, spiritualite et convivialite autour de quatre temps forts.",
+      "Chaque Chabbat Plein allie qualité, spiritualité et convivialité autour de quatre temps forts.",
     features: [],
     pillars: [
       {
         Icon: BookOpen,
         title: "Des moments de Torah",
         description:
-          "Cours, divrei Torah, echanges et interventions de Rabbanim pour puiser de nouvelles forces et renforcer son attachement a la Torah.",
+          "Cours, divrei Torah, échanges et interventions de Rabbanim pour puiser de nouvelles forces et renforcer son attachement à la Torah.",
       },
       {
         Icon: HeartHandshake,
-        title: "Des rencontres qui creent des liens",
+        title: "Des rencontres qui créent des liens",
         description:
-          "Des jeunes venus de differentes Yechivot se retrouvent pour partager leur parcours, echanger et construire des amities solides.",
+          "Des jeunes venus de différentes Yéchivot se retrouvent pour partager leur parcours, échanger et construire des amitiés solides.",
       },
       {
         Icon: UtensilsCrossed,
-        title: "Des repas de Chabbat d'exception",
+        title: "Des repas de Chabbat d’exception",
         description:
-          "Des repas prepares avec soin, accompagnes de Zemirot, de chants et d'une ambiance chaleureuse ou chacun trouve sa place.",
+          "Des repas préparés avec soin, accompagnés de Zemirot, de chants et d’une ambiance chaleureuse où chacun trouve sa place.",
       },
       {
         Icon: Sparkles,
-        title: "Une atmosphere unique",
+        title: "Une atmosphère unique",
         description:
-          "Un cadre base sur la fraternite, la Sim'ha et le respect, pour vivre pleinement la richesse du Chabbat.",
+          "Un cadre basé sur la fraternité, la Sim’ha et le respect, pour vivre pleinement la richesse du Chabbat.",
       },
     ],
     community: {
-      eyebrow: "Une communaute",
-      title: "Bien plus qu'un Chabbat",
+      eyebrow: "Une communauté",
+      title: "Bien plus qu’un Chabbat",
       paragraphs: [
-        "Les Chabbat Plein Bnei Yeshivot sont devenus au fil du temps un veritable point de rencontre pour la communaute francophone.",
-        "Ils permettent de creer des liens entre jeunes issus de differentes Yechivot, de renforcer le sentiment d'appartenance et de construire une veritable communaute autour de la Torah. Chaque edition est une occasion de se retrouver, de se renforcer et de vivre ensemble des moments qui restent graves.",
+        "Les Chabbat Plein Bnei Yeshivot sont devenus au fil du temps un véritable point de rencontre pour la communauté francophone.",
+        "Ils permettent de créer des liens entre jeunes issus de différentes Yéchivot, de renforcer le sentiment d’appartenance et de construire une véritable communauté autour de la Torah. Chaque édition est une occasion de se retrouver, de se renforcer et de vivre ensemble des moments qui restent gravés.",
       ],
     },
     audience: [
-      "Bahourim francophones etudiant en Israel",
-      "Etudiants souhaitant vivre un Chabbat de Torah dans une ambiance chaleureuse",
-      "Jeunes souhaitant rencontrer d'autres francophones partageant les memes aspirations",
-      "Familles et participants desirant rejoindre une dynamique communautaire forte",
+      "Bahourim francophones étudiant en Israël",
+      "Étudiants souhaitant vivre un Chabbat de Torah dans une ambiance chaleureuse",
+      "Jeunes souhaitant rencontrer d’autres francophones partageant les mêmes aspirations",
+      "Familles et participants désirant rejoindre une dynamique communautaire forte",
     ],
     organisation: {
       title: "Une organisation au service des participants",
       description:
-        "Pour offrir une experience de grande qualite, l'equipe de Bnei Yeshivot veille a chaque detail afin que chacun se concentre sur l'essentiel : la Torah, les rencontres et la fraternite.",
+        "Pour offrir une expérience de grande qualité, l’équipe de Bnei Yeshivot veille à chaque détail afin que chacun se concentre sur l’essentiel : la Torah, les rencontres et la fraternité.",
       items: [
-        { Icon: ClipboardList, label: "Organisation generale" },
+        { Icon: ClipboardList, label: "Organisation générale" },
         { Icon: HandHeart, label: "Accueil des participants" },
-        { Icon: BedDouble, label: "Hebergement" },
+        { Icon: BedDouble, label: "Hébergement" },
         { Icon: UtensilsCrossed, label: "Repas" },
         { Icon: ShieldCheck, label: "Encadrement" },
         { Icon: Boxes, label: "Logistique" },
@@ -342,60 +342,60 @@ const programDetails: Record<string, ProgramDetail> = {
     ],
     finalCta: {
       eyebrow: "Rejoignez le prochain Chabbat Plein",
-      title: "Vous souhaitez vivre un Chabbat different ?",
-      text: "Un Chabbat ou la Torah, la fraternite et la communaute se rencontrent. Decouvrez les prochains Chabbat Plein Bnei Yeshivot et rejoignez une dynamique qui rassemble chaque annee de nombreux jeunes francophones.",
-      primaryCta: "Decouvrir les prochains Chabbat Plein",
+      title: "Vous souhaitez vivre un Chabbat différent ?",
+      text: "Un Chabbat où la Torah, la fraternité et la communauté se rencontrent. Découvrez les prochains Chabbat Plein Bnei Yeshivot et rejoignez une dynamique qui rassemble chaque année de nombreux jeunes francophones.",
+      primaryCta: "Découvrir les prochains Chabbat Plein",
       primaryHref: "/evenements",
     },
   },
   "talmoudo-beyado": {
     heroText:
-      "Un programme pour donner aux Bahourim les outils de progresser dans leur etude avec regularite, objectifs et encouragement.",
+      "Un programme pour donner aux Bahourim les outils de progresser dans leur étude avec régularité, objectifs et encouragement.",
     primaryCta: "Je rejoins Talmoudo Beyado",
     intro: {
       eyebrow: "Notre vision",
-      title: "Transformer l'etude en un objectif concret",
+      title: "Transformer l’étude en un objectif concret",
       paragraphs: [
-        "Beaucoup de Bahourim etudient avec serieux, mais il est parfois difficile de garder un rythme regulier, de fixer des objectifs et de mesurer ses progres.",
-        "Talmoudo Beyado donne un cadre clair : chaque Bahour choisit huit dapim dans la massehet qu'il etudie a la yeshiva, les revise, passe un mivhan mensuel, puis retrouve son suivi personnel dans son espace.",
+        "Beaucoup de Bahourim étudient avec sérieux, mais il est parfois difficile de garder un rythme régulier, de fixer des objectifs et de mesurer ses progrès.",
+        "Talmoudo Beyado donne un cadre clair : chaque Bahour choisit huit dapim dans la massehet qu’il étudie à la yeshiva, les révise, passe un mivhan mensuel, puis retrouve son suivi personnel dans son espace.",
       ],
       bullets: [
-        "Fixer des objectifs d'etude",
+        "Fixer des objectifs d’étude",
         "Approfondir ses connaissances",
-        "Reviser regulierement",
-        "Evaluer sa progression",
-        "Etre encourage dans son parcours",
+        "Réviser régulièrement",
+        "Évaluer sa progression",
+        "Être encouragé dans son parcours",
       ],
     },
     featureTitle: "Comment fonctionne le programme ?",
     featureDescription:
-      "Un parcours base sur l'etude, la revision, les mivhanim et un suivi motivant.",
+      "Un parcours basé sur l’étude, la révision, les mivhanim et un suivi motivant.",
     flow: [
-      "L'admin fixe la date du prochain mivhan mensuel",
-      "Le Bahour s'inscrit avec sa massehet et huit dapim",
+      "L’administration fixe la date du prochain mivhan mensuel",
+      "Le Bahour s’inscrit avec sa massehet et huit dapim",
       "Les inscriptions ferment automatiquement avant le mivhan",
       "Le Bahour passe le mivhan sur les dapim choisis",
-      "L'equipe renseigne la note et la recompense",
-      "Le resultat arrive par email et dans l'espace Bahour",
+      "L’équipe renseigne la note et la récompense",
+      "Le résultat arrive par email et dans l’espace Bahour",
     ],
     features: [
       {
-        title: "Etude quotidienne",
+        title: "Étude quotidienne",
         description:
-          "Les participants poursuivent leur etude en Yechiva avec un objectif personnel de progression.",
+          "Les participants poursuivent leur étude en Yéchiva avec un objectif personnel de progression.",
       },
       {
-        title: "Revisions regulieres",
+        title: "Révisions régulières",
         description:
-          "Un travail de revision consolide les connaissances acquises.",
+          "Un travail de révision consolide les connaissances acquises.",
       },
       {
         title: "Mivhanim mensuels",
         description:
-          "Des examens reguliers permettent d'evaluer la maitrise du sujet etudie.",
+          "Des examens réguliers permettent d’évaluer la maîtrise du sujet étudié.",
       },
       {
-        title: "Bourse d'encouragement",
+        title: "Bourse d’encouragement",
         description:
           "Une reconnaissance du travail accompli pour soutenir la motivation.",
       },
@@ -411,17 +411,17 @@ const programDetails: Record<string, ProgramDetail> = {
       },
       {
         label: "Dates",
-        value: "Communiquees environ une semaine a l'avance",
+        value: "Communiquées environ une semaine à l’avance",
       },
     ],
     audience: [
-      "Bahourim de Yechiva Guedola en Israel",
-      "Jeunes francophones etudiant dans une Yechiva en Israel",
+      "Bahourim de Yéchiva Guedola en Israël",
+      "Jeunes francophones étudiant dans une Yéchiva en Israël",
     ],
     values: [
-      { title: "Etudier", description: "Donner une nouvelle dimension au limoud." },
-      { title: "Reviser", description: "Consolider ce qui a ete appris." },
-      { title: "Reussir", description: "Avancer avec des objectifs mesurables." },
+      { title: "Étudier", description: "Donner une nouvelle dimension au limoud." },
+      { title: "Réviser", description: "Consolider ce qui a été appris." },
+      { title: "Réussir", description: "Avancer avec des objectifs mesurables." },
       { title: "Continuer", description: "Garder une dynamique de progression." },
     ],
     gallery: [
@@ -429,139 +429,139 @@ const programDetails: Record<string, ProgramDetail> = {
       "Participants",
       "Remises de bourses",
       "Rencontres",
-      "Rabbanim presents",
+      "Rabbanim présents",
     ],
     testimonials: [
       "Bahourim participants",
       "Rabbanim",
-      "Responsables de Yechivot",
+      "Responsables de Yéchivot",
     ],
     formFields: [
       "Nom",
-      "Prenom",
-      "Age",
-      "Yechiva",
-      "Telephone",
+      "Prénom",
+      "Âge",
+      "Yéchiva",
+      "Téléphone",
       "Email",
-      "Massekhet etudiee actuellement",
+      "Massekhet étudiée actuellement",
     ],
   },
   "bayit-neeman": {
     heroText:
-      "Un accompagnement serieux et professionnel pour aider les jeunes a construire un foyer base sur les valeurs de la Torah.",
+      "Un accompagnement sérieux et professionnel pour aider les jeunes à construire un foyer basé sur les valeurs de la Torah.",
     primaryCta: "Parler avec un conseiller",
     secondaryHref: "https://binianadeiad.com",
-    secondaryCta: "Creer mon profil Chidoukh",
+    secondaryCta: "Créer mon profil Chidoukh",
     intro: {
       eyebrow: "Binian Adei Ad",
       title: "Accompagner les jeunes dans la construction de leur futur foyer",
       paragraphs: [
-        "Construire un foyer base sur les valeurs de la Torah est une etape essentielle dans la vie d'un jeune.",
-        "Notre accompagnement repose sur deux axes complementaires : favoriser des rencontres adaptees grace au reseau de Chidoukhim et accompagner les jeunes avant, pendant et apres cette etape importante.",
+        "Construire un foyer basé sur les valeurs de la Torah est une étape essentielle dans la vie d’un jeune.",
+        "Notre accompagnement repose sur deux axes complémentaires : favoriser des rencontres adaptées grâce au réseau de Chidoukhim et accompagner les jeunes avant, pendant et après cette étape importante.",
       ],
     },
     featureTitle: "Chidoukhim et accompagnement au mariage",
     featureDescription:
-      "Une demarche construite avec discretion, ecoute, Rabbanim et personnes competentes.",
+      "Une démarche construite avec discrétion, écoute, Rabbanim et personnes compétentes.",
     features: [
       {
-        title: "Plateforme dediee",
+        title: "Plateforme dédiée",
         description:
-          "Chaque participant peut creer un profil complet pour presenter son parcours, ses valeurs et son projet de vie.",
+          "Chaque participant peut créer un profil complet pour présenter son parcours, ses valeurs et son projet de vie.",
       },
       {
-        title: "Reseau de Shadkhanim",
+        title: "Réseau de Shadkhanim",
         description:
-          "Des personnes de confiance et des professionnels etudient les profils et proposent des rencontres adaptees.",
+          "Des personnes de confiance et des professionnels étudient les profils et proposent des rencontres adaptées.",
       },
       {
         title: "Avant le mariage",
         description:
-          "Soirees de preparation, conferences, conseils pratiques et interventions de Rabbanim.",
+          "Soirées de préparation, conférences, conseils pratiques et interventions de Rabbanim.",
       },
       {
-        title: "Apres le mariage",
+        title: "Après le mariage",
         description:
-          "Cours d'Adraha, conseils de Hashkafa, Halakhot essentielles et accompagnement des premieres etapes.",
+          "Cours d’Adraha, conseils de Hashkafa, Halakhot essentielles et accompagnement des premières étapes.",
       },
     ],
     audience: [
       "Jeunes en recherche de Chidoukh",
-      "Jeunes fiances souhaitant etre accompagnes",
-      "Jeunes couples au debut de leur construction",
+      "Jeunes fiancés souhaitant être accompagnés",
+      "Jeunes couples au début de leur construction",
     ],
     values: [
-      { title: "Ecoute", description: "Comprendre chaque parcours avec attention." },
-      { title: "Discretion", description: "Respecter la sensibilite de chaque demarche." },
+      { title: "Écoute", description: "Comprendre chaque parcours avec attention." },
+      { title: "Discrétion", description: "Respecter la sensibilité de chaque démarche." },
       { title: "Confiance", description: "Travailler avec des personnes fiables." },
-      { title: "Torah", description: "Construire un foyer avec des reperes solides." },
+      { title: "Torah", description: "Construire un foyer avec des repères solides." },
     ],
   },
   chidoukhim: {
     heroText:
-      "Un accompagnement base sur l'ecoute, la discretion et la confiance pour aider les jeunes a avancer dans leur recherche.",
-    primaryCta: "Creer mon profil Chidoukh",
+      "Un accompagnement basé sur l’écoute, la discrétion et la confiance pour aider les jeunes à avancer dans leur recherche.",
+    primaryCta: "Créer mon profil Chidoukh",
     secondaryHref: "https://binianadeiad.com",
-    secondaryCta: "Acceder a Binian Adei Ad",
+    secondaryCta: "Accéder à Binian Adei Ad",
     intro: {
       eyebrow: "Chidoukhim",
-      title: "Des rencontres serieuses et adaptees",
+      title: "Des rencontres sérieuses et adaptées",
       paragraphs: [
-        "La recherche du bon conjoint est une etape importante qui necessite ecoute, reflexion et accompagnement.",
-        "Bnei Yeshivot developpe ce service en collaboration avec des personnes de confiance et des professionnels du domaine.",
+        "La recherche du bon conjoint est une étape importante qui nécessite écoute, réflexion et accompagnement.",
+        "Bnei Yeshivot développe ce service en collaboration avec des personnes de confiance et des professionnels du domaine.",
       ],
       bullets: [
-        "Creation d'un profil personnel",
-        "Etude des parcours et valeurs recherchees",
-        "Propositions adaptees",
-        "Accompagnement des demarches",
+        "Création d’un profil personnel",
+        "Étude des parcours et valeurs recherchées",
+        "Propositions adaptées",
+        "Accompagnement des démarches",
       ],
     },
-    featureTitle: "Un travail en reseau",
+    featureTitle: "Un travail en réseau",
     featureDescription:
-      "L'accompagnement se construit avec des Shadkhanim, Yechivot, seminaires, communautes et responsables educatifs.",
+      "L’accompagnement se construit avec des Shadkhanim, Yéchivot, séminaires, communautés et responsables éducatifs.",
     features: [
       {
         title: "Profil complet",
         description:
-          "Informations personnelles, parcours, etudes, projet de vie et attentes concernant le futur conjoint.",
+          "Informations personnelles, parcours, études, projet de vie et attentes concernant le futur conjoint.",
       },
       {
-        title: "Shadkhanim de qualite",
+        title: "Shadkhanim de qualité",
         description:
-          "Des personnes de confiance qui partagent une meme vision et une meme exigence.",
+          "Des personnes de confiance qui partagent une même vision et une même exigence.",
       },
       {
         title: "Collaboration",
         description:
-          "Des liens avec les etablissements et communautes pour mieux comprendre les parcours.",
+          "Des liens avec les établissements et communautés pour mieux comprendre les parcours.",
       },
     ],
     values: [
-      { title: "Serieux", description: "Une demarche reflechie et encadree." },
-      { title: "Discretion", description: "Une attention particuliere a la confidentialite." },
-      { title: "Confiance", description: "Des propositions adaptees et responsables." },
+      { title: "Sérieux", description: "Une démarche réfléchie et encadrée." },
+      { title: "Discrétion", description: "Une attention particulière à la confidentialité." },
+      { title: "Confiance", description: "Des propositions adaptées et responsables." },
     ],
   },
   avrekhim: {
     heroText:
-      "Des cadres de Torah et une dynamique communautaire pour accompagner les Avrekhim francophones installes en Israel.",
-    primaryCta: "Decouvrir le Programme Avrekhim",
+      "Des cadres de Torah et une dynamique communautaire pour accompagner les Avrekhim francophones installés en Israël.",
+    primaryCta: "Découvrir le Programme Avrekhim",
     intro: {
       eyebrow: "Programme Avrekhim",
-      title: "Accompagner les Avrekhim dans leur etude et leur vie quotidienne",
+      title: "Accompagner les Avrekhim dans leur étude et leur vie quotidienne",
       paragraphs: [
-        "Bnei Yeshivot developpe des cadres de Torah et une dynamique communautaire pour permettre aux Avrekhim de continuer leur etude dans un environnement serieux, chaleureux et adapte.",
+        "Bnei Yeshivot développe des cadres de Torah et une dynamique communautaire pour permettre aux Avrekhim de continuer leur étude dans un environnement sérieux, chaleureux et adapté.",
       ],
     },
     featureTitle: "Les cadres du programme",
     featureDescription:
-      "Deux kollelim et une communaute d'Avrekhim francophones autour de l'etude, du partage et de la solidarite.",
+      "Deux kollelim et une communauté d’Avrekhim francophones autour de l’étude, du partage et de la solidarité.",
     features: [
       {
         title: "Kollel Erev Zikhron Eliyahou",
         description:
-          "Un cadre d'etude regulier a Jerusalem qui rassemble actuellement 12 Avrekhim.",
+          "Un cadre d’étude régulier à Jérusalem qui rassemble actuellement 12 Avrekhim.",
       },
       {
         title: "Kollel Chichi Ohel Yaacov",
@@ -569,21 +569,21 @@ const programDetails: Record<string, ProgramDetail> = {
           "Un rendez-vous hebdomadaire autour de la Torah qui rassemble actuellement 10 Avrekhim.",
       },
       {
-        title: "Communaute d'Avrekhim",
+        title: "Communauté d’Avrekhim",
         description:
-          "Renforcer la solidarite, les rencontres, l'entraide et la vie communautaire.",
+          "Renforcer la solidarité, les rencontres, l’entraide et la vie communautaire.",
       },
       {
         title: "Lien avec Kesher Nitsri",
         description:
-          "Les actions de solidarite sont soutenues par la communaute Kesher Nitsri.",
+          "Les actions de solidarité sont soutenues par la communauté Kesher Nitsri.",
       },
     ],
     values: [
-      { title: "Etude", description: "Renforcer l'etude quotidienne." },
-      { title: "Dynamique", description: "Creer un lien durable entre Avrekhim." },
+      { title: "Étude", description: "Renforcer l’étude quotidienne." },
+      { title: "Dynamique", description: "Créer un lien durable entre Avrekhim." },
       { title: "Familles", description: "Renforcer les liens entre familles francophones." },
-      { title: "Solidarite", description: "Developper une communaute attentive aux besoins." },
+      { title: "Solidarité", description: "Développer une communauté attentive aux besoins." },
     ],
     secondaryHref: "/kesher-nitsri",
     secondaryCta: "Voir Kesher Nitsri",
@@ -630,7 +630,7 @@ function ProgramVisualGallery() {
             <h2>Photos et Short Ben Hazmanim</h2>
           </div>
           <p>
-            Des images et un format court pour retrouver l&apos;ambiance du
+            Des images et un format court pour retrouver l’ambiance du
             programme Ben Hazmanim.
           </p>
         </div>
@@ -664,7 +664,7 @@ function ProgramVisualGallery() {
                   <Badge variant="info">{benHazmanimPhotos.length} photos</Badge>
                   <CardTitle>Galerie photos</CardTitle>
                   <CardDescription>
-                    Moments d&apos;etude, rencontres et ambiance du programme.
+                    Moments d’étude, rencontres et ambiance du programme.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -677,7 +677,7 @@ function ProgramVisualGallery() {
                 <div className="grid gap-2">
                   <DialogTitle>Galerie photos</DialogTitle>
                   <DialogDescription>
-                    Moments d&apos;etude, rencontres et ambiance du programme.
+                    Moments d’étude, rencontres et ambiance du programme.
                   </DialogDescription>
                 </div>
                 <DialogClose
@@ -725,7 +725,7 @@ function ProgramVisualGallery() {
               <Badge variant="warning">Short</Badge>
               <CardTitle>Le Short Ben Hazmanim</CardTitle>
               <CardDescription>
-                Le format video court du programme.
+                Le format vidéo court du programme.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -943,8 +943,8 @@ export default async function ProgramDetailPage({
                 </div>
                 <p>
                   Le Beth Hamidrach Bnei Yeshivot accueille tout au long de
-                  l&apos;annee des Rabbanim et intervenants reconnus qui viennent
-                  transmettre leur Torah et partager leur experience.
+                  l’année des Rabbanim et intervenants reconnus qui viennent
+                  transmettre leur Torah et partager leur expérience.
                 </p>
               </div>
               <div className="program-rabbi-rail" aria-label="Rabbanim invites">
@@ -972,7 +972,7 @@ export default async function ProgramDetailPage({
           <section className="section">
             <div className="container">
               <div className="section-header">
-                <h2>Le deroulement</h2>
+                <h2>Le déroulement</h2>
                 <p>Une progression simple, claire et chaleureuse.</p>
               </div>
               <div className="program-detail-flow">
@@ -996,8 +996,8 @@ export default async function ProgramDetailPage({
                   <h2>Choisir sa massehet et ses huit dapim</h2>
                 </div>
                 <p>
-                  L&apos;inscription se rattache au mivhan ouvert par
-                  l&apos;administration. Un Bahour connecte n&apos;a plus qu&apos;a
+                  L’inscription se rattache au mivhan ouvert par
+                  l’administration. Un Bahour connecté n’a plus qu’à
                   renseigner son limoud, sauf informations de profil manquantes.
                 </p>
               </div>
@@ -1017,8 +1017,8 @@ export default async function ProgramDetailPage({
                 <CardHeader>
                   <CardTitle>Pour qui ?</CardTitle>
                   <CardDescription>
-                    Le programme s&apos;adresse aux jeunes qui souhaitent avancer
-                    dans un cadre serieux, humain et adapte.
+                    Le programme s’adresse aux jeunes qui souhaitent avancer
+                    dans un cadre sérieux, humain et adapté.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1141,7 +1141,7 @@ export default async function ProgramDetailPage({
                     <CardHeader>
                       <CardTitle>Galerie</CardTitle>
                       <CardDescription>
-                        Photos et videos pour montrer l&apos;ambiance du programme.
+                        Photos et vidéos pour montrer l’ambiance du programme.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1157,7 +1157,7 @@ export default async function ProgramDetailPage({
                 {detail.testimonials?.length ? (
                   <Card className="program-detail-resource-card">
                     <CardHeader>
-                      <CardTitle>Temoignages</CardTitle>
+                      <CardTitle>Témoignages</CardTitle>
                       <CardDescription>
                         Des retours de ceux qui vivent le programme.
                       </CardDescription>
@@ -1178,7 +1178,7 @@ export default async function ProgramDetailPage({
                       <CardTitle>Inscription</CardTitle>
                       <CardDescription>
                         Le formulaire permettra de transmettre les informations
-                        utiles a l&apos;equipe.
+                        utiles à l’équipe.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -1222,7 +1222,7 @@ export default async function ProgramDetailPage({
               <div>
                 <span className="eyebrow">Rejoindre le programme</span>
                 <h2>
-                  Notre equipe peut vous accompagner dans la prochaine etape.
+                  Notre équipe peut vous accompagner dans la prochaine étape.
                 </h2>
               </div>
               <div className="hero-actions">

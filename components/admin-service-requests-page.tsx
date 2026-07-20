@@ -34,10 +34,10 @@ import { Filter, Search } from "lucide-react";
 const statusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
   IN_REVIEW: "En traitement",
-  MISSING_DOCUMENTS: "Elements a modifier",
-  APPROVED: "Approuvee",
-  REJECTED: "Refusee",
-  COMPLETED: "Terminee",
+  MISSING_DOCUMENTS: "Éléments à modifier",
+  APPROVED: "Approuvée",
+  REJECTED: "Refusée",
+  COMPLETED: "Terminée",
 };
 
 function statusTone(status: ServiceRequestStatus) {
@@ -78,7 +78,7 @@ function ServiceRequestActionsDialog({
   const payload = payloadObject(request.payload);
   const requestedFields = requestedFieldsFromPayload(request.payload);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
-  const finalDocumentLabel = isVisa ? "Visa recu" : "Document koupat holim final";
+  const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
 
   return (
     <Dialog>
@@ -92,7 +92,7 @@ function ServiceRequestActionsDialog({
             {userName(request.user)}
           </DialogTitle>
           <DialogDescription>
-            Gestion complete de la demande : donnees, documents, statut, document final et suppression.
+Gestion complète de la demande : données, documents, statut, document final et suppression.
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +110,7 @@ function ServiceRequestActionsDialog({
             <p className="mt-1 truncate font-medium">{request.user?.email || payloadText(payload, "email") || "-"}</p>
           </div>
           <div>
-            <span className="text-xs font-semibold uppercase text-[var(--muted)]">Telephone</span>
+            <span className="text-xs font-semibold uppercase text-[var(--muted)]">Téléphone</span>
             <p className="mt-1 font-medium">{request.user?.phone || payloadText(payload, "phone") || "-"}</p>
           </div>
           <div>
@@ -123,7 +123,7 @@ function ServiceRequestActionsDialog({
           <TabsList className="w-full flex-wrap justify-start">
             <TabsTrigger value="dossier">Dossier</TabsTrigger>
             <TabsTrigger value="statut">Statut</TabsTrigger>
-            <TabsTrigger value="donnees">Donnees</TabsTrigger>
+            <TabsTrigger value="donnees">Données</TabsTrigger>
             <TabsTrigger value="final">Final</TabsTrigger>
             <TabsTrigger value="danger">Supprimer</TabsTrigger>
           </TabsList>
@@ -152,7 +152,7 @@ function ServiceRequestActionsDialog({
             <div className="grid gap-3">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-base font-bold text-[var(--primary)]">
-                  Documents du bahour
+                  Documents du Bahour
                 </h3>
                 <span className="text-sm text-[var(--muted)]">
                   {request.documents.length} fichier(s)
@@ -183,7 +183,7 @@ function ServiceRequestActionsDialog({
                 </div>
               ) : (
                 <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
-                  Aucun document attache a cette demande.
+                  Aucun document attaché à cette demande.
                 </p>
               )}
             </div>
@@ -213,7 +213,7 @@ function ServiceRequestActionsDialog({
                 </label>
               </div>
               <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
-                Message public au bahour
+                Message public au Bahour
                 <Textarea
                   defaultValue={request.publicNote ?? ""}
                   name="publicNote"
@@ -222,7 +222,7 @@ function ServiceRequestActionsDialog({
               </label>
               <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
                 <strong className="text-sm text-[var(--primary)]">
-                  Donnees a faire modifier par le bahour
+                  Données à faire modifier par le Bahour
                 </strong>
                 <div className="grid gap-2 md:grid-cols-3">
                   {editableFieldLabels
@@ -243,12 +243,12 @@ function ServiceRequestActionsDialog({
                     ))}
                 </div>
                 <p className="text-xs text-[var(--muted)]">
-                  Ces champs seront demandes au bahour quand le statut est &quot;Elements a modifier&quot;.
+                  Ces champs seront demandés au Bahour quand le statut est &quot;Éléments à modifier&quot;.
                 </p>
               </div>
               <Button type="submit" className="w-fit">
                 <Send className="size-4" />
-                Mettre a jour et notifier
+                Mettre à jour et notifier
               </Button>
             </form>
           </TabsContent>
@@ -277,7 +277,7 @@ function ServiceRequestActionsDialog({
               </div>
               <Button type="submit" className="w-fit">
                 <Pencil className="size-4" />
-                Enregistrer les donnees
+                Enregistrer les données
               </Button>
             </form>
           </TabsContent>
@@ -309,7 +309,7 @@ function ServiceRequestActionsDialog({
             </form>
             <p className="mt-3 flex items-center gap-2 text-sm text-[var(--muted)]">
               <FileCheck2 className="size-4" />
-              L&apos;ajout du document final passe automatiquement la demande en statut Terminee.
+              L’ajout du document final passe automatiquement la demande en statut Terminée.
             </p>
           </TabsContent>
 
@@ -317,7 +317,7 @@ function ServiceRequestActionsDialog({
             <div className="grid gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
               <h3 className="font-bold text-red-900">Supprimer la demande</h3>
               <p className="text-sm text-red-800">
-                Cette action supprime la demande, ses messages, ses documents en base, puis les fichiers S3 attaches.
+                Cette action supprime la demande, ses messages, ses documents en base, puis les fichiers S3 attachés.
               </p>
               <AlertDialog>
                 <AlertDialogTrigger render={<Button variant="destructive" />}>
@@ -328,7 +328,7 @@ function ServiceRequestActionsDialog({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
                     <AlertDialogDescription>
-                      La demande de {userName(request.user)} sera supprimee avec ses messages, ses documents et les fichiers S3 attaches.
+                      La demande de {userName(request.user)} sera supprimée avec ses messages, ses documents et les fichiers S3 attachés.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -360,7 +360,7 @@ function ServiceRequestActionsDropdown({
   const payload = payloadObject(request.payload);
   const requestedFields = requestedFieldsFromPayload(request.payload);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
-  const finalDocumentLabel = isVisa ? "Visa recu" : "Document koupat holim final";
+  const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
   const visibleEditableFields = editableFieldLabels.filter(
     ([field]) => isVisa || field !== "personStatus",
   );
@@ -381,9 +381,9 @@ function ServiceRequestActionsDropdown({
           </DialogTrigger>
           <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
             <DialogHeader>
-              <DialogTitle>Detail de la demande</DialogTitle>
+              <DialogTitle>Détail de la demande</DialogTitle>
               <DialogDescription>
-                Informations completes, messages et documents recus.
+                Informations complètes, messages et documents reçus.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4">
@@ -491,7 +491,7 @@ function ServiceRequestActionsDropdown({
               </div>
             ) : (
               <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
-                Aucun document attache a cette demande.
+                Aucun document attaché à cette demande.
               </p>
             )}
           </DialogContent>
@@ -508,7 +508,7 @@ function ServiceRequestActionsDropdown({
             <DialogHeader>
               <DialogTitle>Modifier le statut et notifier</DialogTitle>
               <DialogDescription>
-                Envoyez une mise a jour ou demandez des corrections precises au bahour.
+                Envoyez une mise à jour ou demandez des corrections précises au Bahour.
               </DialogDescription>
             </DialogHeader>
             <form action={updateServiceRequest} className="grid gap-4">
@@ -534,16 +534,16 @@ function ServiceRequestActionsDropdown({
                 </label>
               </div>
               <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
-                Message visible par le bahour
+                Message visible par le Bahour
                 <Textarea
                   defaultValue={request.publicNote ?? ""}
                   name="publicNote"
-                  placeholder="Expliquez exactement ce qui manque ou ce qu'il doit modifier."
+                  placeholder="Expliquez exactement ce qui manque ou ce qu’il doit modifier."
                 />
               </label>
               <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
                 <strong className="text-sm text-[var(--primary)]">
-                  Donnees a modifier dans son espace
+                  Données à modifier dans son espace
                 </strong>
                 <div className="grid gap-2 md:grid-cols-3">
                   {visibleEditableFields.map(([field, label]) => (
@@ -573,13 +573,13 @@ function ServiceRequestActionsDropdown({
         <Dialog>
           <DialogTrigger render={<DropdownMenuItem />}>
             <Pencil className="size-4" />
-            Modifier les donnees
+            Modifier les données
           </DialogTrigger>
           <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Modifier les donnees du dossier</DialogTitle>
+              <DialogTitle>Modifier les données du dossier</DialogTitle>
               <DialogDescription>
-                Correction manuelle par l&apos;admin, sans email automatique.
+                Correction manuelle par l’admin, sans email automatique.
               </DialogDescription>
             </DialogHeader>
             <form action={updateServiceRequestData} className="grid gap-4">
@@ -621,7 +621,7 @@ function ServiceRequestActionsDropdown({
             <DialogHeader>
               <DialogTitle>Uploader le document final</DialogTitle>
               <DialogDescription>
-                Le fichier sera ajoute au dossier, le bahour sera notifie et la demande passera en terminee.
+                Le fichier sera ajouté au dossier, le Bahour sera notifié et la demande passera en terminée.
               </DialogDescription>
             </DialogHeader>
             <form action={uploadServiceRequestFinalDocument} className="grid gap-4">
@@ -662,7 +662,7 @@ function ServiceRequestActionsDropdown({
             <AlertDialogHeader>
               <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
               <AlertDialogDescription>
-                La demande de {userName(request.user)} sera supprimee avec ses messages,
+                La demande de {userName(request.user)} sera supprimée avec ses messages,
                 ses documents et les fichiers S3 attaches.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -826,7 +826,7 @@ export async function AdminServiceRequestsPage({
                       <div className="grid gap-1">
                         <strong>{userName(request.user)}</strong>
                         <span className="text-xs text-[var(--muted)]">
-                          {payloadText(payload, "passportNumber") || "Passeport non renseigne"}
+                          {payloadText(payload, "passportNumber") || "Passeport non renseigné"}
                         </span>
                       </div>
                     </TableCell>

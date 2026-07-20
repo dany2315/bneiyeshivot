@@ -29,7 +29,7 @@ function ExportForm({
     <form action={action} className="grid gap-3" method="get">
       <input name="type" type="hidden" value={type} />
       <div className="grid gap-3 sm:grid-cols-2">
-        <Input aria-label="Date debut" name="from" type="date" />
+        <Input aria-label="Date début" name="from" type="date" />
         <Input aria-label="Date fin" name="to" type="date" />
       </div>
       <Button className="w-fit" type="submit">
@@ -49,18 +49,18 @@ export function DonationReceiptsExportDialog({
     <Dialog>
       <DialogTrigger render={<Button variant="secondary" />}>
         <Download className="size-4" />
-        Exporter les recus
+        Exporter les reçus
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader className="pr-10">
-          <DialogTitle>Exporter mes recus</DialogTitle>
+          <DialogTitle>Exporter mes reçus</DialogTitle>
           <DialogDescription>
-            Choisissez le type de recu et la plage de dates a exporter.
+            Choisissez le type de reçu et la plage de dates à exporter.
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="cerfa">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="cerfa">Recu Cerfa</TabsTrigger>
+            <TabsTrigger value="cerfa">Reçu Cerfa</TabsTrigger>
             <TabsTrigger value="facture">Facture</TabsTrigger>
           </TabsList>
           <TabsContent className="pt-4" value="cerfa">

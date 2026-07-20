@@ -65,9 +65,9 @@ function toDatetimeLocal(iso: string) {
 }
 
 function formatPreviewDate(value: string) {
-  if (!value) return "Date a definir";
+  if (!value) return "Date à définir";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date a definir";
+  if (Number.isNaN(date.getTime())) return "Date à définir";
   return new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "full",
     timeStyle: "short",
@@ -97,7 +97,7 @@ async function uploadOne(file: File): Promise<string> {
     message?: string;
   } | null;
   if (!response.ok || !data?.ok || !data.keys?.[0]) {
-    throw new Error(data?.message ?? "Upload echoue.");
+    throw new Error(data?.message ?? "Upload échoué.");
   }
   return data.keys[0];
 }
@@ -166,7 +166,7 @@ export function EventFormDialog({
   function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
     if (uploading > 0) {
-      setError("Des images sont encore en cours d'upload. Patientez un instant.");
+      setError("Des images sont encore en cours d’upload. Patientez un instant.");
       return;
     }
     // On capture les donnees AVANT de desactiver les champs.
@@ -191,7 +191,7 @@ export function EventFormDialog({
         setError(
           submitError instanceof Error
             ? submitError.message
-            : "La publication a echoue. Reessayez.",
+            : "La publication a échoué. Réessayez.",
         );
         setProgress(0);
       } finally {
@@ -219,7 +219,7 @@ export function EventFormDialog({
           ) : (
             <Button>
               <CalendarPlus />
-              Creer un evenement
+              Créer un événement
             </Button>
           )
         }
@@ -231,11 +231,11 @@ export function EventFormDialog({
         <DialogHeader className="sticky top-0 z-20 grid grid-cols-[1fr_auto] items-start gap-3 border-b border-[var(--border)] bg-popover p-4">
           <div className="grid gap-2">
             <DialogTitle>
-              {mode === "edit" ? "Modifier l'evenement" : "Creer un evenement"}
+              {mode === "edit" ? "Modifier l’événement" : "Créer un événement"}
             </DialogTitle>
             <DialogDescription>
-              La previsualisation a droite montre la card et la page telles
-              qu&apos;elles apparaitront sur le site.
+              La prévisualisation à droite montre la card et la page telles
+              qu’elles apparaîtront sur le site.
             </DialogDescription>
           </div>
           <DialogClose
@@ -259,7 +259,7 @@ export function EventFormDialog({
                 <input name="eventId" type="hidden" value={event.id} />
               )}
 
-              <Field label="Titre de l'evenement" required>
+              <Field label="Titre de l’événement" required>
                 <Input
                   name="title"
                   onChange={(e) => setTitle(e.target.value)}
@@ -273,7 +273,7 @@ export function EventFormDialog({
                 <Textarea
                   name="description"
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Une phrase de presentation affichee sur la card."
+                  placeholder="Une phrase de présentation affichée sur la card."
                   required
                   value={description}
                 />
@@ -281,8 +281,8 @@ export function EventFormDialog({
 
               <div className="grid gap-4 md:grid-cols-2">
                 <Field
-                  hint="Date et heure de l'evenement."
-                  label="Date de l'evenement"
+                  hint="Date et heure de l’événement."
+                  label="Date de l’événement"
                   required
                 >
                   <Input
@@ -325,8 +325,8 @@ export function EventFormDialog({
               </label>
 
               <Field
-                hint="Texte affiche sur la card (a venir) et sur la page souvenirs (passe)."
-                label="Texte de l'evenement"
+                hint="Texte affiché sur la card (à venir) et sur la page souvenirs (passé)."
+                label="Texte de l’événement"
               >
                 <Textarea
                   name="body"
@@ -349,7 +349,7 @@ export function EventFormDialog({
               {eventIsPast ? (
                 <>
                   <Field
-                    hint="Selectionnez plusieurs images d'un coup. Chaque photo peut etre supprimee."
+                    hint="Sélectionnez plusieurs images d’un coup. Chaque photo peut être supprimée."
                     label="Galerie photos"
                   >
                     <GalleryManager
@@ -361,7 +361,7 @@ export function EventFormDialog({
                   </Field>
 
                   <Field
-                    hint="Collez un lien (YouTube...). Une preview s'affiche au-dessus."
+                    hint="Collez un lien (YouTube...). Une prévisualisation s’affiche au-dessus."
                     label="Videos"
                   >
                     <VideoManager
@@ -372,9 +372,9 @@ export function EventFormDialog({
                 </>
               ) : (
                 <p className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                  Pour un evenement a venir, seule l&apos;image principale est
-                  utilisee (affichee sur la card). La galerie photos et les
-                  videos pourront etre ajoutees une fois l&apos;evenement passe.
+                  Pour un événement à venir, seule l’image principale est
+                  utilisée (affichée sur la card). La galerie photos et les
+                  vidéos pourront être ajoutées une fois l’événement passé.
                 </p>
               )}
 
@@ -388,7 +388,7 @@ export function EventFormDialog({
                 <div className="grid gap-1.5">
                   <Progress value={progress} />
                   <span className="text-sm text-[var(--muted)]">
-                    Publication de l&apos;evenement... {Math.round(progress)}%
+                    Publication de l’événement... {Math.round(progress)}%
                   </span>
                 </div>
               )}
@@ -411,7 +411,7 @@ export function EventFormDialog({
                 ) : mode === "edit" ? (
                   "Enregistrer les modifications"
                 ) : (
-                  "Creer l'evenement"
+                  "Créer l’événement"
                 )}
               </Button>
             </fieldset>
@@ -440,7 +440,7 @@ export function EventFormDialog({
                   )}
                   <div className="absolute left-4 right-4 top-4 flex flex-wrap gap-2">
                     <Badge variant={eventIsPast ? "warning" : "info"}>
-                      {eventIsPast ? "Passe" : "A venir"}
+                      {eventIsPast ? "Passé" : "À venir"}
                     </Badge>
                     {requiresRegistration && !eventIsPast && (
                       <Badge variant="success">Inscription</Badge>
@@ -449,10 +449,10 @@ export function EventFormDialog({
                 </div>
                 <div className="grid gap-3 p-5">
                   <strong className="text-lg text-[var(--primary)]">
-                    {title || "Titre de l'evenement"}
+                    {title || "Titre de l’événement"}
                   </strong>
                   <p className="text-sm text-[var(--muted)]">
-                    {description || "Description courte de l'evenement."}
+                    {description || "Description courte de l’événement."}
                   </p>
                   <div className="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
                     <span className="inline-flex items-center gap-1">
@@ -461,13 +461,13 @@ export function EventFormDialog({
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <MapPin className="size-4" />
-                      {location || "Lieu a confirmer"}
+                      {location || "Lieu à confirmer"}
                     </span>
                   </div>
                   {!eventIsPast && requiresRegistration && (
                     <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[var(--primary)] px-3 py-1 text-sm font-semibold text-white">
                       <Users className="size-4" />
-                      S&apos;inscrire
+                      S’inscrire
                     </span>
                   )}
                 </div>
@@ -491,15 +491,15 @@ export function EventFormDialog({
                   <div className="absolute inset-0 bg-gradient-to-t from-[#061e35] via-[#061e35]/55 to-transparent" />
                   <div className="relative z-10 text-white">
                     <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em]">
-                      {eventIsPast ? "Passe" : "A venir"}
+                      {eventIsPast ? "Passé" : "À venir"}
                     </span>
                     <p className="mt-2 text-xl font-bold">
-                      {title || "Titre de l'evenement"}
+                      {title || "Titre de l’événement"}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-white/80">
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="size-3" />
-                        {location || "A confirmer"}
+                        {location || "À confirmer"}
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <Film className="size-3" />
@@ -516,7 +516,7 @@ export function EventFormDialog({
                   <MarkdownContent className="grid gap-2 [&_h2]:text-xl [&_h3]:text-lg [&_li]:text-sm [&_li]:leading-6 [&_p]:text-sm [&_p]:leading-6">
                     {body ||
                       description ||
-                      "Le texte de l'evenement apparaitra ici."}
+                      "Le texte de l’événement apparaîtra ici."}
                   </MarkdownContent>
                   {galleryUrls.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
@@ -622,8 +622,8 @@ function CoverImageField({
                 : status === "error"
                   ? "Echec, cliquez pour reessayer"
                   : preview
-                    ? "Image prete"
-                    : "Ajouter l'image principale"}
+                    ? "Image prête"
+                    : "Ajouter l’image principale"}
             </AttachmentTitle>
             <AttachmentDescription>Cliquez pour choisir</AttachmentDescription>
           </AttachmentContent>
@@ -865,7 +865,7 @@ function VideoManager({
               />
               <input name="videoUrls" type="hidden" value={embed} />
               <Button
-                aria-label="Supprimer la video"
+                aria-label="Supprimer la vidéo"
                 onClick={() => removeVideo(video.id)}
                 size="icon-sm"
                 type="button"

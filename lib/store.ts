@@ -35,11 +35,11 @@ export async function ensureDefaultStorefront() {
       name: "Boutique Bnei Yeshivot",
       heroTitle: "Boutique literie",
       heroSubtitle:
-        "Reserve en quelques secondes les indispensables pour ton arrivee en Israel. Aucun paiement en ligne : l'equipe confirme la disponibilite et te recontacte.",
+        "Réserve en quelques secondes les indispensables pour ton arrivée en Israël. Aucun paiement en ligne : l’équipe confirme la disponibilité et te recontacte.",
       description:
-        "Produits utiles pour l'installation des bahourim en Israel, disponibles uniquement sur reservation.",
+        "Produits utiles pour l’installation des bahourim en Israël, disponibles uniquement sur réservation.",
       pickupDetails:
-        "Retrait ou livraison a coordonner avec l'equipe apres validation de la reservation.",
+        "Retrait ou livraison à coordonner avec l’équipe après validation de la réservation.",
       contactEmail: "contact@bneiyeshivot.com",
       contactPhone: "+972 53 472 7103",
     },
