@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 import { PageShell } from "@/app/components";
-import { StoreProductReservationPanel } from "@/components/storefront-client";
+import { StoreProductDetailReservationClient } from "@/components/storefront-client";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +62,7 @@ export default async function StoreProductPage({
   return (
     <PageShell>
       <main>
-        <section className="section">
+        <section className="section pt-24">
           <div className="container grid gap-8 lg:grid-cols-[1fr_390px]">
             <div className="grid gap-5">
               <Button asChild className="w-fit" variant="secondary">
@@ -128,7 +128,7 @@ export default async function StoreProductPage({
                 <CardHeader>
                   <CardTitle>Réserver ce produit</CardTitle>
                   <CardDescription>
-                    Choisissez la variation, puis envoyez la réservation.
+                    Choisissez la variation, ajoutez-la au panier, puis finalisez la réservation.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -142,7 +142,7 @@ export default async function StoreProductPage({
                       </AlertDescription>
                     </Alert>
                   ) : null}
-                  <StoreProductReservationPanel
+                  <StoreProductDetailReservationClient
                     disabled={!storefront.active}
                     initialUser={
                       user
@@ -155,6 +155,12 @@ export default async function StoreProductPage({
                           }
                         : null
                     }
+                    storefront={{
+                      active: storefront.active,
+                      description: storefront.description,
+                      name: storefront.name,
+                      pickupDetails: storefront.pickupDetails,
+                    }}
                     product={{
                       id: product.id,
                       title: product.title,

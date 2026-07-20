@@ -126,7 +126,7 @@ export function StorefrontClient({
     products.find((product) => product.id === cartLines[0]?.productId)?.currency ??
     "ILS";
 
-  function addToCart(product: ProductView, variantId: string | null) {
+  function addToCart(product: ProductView, variantId: string | null, quantity = 1) {
     const key = `${product.id}:${variantId ?? "base"}`;
     const variant = variantId
       ? product.variants.find((item) => item.id === variantId) ?? null
@@ -138,12 +138,15 @@ export function StorefrontClient({
       if (existing) {
         return current.map((line) =>
           line.key === key
-            ? { ...line, quantity: Math.min(max, line.quantity + 1) }
+            ? { ...line, quantity: Math.min(max, line.quantity + quantity) }
             : line,
         );
       }
 
-      return [...current, { key, productId: product.id, variantId, quantity: 1 }];
+      return [
+        ...current,
+        { key, productId: product.id, variantId, quantity: Math.min(max, quantity) },
+      ];
     });
   }
 
@@ -518,6 +521,98 @@ function CartSheet({
   );
 }
 
+export function StoreProductDetailReservationClient({
+  disabled,
+  product,
+  storefront,
+  initialUser,
+}: {
+  disabled?: boolean;
+  product: ProductView;
+  storefront: StorefrontView;
+  initialUser?: StoreInitialUser | null;
+}) {
+  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const totalCents = cartLines.reduce(
+    (total, line) => total + product.priceCents * line.quantity,
+    0,
+  );
+
+  function addToCart(variantId: string | null, quantity: number) {
+    const key = `${product.id}:${variantId ?? "base"}`;
+    const variant = variantId
+      ? product.variants.find((item) => item.id === variantId) ?? null
+      : null;
+    const max = Math.min(50, variant?.stockQuantity ?? product.stockQuantity ?? 50);
+
+    setCartLines((current) => {
+      const existing = current.find((line) => line.key === key);
+      if (existing) {
+        return current.map((line) =>
+          line.key === key
+            ? { ...line, quantity: Math.min(max, line.quantity + quantity) }
+            : line,
+        );
+      }
+
+      return [
+        ...current,
+        {
+          key,
+          productId: product.id,
+          variantId,
+          quantity: Math.min(max, quantity),
+        },
+      ];
+    });
+  }
+
+  function updateCartLine(key: string, quantity: number) {
+    setCartLines((current) =>
+      current.map((line) =>
+        line.key === key ? { ...line, quantity: Math.max(1, quantity) } : line,
+      ),
+    );
+  }
+
+  function removeCartLine(key: string) {
+    setCartLines((current) => current.filter((line) => line.key !== key));
+  }
+
+  return (
+    <>
+      <div className="fixed inset-x-0 top-[70px] z-20 border-b border-[var(--border)] bg-white/92 shadow-sm backdrop-blur md:top-[74px]">
+        <div className="container flex min-h-16 items-center justify-between gap-4">
+          <div className="min-w-0">
+            <strong className="block truncate text-base text-[var(--primary)]">
+              {storefront.name}
+            </strong>
+            <small className="block truncate text-[var(--muted)]">
+              Réservation sans paiement
+            </small>
+          </div>
+          <CartSheet
+            cartLines={cartLines}
+            currency={product.currency}
+            initialUser={initialUser}
+            onRemoveLine={removeCartLine}
+            onUpdateLine={updateCartLine}
+            products={[product]}
+            storefront={storefront}
+            totalCents={totalCents}
+          />
+        </div>
+      </div>
+      <StoreProductReservationPanel
+        disabled={disabled}
+        mode="cart"
+        onAddToCart={addToCart}
+        product={product}
+      />
+    </>
+  );
+}
+
 export function StoreReservationCustomerFields({
   disabled,
   initialUser,
@@ -572,10 +667,14 @@ export function StoreReservationCustomerFields({
 export function StoreProductReservationPanel({
   disabled,
   initialUser,
+  mode = "reservation",
+  onAddToCart,
   product,
 }: {
   disabled?: boolean;
   initialUser?: StoreInitialUser | null;
+  mode?: "reservation" | "cart";
+  onAddToCart?: (variantId: string | null, quantity: number) => void;
   product: ProductView;
 }) {
   const defaultVariant = findDefaultVariant(product);
@@ -593,8 +692,8 @@ export function StoreProductReservationPanel({
     setVariantId(nextVariant?.id ?? "");
   }
 
-  return (
-    <form action={createStoreReservation} className="grid gap-4">
+  const controls = (
+    <>
       <input name="cartProductId" type="hidden" value={product.id} />
       <input name="cartVariantId" type="hidden" value={selectedVariant?.id ?? ""} />
       <input name="cartQuantity" type="hidden" value={quantity} />
@@ -617,6 +716,28 @@ export function StoreProductReservationPanel({
           quantity={quantity}
         />
       </div>
+    </>
+  );
+
+  if (mode === "cart") {
+    return (
+      <div className="grid gap-4">
+        {controls}
+        <Button
+          disabled={disabled || (hasVariants && !selectedVariant)}
+          onClick={() => onAddToCart?.(selectedVariant?.id ?? null, quantity)}
+          type="button"
+        >
+          <ShoppingBag className="size-4" />
+          Ajouter au panier
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form action={createStoreReservation} className="grid gap-4">
+      {controls}
       <StoreReservationCustomerFields disabled={disabled} initialUser={initialUser} />
       <Textarea
         name="note"
