@@ -6,6 +6,7 @@ import { formatDateTime, parseEventContent } from "@/lib/event-content";
 import { fileUrl } from "@/lib/files";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MarkdownContent } from "@/components/markdown-content";
 import {
   Card,
   CardContent,
@@ -104,9 +105,9 @@ export default async function EventDetailPage({
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-5">
-                <p className="whitespace-pre-line text-base leading-8 text-[var(--primary)]">
+                <MarkdownContent className="grid gap-5">
                   {content.body || event.description}
-                </p>
+                </MarkdownContent>
                 {content.videoUrls.map((videoUrl, index) => (
                   <iframe
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
