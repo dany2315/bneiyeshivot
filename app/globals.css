@@ -272,6 +272,16 @@ textarea {
   display: none;
 }
 
+.mobile-header-actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-call-button {
+  display: none;
+}
+
 .mobile-nav-list {
   display: grid;
   gap: 10px;
@@ -4711,6 +4721,14 @@ a.card:hover,
   }
 
   .mobile-menu-button {
+    display: inline-flex;
+  }
+
+  .mobile-header-actions {
+    display: flex;
+  }
+
+  .mobile-call-button {
     display: inline-flex;
   }
 

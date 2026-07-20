@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MobileNav } from "@/components/mobile-nav";
-import { SiteNavActions } from "@/components/site-nav-actions";
+import { MobileCallButton, SiteNavActions } from "@/components/site-nav-actions";
 import { SiteNavLinks } from "@/components/site-nav-links";
 
 const whatsappGroupUrl =
@@ -29,7 +29,10 @@ export function SiteHeader() {
         </Link>
         <SiteNavLinks />
         <SiteNavActions />
-        <MobileNav />
+        <div className="mobile-header-actions">
+          <MobileCallButton />
+          <MobileNav />
+        </div>
       </div>
     </header>
   );

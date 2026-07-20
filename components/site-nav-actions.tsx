@@ -21,6 +21,54 @@ const phoneNumbers = [
   { label: "Israel", number: "+972534727103", display: "+972 53 472 7103" },
 ];
 
+function CallButton({
+  iconOnly = false,
+  className,
+}: {
+  iconOnly?: boolean;
+  className?: string;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger
+        render={
+          <Button
+            className={cn("!text-white", className)}
+            size={iconOnly ? "icon" : "default"}
+            aria-label="Appeler Bnei Yeshivot"
+          >
+            <Phone className="size-4" aria-hidden="true" />
+            {iconOnly ? null : "Appeler"}
+          </Button>
+        }
+      />
+      <DialogContent className="phone-dialog-content">
+        <DialogHeader>
+          <DialogTitle>Appeler Bnei Yeshivot</DialogTitle>
+          <DialogDescription>
+            Choisissez le numero que vous souhaitez appeler.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="phone-dialog-list">
+          {phoneNumbers.map((phone) => (
+            <a className="phone-dialog-link" href={`tel:${phone.number}`} key={phone.number}>
+              <Phone className="size-4" aria-hidden="true" />
+              <span>
+                <strong>{phone.label}</strong>
+                <small>{phone.display}</small>
+              </span>
+            </a>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function MobileCallButton() {
+  return <CallButton iconOnly className="mobile-call-button" />;
+}
+
 export function SiteNavActions() {
   const pathname = usePathname();
   const { user } = useAuthSession();
@@ -47,35 +95,7 @@ export function SiteNavActions() {
           <Link href="/connexion">Mon espace</Link>
         </Button>
       )}
-      <Dialog>
-        <DialogTrigger
-          render={
-            <Button className="!text-white" aria-label="Appeler Bnei Yeshivot">
-              <Phone className="size-4" aria-hidden="true" />
-              Appeler
-            </Button>
-          }
-        />
-        <DialogContent className="phone-dialog-content">
-          <DialogHeader>
-            <DialogTitle>Appeler Bnei Yeshivot</DialogTitle>
-            <DialogDescription>
-              Choisissez le numero que vous souhaitez appeler.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="phone-dialog-list">
-            {phoneNumbers.map((phone) => (
-              <a className="phone-dialog-link" href={`tel:${phone.number}`} key={phone.number}>
-                <Phone className="size-4" aria-hidden="true" />
-                <span>
-                  <strong>{phone.label}</strong>
-                  <small>{phone.display}</small>
-                </span>
-              </a>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CallButton />
     </div>
   );
 }
