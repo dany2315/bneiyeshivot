@@ -6,6 +6,8 @@ export const metadata = {
   title: "Dvar Torah",
 };
 
+export const dynamic = "force-dynamic";
+
 const demoFiles = [
   {
     title: "Chabbat Berechit",
@@ -37,7 +39,7 @@ export default async function DvarTorahPage() {
   const dbFiles = await prisma.dvarTorahFile.findMany({
     where: { published: true },
     orderBy: { createdAt: "desc" },
-  });
+  }).catch(() => []);
   const files =
     dbFiles.length > 0
       ? dbFiles.map((file) => ({

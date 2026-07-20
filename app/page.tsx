@@ -48,6 +48,8 @@ import {
 const homeVideoUrl =
   "https://www.youtube-nocookie.com/embed/c0PKxmIQlSQ?rel=0&modestbranding=1&playsinline=1";
 
+export const dynamic = "force-dynamic";
+
 const homeServices = [
   {
     title: "Assurance maladie",
@@ -305,7 +307,7 @@ export default async function Home() {
       where: { startsAt: { gte: new Date() } },
       orderBy: { startsAt: "asc" },
       take: 3,
-    }),
+    }).catch(() => []),
     prisma.homeGalleryAlbum.findMany({
       where: { active: true },
       include: {
