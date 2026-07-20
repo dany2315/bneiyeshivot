@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import { fileUrl } from "@/lib/files";
+import { MarkdownContent } from "@/components/markdown-content";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
@@ -512,11 +513,11 @@ export function EventFormDialog({
                   </div>
                 </div>
                 <div className="grid gap-3 bg-white p-4">
-                  <p className="whitespace-pre-line text-sm leading-6 text-[var(--primary)]">
+                  <MarkdownContent className="grid gap-2 [&_h2]:text-xl [&_h3]:text-lg [&_li]:text-sm [&_li]:leading-6 [&_p]:text-sm [&_p]:leading-6">
                     {body ||
                       description ||
                       "Le texte de l'evenement apparaitra ici."}
-                  </p>
+                  </MarkdownContent>
                   {galleryUrls.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
                       {galleryUrls.slice(0, 6).map((src, index) => (
