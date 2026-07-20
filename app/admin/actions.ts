@@ -58,11 +58,11 @@ function storeReservationItemLabel(item: {
 
 const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
   SUBMITTED: "Nouvelle",
-  CONFIRMED: "Confirmee",
-  PREPARING: "En preparation",
-  READY: "Prete",
-  COLLECTED: "Recuperee",
-  CANCELED: "Annulee",
+  CONFIRMED: "Confirmée",
+  PREPARING: "En préparation",
+  READY: "Prête",
+  COLLECTED: "Récupérée",
+  CANCELED: "Annulée",
 };
 
 const serviceRequestStatusLabels: Record<ServiceRequestStatus, string> = {

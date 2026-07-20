@@ -336,7 +336,7 @@ export function AdminStorePageClient({
         <Card>
           <CardHeader>
             <CardTitle>{reservations.length}</CardTitle>
-            <CardDescription>Reservations recues</CardDescription>
+            <CardDescription>Réservations reçues</CardDescription>
           </CardHeader>
         </Card>
         <Card>
@@ -359,7 +359,7 @@ export function AdminStorePageClient({
             className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
             value="reservations"
           >
-            Reservations
+            Réservations
           </TabsTrigger>
           <TabsTrigger
             className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
@@ -463,7 +463,7 @@ function ProductsTab({
                 <TableCell>{formatPrice(product.priceCents, product.currency)}</TableCell>
                 <TableCell>
                   {product.stockQuantity == null
-                    ? "Non limite"
+                    ? "Non limité"
                     : product.stockQuantity}
                 </TableCell>
                 <TableCell>
@@ -1626,9 +1626,9 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reservations recues</CardTitle>
+        <CardTitle>Réservations reçues</CardTitle>
         <CardDescription>
-          Les 100 dernieres reservations sans paiement.
+          Les 100 dernières réservations sans paiement.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -1934,7 +1934,7 @@ function SettingsTab({
           />
           <label className="flex items-center gap-2 text-sm">
             <input name="active" type="checkbox" defaultChecked={storefront.active} />
-            Boutique ouverte aux reservations
+            Boutique ouverte aux réservations
           </label>
           <SubmitButton>
             <Settings className="size-4" />
