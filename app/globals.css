@@ -219,6 +219,25 @@ textarea {
   gap: 10px;
 }
 
+.home-action-notification {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 10px 22px rgba(6, 40, 70, 0.18);
+}
+
 .phone-dialog-content {
   gap: 18px;
 }

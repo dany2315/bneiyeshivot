@@ -297,7 +297,10 @@ const testimonials = [
 ];
 
 export default async function Home() {
-  const [upcomingEvents, dbGalleryAlbums] = await Promise.all([
+  const dvarTorahFreshSince = new Date();
+  dvarTorahFreshSince.setMonth(dvarTorahFreshSince.getMonth() - 1);
+
+  const [upcomingEvents, dbGalleryAlbums, recentDvarTorahCount] = await Promise.all([
     prisma.event.findMany({
       where: { startsAt: { gte: new Date() } },
       orderBy: { startsAt: "asc" },
@@ -312,6 +315,12 @@ export default async function Home() {
       },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }).catch(() => []),
+    prisma.dvarTorahFile.count({
+      where: {
+        published: true,
+        createdAt: { gte: dvarTorahFreshSince },
+      },
+    }).catch(() => 0),
   ]);
   const homeGalleryAlbums: HomeGalleryAlbum[] =
     dbGalleryAlbums.length > 0
@@ -383,7 +392,14 @@ export default async function Home() {
                   <Link href="/inscription">M&apos;inscrire</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
-                  <Link href="/dvar-torah">Dvar Torah de la semaine</Link>
+                  <Link className="relative" href="/dvar-torah">
+                    Dvar Torah de la semaine
+                    {recentDvarTorahCount > 0 ? (
+                      <span className="home-action-notification">
+                        {recentDvarTorahCount}
+                      </span>
+                    ) : null}
+                  </Link>
                 </Button>
               </div>
             </div>
