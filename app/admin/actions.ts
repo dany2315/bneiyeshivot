@@ -13,6 +13,7 @@ import {
   ServiceRequestStatus,
   ServiceRequestType,
   StoreReservationStatus,
+  StoreVariantOptionType,
   UserRole,
 } from "@prisma/client";
 import {
@@ -166,6 +167,68 @@ function validateStoreProductVariants(
     }
     keys.add(key);
   }
+}
+
+function readStoreVariantOptionLabels(formData: FormData, key: string) {
+  const labels = splitLines(readString(formData, key));
+  const seen = new Set<string>();
+
+  return labels.filter((label) => {
+    const normalized = label.toLowerCase();
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
+async function syncStoreVariantOptions(
+  tx: Prisma.TransactionClient,
+  storefrontId: string,
+  type: StoreVariantOptionType,
+  labels: string[],
+) {
+  const existingOptions = await tx.storeVariantOption.findMany({
+    where: { storefrontId, type },
+  });
+  const existingByLabel = new Map(
+    existingOptions.map((option) => [option.label.toLowerCase(), option]),
+  );
+
+  for (const [sortOrder, label] of labels.entries()) {
+    const existing = existingByLabel.get(label.toLowerCase());
+
+    if (existing) {
+      await tx.storeVariantOption.update({
+        where: { id: existing.id },
+        data: { label, active: true, sortOrder },
+      });
+      continue;
+    }
+
+    await tx.storeVariantOption.create({
+      data: {
+        storefrontId,
+        type,
+        label,
+        active: true,
+        sortOrder,
+      },
+    });
+  }
+
+  await tx.storeVariantOption.updateMany({
+    where: {
+      storefrontId,
+      type,
+      label:
+        labels.length > 0
+          ? {
+              notIn: labels,
+            }
+          : undefined,
+    },
+    data: { active: false },
+  });
 }
 
 function readHomeGalleryItems(formData: FormData) {
@@ -998,32 +1061,49 @@ export async function updateStorefront(formData: FormData) {
   const heroTitle = readString(formData, "heroTitle");
   const heroSubtitle = readString(formData, "heroSubtitle");
   const description = readString(formData, "description");
+  const sizeOptions = readStoreVariantOptionLabels(formData, "sizeOptions");
+  const cutOptions = readStoreVariantOptionLabels(formData, "cutOptions");
 
   if (!name || !heroTitle || !heroSubtitle || !description) {
     throw new Error("Nom, titre, sous-titre et description obligatoires.");
   }
 
-  await prisma.storefront.update({
-    where: { id: storefront.id },
-    data: {
-      name,
-      heroTitle,
-      heroSubtitle,
-      description,
-      pickupDetails: readString(formData, "pickupDetails") || null,
-      contactEmail: readString(formData, "contactEmail") || null,
-      contactPhone: readString(formData, "contactPhone") || null,
-      active: formData.get("active") === "on",
-    },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.storefront.update({
+      where: { id: storefront.id },
+      data: {
+        name,
+        heroTitle,
+        heroSubtitle,
+        description,
+        pickupDetails: readString(formData, "pickupDetails") || null,
+        contactEmail: readString(formData, "contactEmail") || null,
+        contactPhone: readString(formData, "contactPhone") || null,
+        active: formData.get("active") === "on",
+      },
+    });
 
-  await prisma.auditLog.create({
-    data: {
-      actorId: admin.id,
-      action: "storefront.updated",
-      entity: "Storefront",
-      entityId: storefront.id,
-    },
+    await syncStoreVariantOptions(
+      tx,
+      storefront.id,
+      StoreVariantOptionType.SIZE,
+      sizeOptions,
+    );
+    await syncStoreVariantOptions(
+      tx,
+      storefront.id,
+      StoreVariantOptionType.CUT,
+      cutOptions,
+    );
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "storefront.updated",
+        entity: "Storefront",
+        entityId: storefront.id,
+      },
+    });
   });
 
   revalidatePath("/admin/boutique");

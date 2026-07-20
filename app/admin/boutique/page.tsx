@@ -1,4 +1,4 @@
-import { StoreReservationStatus } from "@prisma/client";
+import { StoreReservationStatus, StoreVariantOptionType } from "@prisma/client";
 import { AdminStorePageClient } from "@/components/admin-store-page-client";
 import { AdminShell } from "@/components/admin-sidebar";
 import { requireAdminUser } from "@/lib/session";
@@ -19,7 +19,7 @@ const openSupplyStatuses: StoreReservationStatus[] = [
 export default async function AdminStorePage() {
   await requireAdminUser();
   const storefront = await ensureDefaultStorefront();
-  const [products, reservations] = await Promise.all([
+  const [products, reservations, variantOptions] = await Promise.all([
     prisma.storeProduct.findMany({
       where: { storefrontId: storefront.id },
       include: {
@@ -34,6 +34,10 @@ export default async function AdminStorePage() {
       include: { items: true },
       orderBy: { createdAt: "desc" },
       take: 100,
+    }),
+    prisma.storeVariantOption.findMany({
+      where: { storefrontId: storefront.id },
+      orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
     }),
   ]);
 
@@ -142,6 +146,24 @@ export default async function AdminStorePage() {
             active: variant.active,
           })),
         }))}
+        variantOptions={{
+          sizes: variantOptions
+            .filter((option) => option.type === StoreVariantOptionType.SIZE)
+            .map((option) => ({
+              id: option.id,
+              label: option.label,
+              active: option.active,
+              sortOrder: option.sortOrder,
+            })),
+          cuts: variantOptions
+            .filter((option) => option.type === StoreVariantOptionType.CUT)
+            .map((option) => ({
+              id: option.id,
+              label: option.label,
+              active: option.active,
+              sortOrder: option.sortOrder,
+            })),
+        }}
         reservations={reservations.map((reservation) => ({
           id: reservation.id,
           status: reservation.status,

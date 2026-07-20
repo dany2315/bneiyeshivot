@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { StoreReservationStatus } from "@prisma/client";
 import {
@@ -141,6 +141,18 @@ type SupplyView = {
   stockQuantity: number | null;
   missingQuantity: number | null;
   active: boolean;
+};
+
+type VariantOptionView = {
+  id: string;
+  label: string;
+  active: boolean;
+  sortOrder: number;
+};
+
+type VariantOptionsView = {
+  sizes: VariantOptionView[];
+  cuts: VariantOptionView[];
 };
 
 const statusLabels: Record<StoreReservationStatus, string> = {
@@ -289,11 +301,13 @@ function SubmitButton({
 export function AdminStorePageClient({
   storefront,
   products,
+  variantOptions,
   reservations,
   supplyOverview,
 }: {
   storefront: StorefrontView;
   products: ProductView[];
+  variantOptions: VariantOptionsView;
   reservations: ReservationView[];
   supplyOverview: SupplyView[];
 }) {
@@ -315,7 +329,7 @@ export function AdminStorePageClient({
           <span className="eyebrow">Back-office</span>
           <h1>Boutique</h1>
         </div>
-        <ProductDialog mode="create" />
+        <ProductDialog mode="create" variantOptions={variantOptions} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -372,7 +386,7 @@ export function AdminStorePageClient({
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductsTab products={products} />
+          <ProductsTab products={products} variantOptions={variantOptions} />
         </TabsContent>
 
         <TabsContent value="supply">
@@ -380,14 +394,20 @@ export function AdminStorePageClient({
         </TabsContent>
 
         <TabsContent value="settings">
-          <SettingsTab storefront={storefront} />
+          <SettingsTab storefront={storefront} variantOptions={variantOptions} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function ProductsTab({ products }: { products: ProductView[] }) {
+function ProductsTab({
+  products,
+  variantOptions,
+}: {
+  products: ProductView[];
+  variantOptions: VariantOptionsView;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -397,7 +417,7 @@ function ProductsTab({ products }: { products: ProductView[] }) {
             {products.length} produit(s) configuré(s) pour la boutique.
           </CardDescription>
         </div>
-        <ProductDialog mode="create" />
+        <ProductDialog mode="create" variantOptions={variantOptions} />
       </CardHeader>
       <CardContent>
         <Table>
@@ -453,7 +473,11 @@ function ProductsTab({ products }: { products: ProductView[] }) {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    <ProductDialog mode="edit" product={product} />
+                    <ProductDialog
+                      mode="edit"
+                      product={product}
+                      variantOptions={variantOptions}
+                    />
                     <ProductActiveDialog product={product} />
                     <ProductDeleteDialog product={product} />
                   </div>
@@ -475,9 +499,11 @@ function ProductsTab({ products }: { products: ProductView[] }) {
 function ProductDialog({
   mode,
   product,
+  variantOptions,
 }: {
   mode: "create" | "edit";
   product?: ProductView;
+  variantOptions: VariantOptionsView;
 }) {
   const isEdit = mode === "edit";
   const [open, setOpen] = useState(false);
@@ -616,8 +642,9 @@ function ProductDialog({
                   Produit recommandé
                 </label>
               </div>
-              <ProductVariantsField
+              <ProductVariantConfigurator
                 onVariantsChange={setVariants}
+                variantOptions={variantOptions}
                 variants={variants}
               />
             </div>
@@ -653,6 +680,8 @@ type ProductVariantFormItem = {
   active: boolean;
 };
 
+// Conservé temporairement pendant la transition vers le configurateur global.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ProductVariantsField({
   onVariantsChange,
   variants,
@@ -869,6 +898,348 @@ function ProductVariantsField({
           Aucune variation : le produit sera réservé sans taille ni coupe.
         </p>
       )}
+    </div>
+  );
+}
+
+function ProductVariantConfigurator({
+  onVariantsChange,
+  variantOptions,
+  variants,
+}: {
+  onVariantsChange: Dispatch<SetStateAction<ProductVariantFormItem[]>>;
+  variantOptions: VariantOptionsView;
+  variants: ProductVariantFormItem[];
+}) {
+  type VariantMode = "NONE" | "SIZE" | "SIZE_CUT";
+  const [mode, setMode] = useState<VariantMode>(() => {
+    const activeVariants = variants.filter((variant) => variant.active);
+    if (activeVariants.some((variant) => variant.cut)) return "SIZE_CUT";
+    if (activeVariants.length > 0) return "SIZE";
+    return "NONE";
+  });
+  const [selectedCuts, setSelectedCuts] = useState<string[]>(() =>
+    Array.from(
+      new Set(
+        variants
+          .filter((variant) => variant.active && variant.cut)
+          .map((variant) => variant.cut),
+      ),
+    ),
+  );
+
+  function variantKey(size: string, cut: string) {
+    return `${size.toLowerCase()}::${cut.toLowerCase()}`;
+  }
+
+  const variantByKey = useMemo(() => {
+    const map = new Map<string, ProductVariantFormItem>();
+    for (const variant of variants) {
+      map.set(variantKey(variant.size, variant.cut), variant);
+    }
+    return map;
+  }, [variants]);
+
+  const availableSizes = useMemo(() => {
+    const map = new Map<string, VariantOptionView>();
+    for (const option of variantOptions.sizes) {
+      if (option.active) map.set(option.label.toLowerCase(), option);
+    }
+    for (const variant of variants) {
+      if (!variant.size) continue;
+      const key = variant.size.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          id: `variant-size-${variant.size}`,
+          label: variant.size,
+          active: variant.active,
+          sortOrder: Number.MAX_SAFE_INTEGER,
+        });
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label),
+    );
+  }, [variantOptions.sizes, variants]);
+
+  const availableCuts = useMemo(() => {
+    const map = new Map<string, VariantOptionView>();
+    for (const option of variantOptions.cuts) {
+      if (option.active) map.set(option.label.toLowerCase(), option);
+    }
+    for (const variant of variants) {
+      if (!variant.cut) continue;
+      const key = variant.cut.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          id: `variant-cut-${variant.cut}`,
+          label: variant.cut,
+          active: variant.active,
+          sortOrder: Number.MAX_SAFE_INTEGER,
+        });
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label),
+    );
+  }, [variantOptions.cuts, variants]);
+
+  const selectedVariants = variants.filter((variant) => {
+    if (!variant.active || !variant.size) return false;
+    if (mode === "SIZE") return variant.cut === "";
+    if (mode === "SIZE_CUT") {
+      return Boolean(variant.cut) && selectedCuts.includes(variant.cut);
+    }
+    return false;
+  });
+
+  function updateVariant(
+    localId: string,
+    next: Partial<ProductVariantFormItem>,
+  ) {
+    onVariantsChange((current) =>
+      current.map((variant) =>
+        variant.localId === localId ? { ...variant, ...next } : variant,
+      ),
+    );
+  }
+
+  function setVariantMode(nextMode: VariantMode) {
+    setMode(nextMode);
+    if (nextMode === "NONE") {
+      onVariantsChange((current) =>
+        current.map((variant) => ({ ...variant, active: false })),
+      );
+    }
+  }
+
+  function setVariantSelection(size: string, cut: string, active: boolean) {
+    const existing = variantByKey.get(variantKey(size, cut));
+
+    if (existing) {
+      updateVariant(existing.localId, { active });
+      return;
+    }
+
+    if (!active) return;
+
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `variant-${Date.now()}-${size}-${cut}`,
+        size,
+        cut,
+        stockQuantity: "",
+        active: true,
+      },
+    ]);
+  }
+
+  function setVariantStock(size: string, cut: string, stockQuantity: string) {
+    const existing = variantByKey.get(variantKey(size, cut));
+
+    if (existing) {
+      updateVariant(existing.localId, { stockQuantity, active: true });
+      return;
+    }
+
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `variant-${Date.now()}-${size}-${cut}`,
+        size,
+        cut,
+        stockQuantity,
+        active: true,
+      },
+    ]);
+  }
+
+  function toggleCut(cut: string, active: boolean) {
+    setSelectedCuts((current) =>
+      active
+        ? Array.from(new Set([...current, cut]))
+        : current.filter((item) => item !== cut),
+    );
+
+    if (!active) {
+      onVariantsChange((current) =>
+        current.map((variant) =>
+          variant.cut === cut ? { ...variant, active: false } : variant,
+        ),
+      );
+    }
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
+      {selectedVariants.map((variant, index) => (
+        <span key={variant.localId}>
+          <input name="variantId" type="hidden" value={variant.id ?? ""} />
+          <input name="variantSize" type="hidden" value={variant.size} />
+          <input name="variantCut" type="hidden" value={variant.cut} />
+          <input
+            name="variantStockQuantity"
+            type="hidden"
+            value={variant.stockQuantity}
+          />
+          <input name="variantActiveIndex" type="hidden" value={index} />
+        </span>
+      ))}
+      <div>
+        <strong className="text-sm text-[var(--primary)]">Variations</strong>
+        <p className="text-xs text-[var(--muted)]">
+          Utilisez les tailles et les coupes définies dans les paramètres.
+        </p>
+      </div>
+
+      <div className="grid gap-2 md:grid-cols-3">
+        {[
+          ["NONE", "Sans variation"],
+          ["SIZE", "Tailles uniquement"],
+          ["SIZE_CUT", "Coupes + tailles"],
+        ].map(([value, label]) => (
+          <label
+            className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm"
+            key={value}
+          >
+            <input
+              checked={mode === value}
+              onChange={() => setVariantMode(value as VariantMode)}
+              type="radio"
+            />
+            {label}
+          </label>
+        ))}
+      </div>
+
+      {mode !== "NONE" && availableSizes.length === 0 ? (
+        <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+          Ajoutez d’abord des tailles possibles dans l’onglet Paramètres.
+        </p>
+      ) : null}
+
+      {mode === "SIZE" && availableSizes.length > 0 ? (
+        <div className="grid gap-2">
+          {availableSizes.map((size) => {
+            const variant = variantByKey.get(variantKey(size.label, ""));
+            const checked = Boolean(variant?.active);
+
+            return (
+              <div
+                className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_140px]"
+                key={size.id}
+              >
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <input
+                    checked={checked}
+                    onChange={(event) =>
+                      setVariantSelection(size.label, "", event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  {size.label}
+                </label>
+                <Input
+                  disabled={!checked}
+                  min="0"
+                  onChange={(event) =>
+                    setVariantStock(size.label, "", event.target.value)
+                  }
+                  placeholder="Stock"
+                  type="number"
+                  value={variant?.stockQuantity ?? ""}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {mode === "SIZE_CUT" ? (
+        <div className="grid gap-3">
+          {availableCuts.length === 0 ? (
+            <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+              Ajoutez d’abord des coupes possibles dans l’onglet Paramètres.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {availableCuts.map((cut) => {
+                const checked = selectedCuts.includes(cut.label);
+
+                return (
+                  <label
+                    className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${
+                      checked
+                        ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                        : "border-[var(--border)] bg-white text-[var(--primary)]"
+                    }`}
+                    key={cut.id}
+                  >
+                    <input
+                      checked={checked}
+                      className="sr-only"
+                      onChange={(event) => toggleCut(cut.label, event.target.checked)}
+                      type="checkbox"
+                    />
+                    {cut.label}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+          {selectedCuts.map((cut) => (
+            <div className="grid gap-2 rounded-lg border border-[var(--border)] p-3" key={cut}>
+              <strong className="text-sm text-[var(--primary)]">{cut}</strong>
+              <div className="grid gap-2">
+                {availableSizes.map((size) => {
+                  const variant = variantByKey.get(variantKey(size.label, cut));
+                  const checked = Boolean(variant?.active);
+
+                  return (
+                    <div
+                      className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_140px]"
+                      key={`${cut}-${size.id}`}
+                    >
+                      <label className="flex items-center gap-2 text-sm font-medium">
+                        <input
+                          checked={checked}
+                          onChange={(event) =>
+                            setVariantSelection(size.label, cut, event.target.checked)
+                          }
+                          type="checkbox"
+                        />
+                        {size.label}
+                      </label>
+                      <Input
+                        disabled={!checked}
+                        min="0"
+                        onChange={(event) =>
+                          setVariantStock(size.label, cut, event.target.value)
+                        }
+                        placeholder="Stock"
+                        type="number"
+                        value={variant?.stockQuantity ?? ""}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {mode === "NONE" ? (
+        <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+          Aucune variation : le produit sera réservé sans taille ni coupe.
+        </p>
+      ) : null}
+      {selectedVariants.length > 0 ? (
+        <div className="text-xs text-[var(--muted)]">
+          {selectedVariants.length} combinaison(s) sélectionnée(s).
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1486,7 +1857,13 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
   );
 }
 
-function SettingsTab({ storefront }: { storefront: StorefrontView }) {
+function SettingsTab({
+  storefront,
+  variantOptions,
+}: {
+  storefront: StorefrontView;
+  variantOptions: VariantOptionsView;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -1509,6 +1886,36 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
             required
           />
           <Textarea name="description" defaultValue={storefront.description} required />
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium text-[var(--primary)]">Tailles possibles</span>
+              <Textarea
+                name="sizeOptions"
+                defaultValue={variantOptions.sizes
+                  .filter((option) => option.active)
+                  .map((option) => option.label)
+                  .join("\n")}
+                placeholder="S, M, L, XL..."
+              />
+              <span className="text-xs text-[var(--muted)]">
+                Une valeur par ligne ou séparée par une virgule.
+              </span>
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium text-[var(--primary)]">Coupes possibles</span>
+              <Textarea
+                name="cutOptions"
+                defaultValue={variantOptions.cuts
+                  .filter((option) => option.active)
+                  .map((option) => option.label)
+                  .join("\n")}
+                placeholder="Coupe droite, coupe cintrée..."
+              />
+              <span className="text-xs text-[var(--muted)]">
+                Une valeur par ligne ou séparée par une virgule.
+              </span>
+            </label>
+          </div>
           <Textarea
             name="pickupDetails"
             defaultValue={storefront.pickupDetails ?? ""}

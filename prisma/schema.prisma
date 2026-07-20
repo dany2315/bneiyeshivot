@@ -95,6 +95,11 @@ enum StoreReservationStatus {
   CANCELED
 }
 
+enum StoreVariantOptionType {
+  SIZE
+  CUT
+}
+
 enum MivhanRegistrationStatus {
   REGISTERED
   PRESENT
@@ -160,8 +165,24 @@ model Storefront {
   active          Boolean        @default(true)
   products        StoreProduct[]
   reservations    StoreReservation[]
+  variantOptions  StoreVariantOption[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+}
+
+model StoreVariantOption {
+  id            String                 @id @default(cuid())
+  storefrontId  String
+  storefront    Storefront             @relation(fields: [storefrontId], references: [id], onDelete: Cascade)
+  type          StoreVariantOptionType
+  label         String
+  active        Boolean                @default(true)
+  sortOrder     Int                    @default(0)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([storefrontId, type, label])
+  @@index([storefrontId, type, active, sortOrder])
 }
 
 model StoreProduct {
