@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -39,8 +39,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Textarea } from "@/components/ui/textarea";
+import { fileUrl } from "@/lib/files";
 
 type StorefrontView = {
   active: boolean;
@@ -184,7 +186,7 @@ export function StorefrontClient({
               {storefront.name}
             </strong>
             <small className="block truncate text-[var(--muted)]">
-              Réservation sans paiement
+              RÃ©servation sans paiement
             </small>
           </div>
           <CartSheet
@@ -204,10 +206,10 @@ export function StorefrontClient({
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
             <CheckCircle2 className="size-4" />
-            <AlertTitle>Réservation envoyée</AlertTitle>
+            <AlertTitle>RÃ©servation envoyÃ©e</AlertTitle>
             <AlertDescription>
-              Nous avons bien reçu votre réservation. L’équipe vous recontactera
-              pour confirmer la disponibilité.
+              Nous avons bien reÃ§u votre rÃ©servation. Lâ€™Ã©quipe vous recontactera
+              pour confirmer la disponibilitÃ©.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -215,10 +217,10 @@ export function StorefrontClient({
         {!storefront.active ? (
           <Alert className="border-amber-200 bg-amber-50 text-amber-950">
             <ShoppingBag className="size-4" />
-            <AlertTitle>Boutique fermée</AlertTitle>
+            <AlertTitle>Boutique fermÃ©e</AlertTitle>
             <AlertDescription>
-              Les réservations sont momentanément fermées. Vous pouvez consulter
-              les produits, mais il n’est pas possible de réserver pour le moment.
+              Les rÃ©servations sont momentanÃ©ment fermÃ©es. Vous pouvez consulter
+              les produits, mais il nâ€™est pas possible de rÃ©server pour le moment.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -247,9 +249,9 @@ export function StorefrontClient({
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Boutique en préparation</CardTitle>
+              <CardTitle>Boutique en prÃ©paration</CardTitle>
               <CardDescription>
-                Les produits seront bientôt disponibles à la réservation.
+                Les produits seront bientÃ´t disponibles Ã  la rÃ©servation.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -285,7 +287,7 @@ function ProductCard({
       <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
         {product.featured ? (
           <Badge className="w-fit" variant="success">
-            Recommandé
+            RecommandÃ©
           </Badge>
         ) : null}
         <CardTitle className="text-base md:text-lg">
@@ -442,7 +444,7 @@ function ProductAddButton({
         <ShoppingBag className="size-4" />
         Ajouter au panier
       </DrawerTrigger>
-      <DrawerContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+      <DrawerContent className="max-h-[85vh] sm:max-w-md">
         <ProductOptionDrawerContent
           onAdd={(variantId, quantity) => {
             onAdd(variantId, quantity);
@@ -493,6 +495,7 @@ function ProductOptionDrawerContent({
     null;
   const [quantity, setQuantity] = useState(1);
   const [addedKey, setAddedKey] = useState(0);
+  const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
 
   function selectCut(nextCut: string) {
     const nextVariant =
@@ -503,12 +506,28 @@ function ProductOptionDrawerContent({
 
   return (
     <>
-      <DrawerHeader>
-        <DrawerTitle>{product.title}</DrawerTitle>
+      <DrawerHeader className="gap-3 pb-3">
+        <div className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 text-left">
+          <div className="flex size-16 items-center justify-center overflow-hidden rounded-lg bg-[var(--subtle)]">
+            {imageSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt="" className="h-full w-full object-cover" src={imageSrc} />
+            ) : (
+              <ShoppingBag className="size-6 text-[var(--primary)]" />
+            )}
+          </div>
+          <DrawerTitle className="truncate text-base font-bold text-[var(--primary)]">
+            {product.title}
+          </DrawerTitle>
+          <strong className="whitespace-nowrap text-base font-black text-[var(--primary)]">
+            {formatPrice(product.priceCents, product.currency)}
+          </strong>
+        </div>
         <DrawerDescription>
           Sélectionnez les options avant l’ajout au panier.
         </DrawerDescription>
       </DrawerHeader>
+      <Separator />
       <div className="grid gap-4 px-4">
         {cuts.length > 0 ? (
           <div className="grid gap-2">
@@ -553,7 +572,8 @@ function ProductOptionDrawerContent({
           </div>
         </div>
       </div>
-      <DrawerFooter className="sticky bottom-0 bg-popover pt-4">
+      <Separator className="mt-4" />
+      <DrawerFooter className="bg-popover pt-4">
         <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
           <QuantityControl min={1} onChange={setQuantity} quantity={quantity} />
@@ -624,9 +644,9 @@ function CartSheet({
       </SheetTrigger>
       <SheetContent className="w-full max-w-full overflow-x-hidden overflow-y-auto sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Panier de réservation</SheetTitle>
+          <SheetTitle>Panier de rÃ©servation</SheetTitle>
           <SheetDescription>
-            Aucun paiement en ligne. L’équipe confirme ensuite.
+            Aucun paiement en ligne. Lâ€™Ã©quipe confirme ensuite.
           </SheetDescription>
         </SheetHeader>
         <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pb-4">
@@ -712,7 +732,7 @@ function CartSheet({
             disabled={!storefront.active || products.length === 0 || cartItems.length === 0}
           >
             <ShoppingBag className="size-4" />
-            {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
+            {storefront.active ? "Envoyer la rÃ©servation" : "RÃ©servations fermÃ©es"}
           </Button>
         </form>
       </SheetContent>
@@ -787,7 +807,7 @@ export function StoreProductDetailReservationClient({
               {storefront.name}
             </strong>
             <small className="block truncate text-[var(--muted)]">
-              Réservation sans paiement
+              RÃ©servation sans paiement
             </small>
           </div>
           <CartSheet
@@ -841,7 +861,7 @@ export function StoreReservationCustomerFields({
   if (!isConnected) {
     return (
       <>
-        <Input disabled={disabled} name="customerName" placeholder="Nom et prénom" required />
+        <Input disabled={disabled} name="customerName" placeholder="Nom et prÃ©nom" required />
         <Input disabled={disabled} name="customerEmail" placeholder="Email" required type="email" />
         <PhoneInputGroup
           disabled={disabled}
@@ -959,7 +979,7 @@ export function StoreProductReservationPanel({
       />
       <Button disabled={disabled || (hasVariants && !selectedVariant)}>
         <ShoppingBag className="size-4" />
-        {disabled ? "Réservations fermées" : "Envoyer la réservation"}
+        {disabled ? "RÃ©servations fermÃ©es" : "Envoyer la rÃ©servation"}
       </Button>
     </form>
   );
