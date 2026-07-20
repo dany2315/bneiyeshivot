@@ -12,6 +12,7 @@ import {
   EyeOff,
   ImageIcon,
   PackagePlus,
+  Plus,
   Save,
   Settings,
   Trash2,
@@ -1864,6 +1865,17 @@ function SettingsTab({
   storefront: StorefrontView;
   variantOptions: VariantOptionsView;
 }) {
+  const [sizeLabels, setSizeLabels] = useState(
+    variantOptions.sizes
+      .filter((option) => option.active)
+      .map((option) => option.label),
+  );
+  const [cutLabels, setCutLabels] = useState(
+    variantOptions.cuts
+      .filter((option) => option.active)
+      .map((option) => option.label),
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -1887,35 +1899,27 @@ function SettingsTab({
           />
           <Textarea name="description" defaultValue={storefront.description} required />
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium text-[var(--primary)]">Tailles possibles</span>
-              <Textarea
-                name="sizeOptions"
-                defaultValue={variantOptions.sizes
-                  .filter((option) => option.active)
-                  .map((option) => option.label)
-                  .join("\n")}
-                placeholder="S, M, L, XL..."
-              />
-              <span className="text-xs text-[var(--muted)]">
-                Une valeur par ligne ou séparée par une virgule.
-              </span>
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium text-[var(--primary)]">Coupes possibles</span>
-              <Textarea
-                name="cutOptions"
-                defaultValue={variantOptions.cuts
-                  .filter((option) => option.active)
-                  .map((option) => option.label)
-                  .join("\n")}
-                placeholder="Coupe droite, coupe cintrée..."
-              />
-              <span className="text-xs text-[var(--muted)]">
-                Une valeur par ligne ou séparée par une virgule.
-              </span>
-            </label>
+            <VariantOptionsDialog
+              addLabel="Ajouter une taille"
+              description="Gérez les tailles réutilisables dans les fiches produit."
+              emptyLabel="Aucune taille définie."
+              labels={sizeLabels}
+              onLabelsChange={setSizeLabels}
+              title="Tailles possibles"
+              triggerLabel="Modifier les tailles"
+            />
+            <VariantOptionsDialog
+              addLabel="Ajouter une coupe"
+              description="Gérez les coupes réutilisables dans les fiches produit."
+              emptyLabel="Aucune coupe définie."
+              labels={cutLabels}
+              onLabelsChange={setCutLabels}
+              title="Coupes possibles"
+              triggerLabel="Modifier les coupes"
+            />
           </div>
+          <input name="sizeOptions" type="hidden" value={sizeLabels.join("\n")} />
+          <input name="cutOptions" type="hidden" value={cutLabels.join("\n")} />
           <Textarea
             name="pickupDetails"
             defaultValue={storefront.pickupDetails ?? ""}
@@ -1943,5 +1947,100 @@ function SettingsTab({
         </InteractiveForm>
       </CardContent>
     </Card>
+  );
+}
+
+function VariantOptionsDialog({
+  addLabel,
+  description,
+  emptyLabel,
+  labels,
+  onLabelsChange,
+  title,
+  triggerLabel,
+}: {
+  addLabel: string;
+  description: string;
+  emptyLabel: string;
+  labels: string[];
+  onLabelsChange: Dispatch<SetStateAction<string[]>>;
+  title: string;
+  triggerLabel: string;
+}) {
+  const filledLabels = labels.filter((label) => label.trim());
+
+  function addOption() {
+    onLabelsChange((current) => [...current, ""]);
+  }
+
+  function updateOption(index: number, value: string) {
+    onLabelsChange((current) =>
+      current.map((item, itemIndex) => (itemIndex === index ? value : item)),
+    );
+  }
+
+  function removeOption(index: number) {
+    onLabelsChange((current) =>
+      current.filter((_, itemIndex) => itemIndex !== index),
+    );
+  }
+
+  return (
+    <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+      <div>
+        <strong className="text-sm text-[var(--primary)]">{title}</strong>
+        <p className="text-xs text-[var(--muted)]">
+          {filledLabels.length > 0 ? filledLabels.join(", ") : emptyLabel}
+        </p>
+      </div>
+      <Dialog>
+        <DialogTrigger
+          render={
+            <Button className="w-fit" type="button" variant="secondary" />
+          }
+        >
+          <Edit className="size-4" />
+          {triggerLabel}
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {labels.length > 0 ? (
+              labels.map((label, index) => (
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2" key={index}>
+                  <Input
+                    onChange={(event) => updateOption(index, event.target.value)}
+                    placeholder={title === "Tailles possibles" ? "S" : "Coupe droite"}
+                    value={label}
+                  />
+                  <Button
+                    aria-label="Supprimer"
+                    onClick={() => removeOption(index)}
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                {emptyLabel}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={addOption} type="button" variant="secondary">
+              <Plus className="size-4" />
+              {addLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
