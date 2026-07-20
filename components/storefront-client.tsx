@@ -443,7 +443,7 @@ function ProductAddButton({
         Ajouter au panier
       </DrawerTrigger>
       <DrawerContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
-        <ProductAddDrawerContent
+        <ProductOptionDrawerContent
           onAdd={(variantId, quantity) => {
             onAdd(variantId, quantity);
             window.setTimeout(() => setOpen(false), 520);
@@ -455,25 +455,49 @@ function ProductAddButton({
   );
 }
 
-function ProductAddDrawerContent({
+function ProductOptionDrawerContent({
   onAdd,
   product,
 }: {
   onAdd: (variantId: string | null, quantity: number) => void;
   product: ProductView;
 }) {
+  const cuts = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          product.variants
+            .map((variant) => variant.cut?.trim())
+            .filter((cut): cut is string => Boolean(cut)),
+        ),
+      ),
+    [product.variants],
+  );
   const defaultVariant = findDefaultVariant(product);
-  const [size, setSize] = useState(defaultVariant?.size ?? "");
-  const [variantId, setVariantId] = useState(defaultVariant?.id ?? "");
+  const [cut, setCut] = useState(defaultVariant?.cut ?? cuts[0] ?? "");
+  const variantsForCut = useMemo(
+    () =>
+      cuts.length > 0
+        ? product.variants.filter((variant) => (variant.cut ?? "") === cut)
+        : product.variants,
+    [cut, cuts.length, product.variants],
+  );
+  const availableVariants =
+    variantsForCut.length > 0 ? variantsForCut : product.variants;
+  const [variantId, setVariantId] = useState(
+    defaultVariant?.id ?? availableVariants[0]?.id ?? "",
+  );
+  const selectedVariant =
+    availableVariants.find((variant) => variant.id === variantId) ??
+    availableVariants[0] ??
+    null;
   const [quantity, setQuantity] = useState(1);
-  const productSizes = useMemo(() => sizesFor(product), [product]);
-  const cutOptions = size ? cutsFor(product, size) : [];
-  const selectedVariant = findVariant(product, size, variantId);
   const [addedKey, setAddedKey] = useState(0);
 
-  function selectSize(nextSize: string) {
-    const nextVariant = cutsFor(product, nextSize)[0] ?? null;
-    setSize(nextSize);
+  function selectCut(nextCut: string) {
+    const nextVariant =
+      product.variants.find((variant) => (variant.cut ?? "") === nextCut) ?? null;
+    setCut(nextCut);
     setVariantId(nextVariant?.id ?? "");
   }
 
@@ -482,24 +506,58 @@ function ProductAddDrawerContent({
       <DrawerHeader>
         <DrawerTitle>{product.title}</DrawerTitle>
         <DrawerDescription>
-          Sélectionnez la taille et la coupe avant l’ajout au panier.
+          Sélectionnez les options avant l’ajout au panier.
         </DrawerDescription>
       </DrawerHeader>
       <div className="grid gap-4 px-4">
-        <VariantSelector
-          cutOptions={cutOptions}
-          onSizeChange={selectSize}
-          onVariantChange={setVariantId}
-          productSizes={productSizes}
-          size={size}
-          variantId={selectedVariant?.id ?? ""}
-        />
+        {cuts.length > 0 ? (
+          <div className="grid gap-2">
+            <span className="text-sm font-bold text-[var(--primary)]">Coupe</span>
+            <div className="flex flex-wrap gap-2">
+              {cuts.map((item) => (
+                <button
+                  className={`rounded-full border px-3 py-1.5 text-sm font-bold transition ${
+                    cut === item
+                      ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                      : "border-[var(--border)] bg-white text-[var(--primary)] hover:border-[var(--accent)]"
+                  }`}
+                  key={item}
+                  onClick={() => selectCut(item)}
+                  type="button"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div className="grid gap-2">
+          <span className="text-sm font-bold text-[var(--primary)]">Taille</span>
+          <div className="-mx-4 overflow-x-auto px-4 pb-1">
+            <div className="flex w-max min-w-full gap-2">
+              {availableVariants.map((variant) => (
+                <button
+                  className={`min-w-16 rounded-lg border px-4 py-3 text-sm font-black transition ${
+                    selectedVariant?.id === variant.id
+                      ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                      : "border-[var(--border)] bg-white text-[var(--primary)] hover:border-[var(--accent)]"
+                  }`}
+                  key={variant.id}
+                  onClick={() => setVariantId(variant.id)}
+                  type="button"
+                >
+                  {variant.size}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <DrawerFooter className="sticky bottom-0 bg-popover pt-4">
         <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
           <QuantityControl min={1} onChange={setQuantity} quantity={quantity} />
         </div>
-      </div>
-      <DrawerFooter className="sticky bottom-0 bg-popover pt-4">
         <Button
           className="relative"
           disabled={!selectedVariant}
