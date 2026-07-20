@@ -1,19 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShoppingBag } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { PageShell } from "@/app/components";
 import { StoreProductDetailReservationClient } from "@/components/storefront-client";
 import { StoreProductImageDialog } from "@/components/store-product-image-dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { ensureDefaultStorefront, formatStorePrice } from "@/lib/store";
@@ -59,11 +52,51 @@ export default async function StoreProductPage({
     notFound();
   }
 
+  const productView = {
+    id: product.id,
+    title: product.title,
+    slug: product.slug,
+    description: product.description,
+    priceCents: product.priceCents,
+    currency: product.currency,
+    imageUrl: product.imageUrl,
+    imageUrls: product.imageUrls,
+    stockQuantity: product.stockQuantity,
+    featured: product.featured,
+    variants: product.variants.map((variant) => ({
+      id: variant.id,
+      size: variant.size,
+      cut: variant.cut,
+      stockQuantity: variant.stockQuantity,
+    })),
+  };
+  const initialUser = user
+    ? {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        yeshiva: user.yeshiva,
+      }
+    : null;
+  const storefrontView = {
+    active: storefront.active,
+    description: storefront.description,
+    name: storefront.name,
+    pickupDetails: storefront.pickupDetails,
+  };
+
   return (
     <PageShell>
+      <StoreProductDetailReservationClient
+        disabled={!storefront.active}
+        initialUser={initialUser}
+        product={productView}
+        storefront={storefrontView}
+      />
       <main>
         <section className="section pt-24">
-          <div className="container grid gap-8 lg:grid-cols-[1fr_390px]">
+          <div className="container grid gap-8 pb-24">
             <div className="grid gap-5">
               <Button asChild className="w-fit" variant="secondary">
                 <Link href="/boutique">
@@ -123,66 +156,6 @@ export default async function StoreProductPage({
               </div>
             </div>
 
-            <aside className="lg:sticky lg:top-6 lg:self-start">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Réserver ce produit</CardTitle>
-                  <CardDescription>
-                    Choisissez la variation, ajoutez-la au panier, puis finalisez la réservation.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!storefront.active ? (
-                    <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-950">
-                      <ShoppingBag className="size-4" />
-                      <AlertTitle>Boutique fermée</AlertTitle>
-                      <AlertDescription>
-                        Les réservations sont momentanément fermées. Il n’est
-                        pas possible de réserver ce produit pour le moment.
-                      </AlertDescription>
-                    </Alert>
-                  ) : null}
-                  <StoreProductDetailReservationClient
-                    disabled={!storefront.active}
-                    initialUser={
-                      user
-                        ? {
-                            email: user.email,
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            phone: user.phone,
-                            yeshiva: user.yeshiva,
-                          }
-                        : null
-                    }
-                    storefront={{
-                      active: storefront.active,
-                      description: storefront.description,
-                      name: storefront.name,
-                      pickupDetails: storefront.pickupDetails,
-                    }}
-                    product={{
-                      id: product.id,
-                      title: product.title,
-                      slug: product.slug,
-                      description: product.description,
-                      priceCents: product.priceCents,
-                      currency: product.currency,
-                      imageUrl: product.imageUrl,
-                      imageUrls: product.imageUrls,
-                      stockQuantity: product.stockQuantity,
-                      featured: product.featured,
-                      variants: product.variants.map((variant) => ({
-                        id: variant.id,
-                        size: variant.size,
-                        cut: variant.cut,
-                        stockQuantity: variant.stockQuantity,
-                      })),
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            </aside>
           </div>
         </section>
       </main>

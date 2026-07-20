@@ -660,6 +660,9 @@ function ProductVariantsField({
   onVariantsChange: Dispatch<SetStateAction<ProductVariantFormItem[]>>;
   variants: ProductVariantFormItem[];
 }) {
+  const [sizesInput, setSizesInput] = useState("");
+  const [cutsInput, setCutsInput] = useState("");
+
   function addVariant() {
     onVariantsChange((current) => [
       ...current,
@@ -690,6 +693,56 @@ function ProductVariantsField({
     );
   }
 
+  function splitValues(value: string) {
+    return value
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function addGeneratedVariants(sizes: string[], cuts: string[]) {
+    const existingKeys = new Set(
+      variants.map(
+        (variant) =>
+          `${variant.size.toLowerCase()}::${variant.cut.trim().toLowerCase()}`,
+      ),
+    );
+    const effectiveCuts = cuts.length > 0 ? cuts : [""];
+    const nextVariants: ProductVariantFormItem[] = [];
+
+    for (const size of sizes) {
+      for (const cut of effectiveCuts) {
+        const key = `${size.toLowerCase()}::${cut.toLowerCase()}`;
+        if (existingKeys.has(key)) continue;
+        existingKeys.add(key);
+        nextVariants.push({
+          localId: `generated-${Date.now()}-${nextVariants.length}`,
+          size,
+          cut,
+          stockQuantity: "",
+          active: true,
+        });
+      }
+    }
+
+    if (nextVariants.length > 0) {
+      onVariantsChange((current) => [...current, ...nextVariants]);
+    }
+  }
+
+  function applyPreset(sizes: string[], cuts: string[] = []) {
+    addGeneratedVariants(sizes, cuts);
+  }
+
+  function generateFromInputs() {
+    const sizes = splitValues(sizesInput);
+    const cuts = splitValues(cutsInput);
+    if (sizes.length === 0) return;
+    addGeneratedVariants(sizes, cuts);
+    setSizesInput("");
+    setCutsInput("");
+  }
+
   return (
     <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
       <div className="flex items-center justify-between gap-3">
@@ -702,6 +755,51 @@ function ProductVariantsField({
         <Button onClick={addVariant} size="sm" type="button" variant="secondary">
           Ajouter
         </Button>
+      </div>
+      <div className="grid gap-3 rounded-lg bg-[var(--subtle)] p-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => applyPreset(["XS", "S", "M", "L", "XL", "XXL"])}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Tailles vêtement
+          </Button>
+          <Button
+            onClick={() => applyPreset(["90x200", "120x200", "140x200", "160x200"])}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Tailles literie
+          </Button>
+          <Button
+            onClick={() =>
+              applyPreset(["S", "M", "L", "XL"], ["Coupe droite", "Coupe cintrée"])
+            }
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Chemises avec coupes
+          </Button>
+        </div>
+        <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+          <Textarea
+            onChange={(event) => setSizesInput(event.target.value)}
+            placeholder="Tailles à ajouter : S, M, L ou une par ligne"
+            value={sizesInput}
+          />
+          <Textarea
+            onChange={(event) => setCutsInput(event.target.value)}
+            placeholder="Coupes optionnelles : droite, cintrée..."
+            value={cutsInput}
+          />
+          <Button onClick={generateFromInputs} type="button">
+            Générer
+          </Button>
+        </div>
       </div>
       {variants.length > 0 ? (
         <div className="grid gap-2">

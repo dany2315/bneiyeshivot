@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { createStoreReservation } from "@/app/boutique/actions";
 import { PhoneInputGroup } from "@/components/phone-input-group";
@@ -25,10 +26,12 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Textarea } from "@/components/ui/textarea";
 
 type StorefrontView = {
@@ -254,14 +257,15 @@ function ProductCard({
   product,
 }: {
   disabled?: boolean;
-  onAddToCart: (product: ProductView, variantId: string | null) => void;
+  onAddToCart: (product: ProductView, variantId: string | null, quantity?: number) => void;
   product: ProductView;
 }) {
+  const router = useRouter();
+  const productSizes = sizesFor(product);
   const defaultVariant = findDefaultVariant(product);
   const [size, setSize] = useState(defaultVariant?.size ?? "");
   const [variantId, setVariantId] = useState(defaultVariant?.id ?? "");
   const selectedVariant = findVariant(product, size, variantId);
-  const productSizes = sizesFor(product);
   const cutOptions = size ? cutsFor(product, size) : [];
   const hasVariants = product.variants.length > 0;
 
@@ -272,12 +276,17 @@ function ProductCard({
   }
 
   return (
-    <Card className="overflow-hidden py-0">
-      <StoreProductImageDialog
-        imageUrl={product.imageUrl}
-        imageUrls={product.imageUrls}
-        title={product.title}
-      />
+    <Card
+      className="cursor-pointer overflow-hidden py-0 transition hover:-translate-y-0.5 hover:shadow-lg"
+      onClick={() => router.push(`/boutique/${product.slug}`)}
+    >
+      <div onClick={(event) => event.stopPropagation()}>
+        <StoreProductImageDialog
+          imageUrl={product.imageUrl}
+          imageUrls={product.imageUrls}
+          title={product.title}
+        />
+      </div>
       <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
         {product.featured ? (
           <Badge className="w-fit" variant="success">
@@ -285,7 +294,11 @@ function ProductCard({
           </Badge>
         ) : null}
         <CardTitle className="text-base md:text-lg">
-          <Link className="hover:text-[var(--accent)]" href={`/boutique/${product.slug}`}>
+          <Link
+            className="hover:text-[var(--accent)]"
+            href={`/boutique/${product.slug}`}
+            onClick={(event) => event.stopPropagation()}
+          >
             {product.title}
           </Link>
         </CardTitle>
@@ -295,7 +308,10 @@ function ProductCard({
               <button
                 className="rounded-md border border-[var(--border)] px-2 py-1 text-xs font-bold text-[var(--primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
                 key={item}
-                onClick={() => selectSize(item)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  router.push(`/boutique/${product.slug}`);
+                }}
                 type="button"
               >
                 {item}
@@ -308,7 +324,7 @@ function ProductCard({
         <strong className="text-base text-[var(--primary)] md:text-xl">
           {formatPrice(product.priceCents, product.currency)}
         </strong>
-        {hasVariants ? (
+        {false ? (
           <VariantSelector
             cutOptions={cutOptions}
             onSizeChange={selectSize}
@@ -318,7 +334,7 @@ function ProductCard({
             variantId={selectedVariant?.id ?? ""}
           />
         ) : null}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="hidden">
           <Button asChild size="sm" variant="secondary">
             <Link href={`/boutique/${product.slug}`}>Voir le détail</Link>
           </Button>
@@ -332,6 +348,13 @@ function ProductCard({
             Ajouter
           </Button>
         </div>
+        <ProductAddButton
+          disabled={disabled}
+          onAdd={(selectedVariantId, quantity) =>
+            onAddToCart(product, selectedVariantId, quantity)
+          }
+          product={product}
+        />
       </CardContent>
     </Card>
   );
@@ -382,6 +405,151 @@ function VariantSelector({
         </label>
       ) : null}
     </div>
+  );
+}
+
+function ProductAddButton({
+  disabled,
+  onAdd,
+  product,
+  fixed = false,
+}: {
+  disabled?: boolean;
+  onAdd: (variantId: string | null, quantity: number) => void;
+  product: ProductView;
+  fixed?: boolean;
+}) {
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+  const [addedKey, setAddedKey] = useState(0);
+  const hasVariants = product.variants.length > 0;
+
+  function animateAdded() {
+    setAddedKey((current) => current + 1);
+  }
+
+  function addDirect() {
+    onAdd(null, 1);
+    animateAdded();
+  }
+
+  if (!hasVariants) {
+    return (
+      <Button
+        className={fixed ? "relative w-full shadow-lg" : "relative w-full"}
+        disabled={disabled}
+        onClick={(event) => {
+          event.stopPropagation();
+          addDirect();
+        }}
+        type="button"
+      >
+        <ShoppingBag className="size-4" />
+        Ajouter au panier
+        {addedKey > 0 ? <CartAddedPulse key={addedKey} /> : null}
+      </Button>
+    );
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger
+        render={
+          <Button
+            className={fixed ? "relative w-full shadow-lg" : "relative w-full"}
+            disabled={disabled}
+            onClick={(event) => event.stopPropagation()}
+            type="button"
+          />
+        }
+      >
+        <ShoppingBag className="size-4" />
+        Ajouter au panier
+      </SheetTrigger>
+      <SheetContent
+        className="max-h-[85vh] overflow-y-auto sm:max-w-md"
+        side={isMobile ? "bottom" : "right"}
+      >
+        <ProductAddDrawerContent
+          onAdd={(variantId, quantity) => {
+            onAdd(variantId, quantity);
+            window.setTimeout(() => setOpen(false), 520);
+          }}
+          product={product}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function ProductAddDrawerContent({
+  onAdd,
+  product,
+}: {
+  onAdd: (variantId: string | null, quantity: number) => void;
+  product: ProductView;
+}) {
+  const defaultVariant = findDefaultVariant(product);
+  const [size, setSize] = useState(defaultVariant?.size ?? "");
+  const [variantId, setVariantId] = useState(defaultVariant?.id ?? "");
+  const [quantity, setQuantity] = useState(1);
+  const productSizes = useMemo(() => sizesFor(product), [product]);
+  const cutOptions = size ? cutsFor(product, size) : [];
+  const selectedVariant = findVariant(product, size, variantId);
+  const [addedKey, setAddedKey] = useState(0);
+
+  function selectSize(nextSize: string) {
+    const nextVariant = cutsFor(product, nextSize)[0] ?? null;
+    setSize(nextSize);
+    setVariantId(nextVariant?.id ?? "");
+  }
+
+  return (
+    <>
+      <SheetHeader>
+        <SheetTitle>{product.title}</SheetTitle>
+        <SheetDescription>
+          Sélectionnez la taille et la coupe avant l’ajout au panier.
+        </SheetDescription>
+      </SheetHeader>
+      <div className="grid gap-4 px-4">
+        <VariantSelector
+          cutOptions={cutOptions}
+          onSizeChange={selectSize}
+          onVariantChange={setVariantId}
+          productSizes={productSizes}
+          size={size}
+          variantId={selectedVariant?.id ?? ""}
+        />
+        <div className="grid gap-2">
+          <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
+          <QuantityControl min={1} onChange={setQuantity} quantity={quantity} />
+        </div>
+      </div>
+      <SheetFooter className="sticky bottom-0 bg-popover pt-4">
+        <Button
+          className="relative"
+          disabled={!selectedVariant}
+          onClick={() => {
+            setAddedKey((current) => current + 1);
+            onAdd(selectedVariant?.id ?? null, quantity);
+          }}
+          type="button"
+        >
+          <ShoppingBag className="size-4" />
+          Ajouter au panier
+          {addedKey > 0 ? <CartAddedPulse key={addedKey} /> : null}
+        </Button>
+      </SheetFooter>
+    </>
+  );
+}
+
+function CartAddedPulse() {
+  return (
+    <span className="pointer-events-none absolute right-3 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full bg-[var(--accent)] text-white shadow-lg animate-[cart-fly_700ms_ease-out_forwards]">
+      <ShoppingBag className="size-4" />
+    </span>
   );
 }
 
@@ -603,12 +771,26 @@ export function StoreProductDetailReservationClient({
           />
         </div>
       </div>
-      <StoreProductReservationPanel
-        disabled={disabled}
-        mode="cart"
-        onAddToCart={addToCart}
-        product={product}
-      />
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-white/95 p-3 shadow-[0_-14px_40px_rgba(6,40,70,0.14)] backdrop-blur">
+        <div className="container flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <strong className="block truncate text-sm text-[var(--primary)]">
+              {product.title}
+            </strong>
+            <span className="text-sm font-black text-[var(--primary)]">
+              {formatPrice(product.priceCents, product.currency)}
+            </span>
+          </div>
+          <div className="w-44 max-w-[52vw]">
+            <ProductAddButton
+              disabled={disabled}
+              fixed
+              onAdd={addToCart}
+              product={product}
+            />
+          </div>
+        </div>
+      </div>
     </>
   );
 }
