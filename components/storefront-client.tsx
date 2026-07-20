@@ -201,7 +201,7 @@ export function StorefrontClient({
         </div>
       </div>
 
-      <div className="container grid gap-4 pt-20">
+      <div className="container grid gap-4 pt-28">
         {reservationOk ? (
           <Alert className="border-green-200 bg-green-50 text-green-950">
             <CheckCircle2 className="size-4" />

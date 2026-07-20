@@ -95,7 +95,7 @@ export default async function StoreProductPage({
         storefront={storefrontView}
       />
       <main>
-        <section className="section pt-44 md:pt-48">
+        <section className="section pt-52 md:pt-56">
           <div className="container grid gap-8 pb-24">
             <div className="grid gap-5">
               <Button asChild className="w-fit" variant="secondary">
