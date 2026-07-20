@@ -21,30 +21,30 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Je viens etudier en Israel",
+  title: "Je viens étudier en Israël",
   description:
-    "Bnei Yeshivot accompagne les jeunes francophones avant leur depart, a leur arrivee et tout au long de leur parcours en Israel : guide, visa, assurance maladie, ETA-IL, installation et communaute.",
+    "Bnei Yeshivot accompagne les jeunes francophones avant leur départ, à leur arrivée et tout au long de leur parcours en Israël : guide, visa, assurance maladie, ETA-IL, installation et communauté.",
 };
 
 const heroPhotos = [
   {
     src: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
-    alt: "Depart a l'aeroport",
+    alt: "Départ à l’aéroport",
     className: "arrival-hero-photo-tall",
   },
   {
     src: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?auto=format&fit=crop&w=900&q=80",
-    alt: "Jerusalem et la vieille ville",
+    alt: "Jérusalem et la vieille ville",
     className: "",
   },
   {
     src: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80",
-    alt: "Etude a la yeshiva",
+    alt: "Étude à la yeshiva",
     className: "",
   },
   {
     src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80",
-    alt: "Jeunes accompagnes par l'equipe Bnei Yeshivot",
+    alt: "Jeunes accompagnés par l’équipe Bnei Yeshivot",
     className: "arrival-hero-photo-wide",
   },
 ];
@@ -52,18 +52,18 @@ const heroPhotos = [
 const introHighlights = [
   {
     icon: Compass,
-    title: "Un chemin guide",
-    text: "Chaque etape est balisee : vous savez toujours quelle est la prochaine action.",
+    title: "Un chemin guidé",
+    text: "Chaque étape est balisée : vous savez toujours quelle est la prochaine action.",
   },
   {
     icon: Users,
-    title: "Une equipe francophone",
-    text: "Des personnes qui connaissent le terrain et votre langue, a chaque etape.",
+    title: "Une équipe francophone",
+    text: "Des personnes qui connaissent le terrain et votre langue, à chaque étape.",
   },
   {
     icon: Sparkles,
-    title: "Une arrivee sereine",
-    text: "Vous commencez votre nouvelle etape dans les meilleures conditions.",
+    title: "Une arrivée sereine",
+    text: "Vous commencez votre nouvelle étape dans les meilleures conditions.",
   },
 ];
 
@@ -77,12 +77,12 @@ export default function VenirEtudierPage() {
             <div className="arrival-hero-copy">
               <span className="eyebrow">
                 <Plane className="size-3.5" />
-                Je viens etudier en Israel
+                Je viens étudier en Israël
               </span>
-              <h1>Votre arrivee en Israel commence ici</h1>
+              <h1>Votre arrivée en Israël commence ici</h1>
               <p>
-                Vous venez etudier en Israel ? Bnei Yeshivot vous accompagne
-                avant votre depart, lors de votre arrivee et tout au long de
+                Vous venez étudier en Israël ? Bnei Yeshivot vous accompagne
+                avant votre départ, lors de votre arrivée et tout au long de
                 votre parcours.
               </p>
               <div className="arrival-hero-actions">
@@ -104,10 +104,10 @@ export default function VenirEtudierPage() {
               <ul className="arrival-hero-chips">
                 <li>
                   <Luggage className="size-4" />
-                  Avant le depart
+                  Avant le départ
                 </li>
                 <li>
-                  <Plane className="size-4" />A l&apos;arrivee
+                  <Plane className="size-4" />À l’arrivée
                 </li>
                 <li>
                   <HeartHandshake className="size-4" />
@@ -138,12 +138,12 @@ export default function VenirEtudierPage() {
         <section className="section">
           <div className="container">
             <div className="section-header">
-              <h2>Ne partez pas seul en Israel</h2>
+              <h2>Ne partez pas seul en Israël</h2>
               <p>
-                Entre les demarches administratives, l&apos;installation et la
-                recherche d&apos;un cadre adapte, beaucoup de questions peuvent
+                Entre les démarches administratives, l’installation et la
+                recherche d’un cadre adapté, beaucoup de questions peuvent
                 se poser. Bnei Yeshivot accompagne les jeunes francophones pour
-                arriver sereinement et bien commencer cette nouvelle etape.
+                arriver sereinement et bien commencer cette nouvelle étape.
               </p>
             </div>
             <div className="arrival-intro-grid">
@@ -166,11 +166,11 @@ export default function VenirEtudierPage() {
         <section className="section band" id="parcours">
           <div className="container">
             <div className="section-header">
-              <h2>Mon parcours etape par etape</h2>
+              <h2>Mon parcours étape par étape</h2>
               <p>
-                Un chemin clair, de la preparation de votre depart jusqu&apos;a
-                votre integration dans la communaute. Cochez chaque etape au fur
-                et a mesure : votre progression est gardee en memoire sur cet
+                Un chemin clair, de la préparation de votre départ jusqu’à
+                votre intégration dans la communauté. Cochez chaque étape au fur
+                et à mesure : votre progression est gardée en mémoire sur cet
                 appareil.
               </p>
             </div>
@@ -187,10 +187,10 @@ export default function VenirEtudierPage() {
                 <Sparkles className="size-3.5" />
                 Votre aventure commence
               </span>
-              <h2>Pret pour votre aventure en Israel ?</h2>
+              <h2>Prêt pour votre aventure en Israël ?</h2>
               <p>
-                Notre equipe est la pour vous accompagner a chaque etape, avant
-                votre depart et tout au long de votre parcours.
+                Notre équipe est là pour vous accompagner à chaque étape, avant
+                votre départ et tout au long de votre parcours.
               </p>
               <div className="arrival-final-actions">
                 <Button asChild variant="accent" size="lg">

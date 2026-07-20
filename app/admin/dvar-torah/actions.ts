@@ -42,7 +42,7 @@ export async function createDvarTorahFile(formData: FormData) {
   }
 
   if (category !== DvarTorahCategory.CHABBAT && category !== DvarTorahCategory.FETE) {
-    throw new Error("Categorie invalide.");
+    throw new Error("Catégorie invalide.");
   }
 
   if (!(file instanceof File) || file.size === 0) {

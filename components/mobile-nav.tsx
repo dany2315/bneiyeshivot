@@ -47,10 +47,10 @@ import { cn } from "@/lib/utils";
 
 const navLinks: Array<[string, string, LucideIcon]> = [
   ["Accueil", "/", House],
-  ["Venir en Israel", "/venir-etudier", Plane],
-  ["A propos", "/a-propos", CircleHelp],
+  ["Venir en Israël", "/venir-etudier", Plane],
+  ["À propos", "/a-propos", CircleHelp],
   ["Services", "/services", Sparkles],
-  ["Evenements", "/evenements", CalendarDays],
+  ["Événements", "/evenements", CalendarDays],
   ["Programme", "/programme", Trophy],
   ["Dvar Torah", "/dvar-torah", BookOpenText],
   ["Boutique", "/boutique", ShoppingBag],
@@ -73,11 +73,11 @@ export function MobileNav() {
       await signOutRequest();
     } catch {
       setSigningOut(false);
-      toast.error("Impossible de se deconnecter pour le moment.");
+      toast.error("Impossible de se déconnecter pour le moment.");
       return;
     }
 
-    toast.success("Vous etes deconnecte.");
+    toast.success("Vous êtes déconnecté.");
     router.push("/connexion");
     router.refresh();
   }
@@ -113,7 +113,7 @@ export function MobileNav() {
               <SheetTitle className="text-xl font-bold text-[var(--primary)]">
                 Bnei Yeshivot
               </SheetTitle>
-              <SheetDescription>France - Israel</SheetDescription>
+              <SheetDescription>France - Israël</SheetDescription>
             </div>
           </div>
         </SheetHeader>
@@ -189,15 +189,15 @@ export function MobileNav() {
                 onClick={signOut}
               >
                 <LogOut className="size-4" />
-                {signingOut ? "Deconnexion..." : "Se deconnecter"}
+                {signingOut ? "Déconnexion..." : "Se déconnecter"}
               </Button>
             </div>
           ) : (
             <>
               <div className="mobile-nav-help">
-                <strong>Besoin d&apos;aide ?</strong>
+                <strong>Besoin d’aide ?</strong>
                 <span>
-                  Demandes, documents, dons et recus depuis votre espace.
+                  Demandes, documents, dons et reçus depuis votre espace.
                 </span>
               </div>
               <SheetClose

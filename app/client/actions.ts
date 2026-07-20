@@ -14,7 +14,7 @@ function readString(formData: FormData, key: string) {
 
 function requestTypeLabel(type: ServiceRequestType) {
   return type === ServiceRequestType.VISA_STUDENT
-    ? "visa etudiant"
+    ? "visa étudiant"
     : type === ServiceRequestType.KOUPAT_HOLIM
       ? "koupat holim"
       : "demande";
@@ -46,7 +46,7 @@ export async function updateBahourServiceRequest(formData: FormData) {
   }
 
   if (request.status !== ServiceRequestStatus.MISSING_DOCUMENTS) {
-    throw new Error("Cette demande n'est pas ouverte a la modification.");
+    throw new Error("Cette demande n’est pas ouverte à la modification.");
   }
 
   const payload =
@@ -91,11 +91,11 @@ export async function updateBahourServiceRequest(formData: FormData) {
       payload: payload as Prisma.JsonObject,
       status: ServiceRequestStatus.IN_REVIEW,
       publicNote:
-        "Informations modifiees par l'utilisateur. L'equipe va verifier la demande.",
+        "Informations modifiées par l’utilisateur. L’équipe va vérifier la demande.",
       messages: {
         create: {
           authorId: user.id,
-          body: "J'ai modifie les informations demandees.",
+          body: "J’ai modifié les informations demandées.",
           isInternal: false,
         },
       },
@@ -140,7 +140,7 @@ export async function updateBahourTalmoudoRegistrationState(
     }
 
     if (!isMivhanRegistrationOpen(registration.session)) {
-      throw new Error("Les inscriptions sont fermees pour ce mivhan.");
+      throw new Error("Les inscriptions sont fermées pour ce mivhan.");
     }
 
     await prisma.mivhanRegistration.update({
@@ -150,14 +150,14 @@ export async function updateBahourTalmoudoRegistrationState(
 
     revalidatePath("/client");
 
-    return { ok: true, message: "Inscription modifiee." };
+    return { ok: true, message: "Inscription modifiée." };
   } catch (error) {
     return {
       ok: false,
       message:
         error instanceof Error
           ? error.message
-          : "Impossible de modifier l'inscription.",
+          : "Impossible de modifier l’inscription.",
     };
   }
 }

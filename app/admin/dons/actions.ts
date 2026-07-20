@@ -554,7 +554,7 @@ export async function deleteManualDonation(formData: FormData) {
   });
 
   if (!donation || donation.source === DonationSource.ONLINE) {
-    throw new Error("Seuls les dons manuels peuvent etre supprimes.");
+    throw new Error("Seuls les dons manuels peuvent être supprimés.");
   }
 
   await prisma.receipt.deleteMany({ where: { donationId: donation.id } });
@@ -578,7 +578,7 @@ export async function updateDonationReceiptStatus(formData: FormData) {
   const receiptStatus = readString(formData, "receiptStatus") as ReceiptStatus;
 
   if (!donationId || !Object.values(ReceiptStatus).includes(receiptStatus)) {
-    throw new Error("Statut de recu invalide.");
+    throw new Error("Statut de reçu invalide.");
   }
 
   await prisma.donation.update({

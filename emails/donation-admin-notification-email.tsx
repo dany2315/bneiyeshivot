@@ -35,7 +35,7 @@ export function DonationAdminNotificationEmail({
   donorPhone,
   failureReason,
   frequency,
-  heading = "Nouveau don confirme",
+  heading = "Nouveau don confirmé",
   paymentLabel,
   paymentStatusLabel,
   receiptNumber,
@@ -54,7 +54,7 @@ export function DonationAdminNotificationEmail({
             <Text style={eyebrow}>Notification admin</Text>
             <Heading style={headingStyle}>{heading}</Heading>
             <Text style={headerText}>
-              Un paiement vient d&apos;etre synchronise sur la page dons.
+              Un paiement vient d’être synchronisé sur la page dons.
             </Text>
           </Section>
 
@@ -67,7 +67,7 @@ export function DonationAdminNotificationEmail({
                 <Text style={frequencyText}>Paiement {paymentLabel}</Text>
               ) : null}
               {paymentStatusLabel ? (
-                <Text style={frequencyText}>Statut: {paymentStatusLabel}</Text>
+                <Text style={frequencyText}>Statut : {paymentStatusLabel}</Text>
               ) : null}
             </Section>
 
@@ -81,15 +81,15 @@ export function DonationAdminNotificationEmail({
               </Text>
               {donorPhone ? (
                 <Text style={line}>
-                  <strong>Telephone :</strong> {donorPhone}
+                  <strong>Téléphone :</strong> {donorPhone}
                 </Text>
               ) : null}
             </Section>
 
             <Section style={infoBox}>
-              <Text style={boxTitle}>Paiement et recu</Text>
+              <Text style={boxTitle}>Paiement et reçu</Text>
               <Text style={line}>
-                <strong>Recu Cerfa :</strong> {receiptNumber || "A generer"}
+                <strong>Reçu Cerfa :</strong> {receiptNumber || "À générer"}
               </Text>
               <Text style={line}>
                 <strong>Stripe payment intent :</strong>{" "}
@@ -97,18 +97,18 @@ export function DonationAdminNotificationEmail({
               </Text>
               {failureReason ? (
                 <Text style={line}>
-                  <strong>Raison echec :</strong> {failureReason}
+                  <strong>Raison échec :</strong> {failureReason}
                 </Text>
               ) : null}
             </Section>
 
             <Section style={actions}>
               <Button href={adminLink} style={primaryButton}>
-                Ouvrir le don dans l&apos;admin
+                Ouvrir le don dans l’admin
               </Button>
               {stripeReceiptUrl ? (
                 <Button href={stripeReceiptUrl} style={secondaryButton}>
-                  Voir le recu Stripe
+                  Voir le reçu Stripe
                 </Button>
               ) : null}
             </Section>
@@ -116,7 +116,7 @@ export function DonationAdminNotificationEmail({
 
           <Hr style={divider} />
           <Text style={footer}>
-            Email automatique envoye par Resend depuis la plateforme Bnei
+            Email automatique envoyé par Resend depuis la plateforme Bnei
             Yeshivot.
           </Text>
         </Container>

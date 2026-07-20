@@ -17,15 +17,15 @@ export type ServiceRequestDocumentInput = {
 
 const requiredDocumentsByKind = {
   visa: [
-    "Photo du passeport non israelien",
+    "Photo du passeport non israélien",
     "Formulaire de visa rempli",
     "Acte de naissance",
-    "Certificat d'etudiant ou Massa",
+    "Certificat d’étudiant ou Massa",
   ],
   koupat: [
-    "Photo du passeport non israelien",
-    "Formulaire koupat holim rempli",
-    "Certificat d'etudiant ou Massa",
+    "Photo du passeport non israélien",
+    "Formulaire Koupat Holim rempli",
+    "Certificat d’étudiant ou Massa",
   ],
 } as const;
 
@@ -90,7 +90,7 @@ export async function createServiceRequest(
         userId: user.id,
         payload: toPayload(input),
         publicNote:
-          "Demande recue. L'equipe Bnei Yeshivot va verifier le dossier.",
+          "Demande reçue. L’équipe Bnei Yeshivot va vérifier le dossier.",
         documents:
           documents.length > 0
             ? {
@@ -103,7 +103,7 @@ export async function createServiceRequest(
             : undefined,
         messages: {
           create: {
-            body: "Dossier cree. Les documents seront verifies par l'equipe.",
+            body: "Dossier créé. Les documents seront vérifiés par l’équipe.",
           },
         },
       },

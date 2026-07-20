@@ -7,7 +7,7 @@ export async function signOutRequest() {
 
   if (result.error) {
     throw new Error(
-      result.error.message ?? "Impossible de se deconnecter pour le moment."
+      result.error.message ?? "Impossible de se déconnecter pour le moment."
     );
   }
 

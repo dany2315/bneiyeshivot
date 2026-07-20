@@ -47,7 +47,7 @@ export function BahourMivhanRegistrationCard({
     ? dapimRangesToHebrew(registration.dapim)
     : registration.dafStart && registration.dafEnd
       ? `Du daf ${registration.dafStart} au daf ${registration.dafEnd}`
-      : "Dapim a confirmer";
+      : "Dapim à confirmer";
 
   return (
     <div className="rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm">
@@ -66,7 +66,7 @@ export function BahourMivhanRegistrationCard({
             </span>
             <span className="flex items-center gap-1 text-xs text-[var(--muted)]">
               <MapPin className="size-3.5" />
-              {registration.session.location || "Lieu a confirmer"}
+              {registration.session.location || "Lieu à confirmer"}
             </span>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="font-bold uppercase tracking-wide text-[var(--primary)]">
@@ -89,7 +89,7 @@ export function BahourMivhanRegistrationCard({
               registration.rewardCurrency,
             )}
           </span>
-          <span>{registration.rewardPaid ? "Donnee" : "En attente"}</span>
+          <span>{registration.rewardPaid ? "Donnée" : "En attente"}</span>
           {canEdit ? (
             <TalmoudoDialogActionForm
               action={updateBahourTalmoudoRegistrationState}

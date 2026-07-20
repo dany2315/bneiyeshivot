@@ -123,7 +123,7 @@ export async function requestConfirmationEmail(params: {
   const html = await render(RequestConfirmationEmail(params));
 
   return {
-    subject: "Bnei Yeshivot - Votre demande a bien ete recue",
+    subject: "Bnei Yeshivot - Votre demande a bien été reçue",
     html,
   };
 }
@@ -154,7 +154,7 @@ function serviceRequestEmailHtml({
             ? `<p style="margin:22px 0"><a href="${actionHref}" style="display:inline-block;background:#062846;color:#fff;text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700">${actionLabel}</a></p>`
             : ""
         }
-        <p style="margin:24px 0 0;color:#6b7b8f;font-size:13px">L'equipe Bnei Yeshivot</p>
+        <p style="margin:24px 0 0;color:#6b7b8f;font-size:13px">L’équipe Bnei Yeshivot</p>
       </div>
     </div>
   `;
@@ -170,14 +170,14 @@ export function serviceRequestStatusEmail(params: {
   const greeting = params.firstName ? `Bonjour ${params.firstName},` : "Bonjour,";
 
   return {
-    subject: `Bnei Yeshivot - Mise a jour de votre demande ${params.typeLabel}`,
+    subject: `Bnei Yeshivot - Mise à jour de votre demande ${params.typeLabel}`,
     html: serviceRequestEmailHtml({
       actionHref: params.actionHref,
       actionLabel: "Voir ma demande",
-      title: "Mise a jour de votre demande",
+      title: "Mise à jour de votre demande",
       body: [
         greeting,
-        `Votre demande ${params.typeLabel} est maintenant indiquee comme <strong>${params.statusLabel}</strong>.`,
+        `Votre demande ${params.typeLabel} est maintenant indiquée comme <strong>${params.statusLabel}</strong>.`,
         ...(params.note ? [params.note] : []),
       ],
     }),
@@ -190,13 +190,13 @@ export function serviceRequestClientUpdatedAdminEmail(params: {
   typeLabel: string;
 }) {
   return {
-    subject: `Demande mise a jour - ${params.typeLabel} - ${params.fullName}`,
+    subject: `Demande mise à jour - ${params.typeLabel} - ${params.fullName}`,
     html: serviceRequestEmailHtml({
       actionHref: params.adminHref,
       actionLabel: "Voir la demande",
-      title: "Demande mise a jour par l'utilisateur",
+      title: "Demande mise à jour par l’utilisateur",
       body: [
-        `${params.fullName} a complete les informations demandees pour sa demande ${params.typeLabel}.`,
+        `${params.fullName} a complété les informations demandées pour sa demande ${params.typeLabel}.`,
       ],
     }),
   };
@@ -213,7 +213,7 @@ export async function storeReservationAdminEmail(params: {
   const html = await render(StoreReservationAdminEmail(params));
 
   return {
-    subject: `Nouvelle reservation boutique - ${params.customerName}`,
+    subject: `Nouvelle réservation boutique - ${params.customerName}`,
     html,
   };
 }
@@ -226,7 +226,7 @@ export async function storeReservationConfirmationEmail(params: {
   const html = await render(StoreReservationConfirmationEmail(params));
 
   return {
-    subject: "Bnei Yeshivot - Votre reservation boutique a bien ete recue",
+    subject: "Bnei Yeshivot - Votre réservation boutique a bien été reçue",
     html,
   };
 }
@@ -244,7 +244,7 @@ export async function storeReservationStatusEmail(params: {
   const html = await render(StoreReservationStatusEmail(params));
 
   return {
-    subject: `Bnei Yeshivot - Reservation boutique ${params.statusLabel}`,
+    subject: `Bnei Yeshivot - Réservation boutique ${params.statusLabel}`,
     html,
   };
 }
@@ -284,9 +284,9 @@ export async function donationAdminNotificationEmail(params: {
   const donorName = params.donorName || params.donorEmail;
   const heading =
     params.heading ||
-    (params.failureReason || params.paymentStatusLabel === "Echec"
-      ? "Don en echec"
-      : "Nouveau don confirme");
+    (params.failureReason || params.paymentStatusLabel === "Échec"
+      ? "Don en échec"
+      : "Nouveau don confirmé");
   const html = await render(
     DonationAdminNotificationEmail({
       adminLink: params.adminLink,
@@ -323,7 +323,7 @@ export async function donationRecurringPaymentEmail(params: {
   const html = await render(DonationRecurringPaymentEmail(params));
 
   return {
-    subject: `Bnei Yeshivot - Paiement recurrent ${params.statusLabel.toLowerCase()} - ${params.paymentLabel}`,
+    subject: `Bnei Yeshivot - Paiement récurrent ${params.statusLabel.toLowerCase()} - ${params.paymentLabel}`,
     html,
   };
 }
@@ -338,7 +338,7 @@ export async function talmoudoResultEmail(params: {
   const html = await render(TalmoudoResultEmail(params));
 
   return {
-    subject: `Bnei Yeshivot - Resultat Talmoudo Beyado - ${params.sessionTitle}`,
+    subject: `Bnei Yeshivot - Résultat Talmoudo Beyado - ${params.sessionTitle}`,
     html,
   };
 }

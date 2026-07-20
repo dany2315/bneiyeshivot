@@ -74,7 +74,7 @@ export async function createMivhanSession(formData: FormData) {
     registrationCloseDaysBefore < 0 ||
     registrationCloseDaysBefore > 30
   ) {
-    throw new Error("Delai de fermeture invalide.");
+    throw new Error("Délai de fermeture invalide.");
   }
 
   const session = await prisma.mivhanSession.create({
@@ -106,7 +106,7 @@ export async function createMivhanSessionState(
 ) {
   return actionResult(
     () => createMivhanSession(formData),
-    "Mivhan cree avec succes.",
+    "Mivhan créé avec succès.",
   );
 }
 
@@ -157,7 +157,7 @@ export async function updateMivhanSessionSettingsState(
 ) {
   return actionResult(
     () => updateMivhanSessionSettings(formData),
-    "Reglages du mivhan mis a jour.",
+    "Réglages du mivhan mis à jour.",
   );
 }
 
@@ -199,7 +199,7 @@ export async function setMivhanSessionClosedState(
 
   return actionResult(
     () => setMivhanSessionClosed(formData),
-    closing ? "Inscriptions fermees." : "Inscriptions ouvertes.",
+    closing ? "Inscriptions fermées." : "Inscriptions ouvertes.",
   );
 }
 
@@ -233,7 +233,7 @@ export async function deleteMivhanSessionState(
   _state: TalmoudoActionState,
   formData: FormData,
 ) {
-  return actionResult(() => deleteMivhanSession(formData), "Mivhan supprime.");
+  return actionResult(() => deleteMivhanSession(formData), "Mivhan supprimé.");
 }
 
 export async function createAdminTalmoudoRegistration(formData: FormData) {
@@ -268,7 +268,7 @@ export async function createAdminTalmoudoRegistrationState(
 ) {
   return actionResult(
     () => createAdminTalmoudoRegistration(formData),
-    "Inscription enregistree.",
+    "Inscription enregistrée.",
   );
 }
 
@@ -294,7 +294,7 @@ export async function updateAdminTalmoudoRegistration(formData: FormData) {
     !massehet ||
     !dapim
   ) {
-    throw new Error("Tous les champs obligatoires doivent etre renseignes.");
+    throw new Error("Tous les champs obligatoires doivent être renseignés.");
   }
 
   const registration = await prisma.mivhanRegistration.findUnique({
@@ -355,7 +355,7 @@ export async function updateAdminTalmoudoRegistrationState(
 ) {
   return actionResult(
     () => updateAdminTalmoudoRegistration(formData),
-    "Inscription modifiee.",
+    "Inscription modifiée.",
   );
 }
 
@@ -436,6 +436,6 @@ export async function updateMivhanRegistrationResultState(
 ) {
   return actionResult(
     () => updateMivhanRegistrationResult(formData),
-    "Resultat enregistre.",
+    "Résultat enregistré.",
   );
 }

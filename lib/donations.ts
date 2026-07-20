@@ -24,16 +24,16 @@ export const donationProviderLabels: Record<PaymentProvider, string> = {
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
   PENDING: "En attente",
-  PAID: "Reussi",
-  FAILED: "Echec",
-  REFUNDED: "Rembourse",
+  PAID: "Réussi",
+  FAILED: "Échec",
+  REFUNDED: "Remboursé",
   PARTIALLY_REFUNDED: "Remboursement partiel",
-  CANCELED: "Annule",
+  CANCELED: "Annulé",
 };
 
 export const donationFrequencyLabels: Record<DonationFrequency, string> = {
   ONE_TIME: "Ponctuel",
-  MONTHLY: "Recurrent mensuel",
+  MONTHLY: "Récurrent mensuel",
 };
 
 export function formatDonationFrequency(
@@ -45,16 +45,16 @@ export function formatDonationFrequency(
   }
 
   if (!recurringMonths) {
-    return "Recurrent mensuel sans limite";
+    return "Récurrent mensuel sans limite";
   }
 
-  return `Recurrent mensuel - ${recurringMonths} mois`;
+  return `Récurrent mensuel - ${recurringMonths} mois`;
 }
 
 export const donationSourceLabels: Record<DonationSource, string> = {
   ONLINE: "En ligne",
-  ADMIN_CASH: "Especes",
-  ADMIN_CHECK: "Cheque",
+  ADMIN_CASH: "Espèces",
+  ADMIN_CHECK: "Chèque",
   ADMIN_BANK_TRANSFER: "Virement",
   ADMIN_OTHER: "Autre",
 };
@@ -63,7 +63,7 @@ export const receiptTypeLabels: Record<CerfaReceiptType, string> = {
   PARTICULIER: "Cerfa particulier",
   ENTREPRISE: "Cerfa entreprise",
   ISF_IFI: "Cerfa IFI",
-  AUTRE: "Autre recu",
+  AUTRE: "Autre reçu",
 };
 
 export function formatMoney(amountCents: number, currency: string) {

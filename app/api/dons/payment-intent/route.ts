@@ -20,7 +20,7 @@ function normalizeCurrency(value: string) {
   const currency = value.toUpperCase();
 
   if (currency !== "EUR" && currency !== "ILS") {
-    throw new Error("Seules les devises EUR et ILS sont activees pour les dons en ligne.");
+    throw new Error("Seules les devises EUR et ILS sont activées pour les dons en ligne.");
   }
 
   return currency;
@@ -116,14 +116,14 @@ export async function POST(request: Request) {
 
     if (!firstName || !lastName || !email || !phone) {
       return NextResponse.json(
-        { error: "Nom, prenom, email et telephone obligatoires." },
+        { error: "Nom, prénom, email et téléphone obligatoires." },
         { status: 400 },
       );
     }
 
     if (normalizedDonorType === "ENTREPRISE" && !companyName) {
       return NextResponse.json(
-        { error: "Le nom de l'entreprise est obligatoire." },
+        { error: "Le nom de l’entreprise est obligatoire." },
         { status: 400 },
       );
     }
@@ -244,7 +244,7 @@ export async function POST(request: Request) {
       }
 
       if (!clientSecret || !paymentIntentId) {
-        throw new Error("Stripe n'a pas retourne de client secret pour l'abonnement.");
+        throw new Error("Stripe n’a pas retourné de client secret pour l’abonnement.");
       }
 
       await prisma.donation.update({
@@ -287,7 +287,7 @@ export async function POST(request: Request) {
     });
 
     if (!paymentIntent.client_secret) {
-      throw new Error("Stripe n'a pas retourne de client secret pour le paiement.");
+      throw new Error("Stripe n’a pas retourné de client secret pour le paiement.");
     }
 
     await prisma.donation.update({

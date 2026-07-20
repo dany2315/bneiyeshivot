@@ -33,7 +33,7 @@ export const metadata = {
 
 const categoryLabels: Record<DvarTorahCategory, string> = {
   CHABBAT: "Chabbat",
-  FETE: "Fete",
+  FETE: "Fête",
 };
 
 function formatSize(size: number) {
@@ -55,7 +55,7 @@ export default async function AdminDvarTorahPage() {
     <AdminShell>
       <div className="admin-header">
         <div>
-          <span className="eyebrow">Bibliotheque Torah</span>
+          <span className="eyebrow">Bibliothèque Torah</span>
           <h1>Dvar Torah</h1>
         </div>
       </div>
@@ -66,7 +66,7 @@ export default async function AdminDvarTorahPage() {
             <BookOpenText className="size-8 text-[var(--accent)]" />
             <CardTitle>Ajouter un feuillet</CardTitle>
             <CardDescription>
-              Uploadez un PDF, choisissez sa categorie et publiez-le dans la
+              Uploadez un PDF, choisissez sa catégorie et publiez-le dans la
               page Dvar Torah.
             </CardDescription>
           </CardHeader>
@@ -77,13 +77,13 @@ export default async function AdminDvarTorahPage() {
                 <Input
                   id="dvar-title"
                   name="title"
-                  placeholder="Ex: Chabbat Berechit"
+                  placeholder="Ex. : Chabbat Berechit"
                   required
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="dvar-category">Categorie</Label>
+                <Label htmlFor="dvar-category">Catégorie</Label>
                 <NativeSelect
                   id="dvar-category"
                   name="category"
@@ -94,7 +94,7 @@ export default async function AdminDvarTorahPage() {
                     Chabbat
                   </NativeSelectOption>
                   <NativeSelectOption value={DvarTorahCategory.FETE}>
-                    Fete
+                    Fête
                   </NativeSelectOption>
                 </NativeSelect>
               </div>
@@ -104,7 +104,7 @@ export default async function AdminDvarTorahPage() {
                 <Textarea
                   id="dvar-description"
                   name="description"
-                  placeholder="Court texte affiche sur la carte publique."
+                  placeholder="Court texte affiché sur la carte publique."
                 />
               </div>
 
@@ -141,10 +141,10 @@ export default async function AdminDvarTorahPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold text-[var(--primary)]">
-                Feuillets publies et brouillons
+                Feuillets publiés et brouillons
               </h2>
               <p className="text-base text-[var(--muted)]">
-                {files.length} fichier(s) dans la bibliotheque.
+                {files.length} fichier(s) dans la bibliothèque.
               </p>
             </div>
             <Button asChild variant="secondary">
@@ -189,14 +189,14 @@ export default async function AdminDvarTorahPage() {
                             {categoryLabels[file.category]}
                           </Badge>
                           <Badge variant={file.published ? "success" : "secondary"}>
-                            {file.published ? "Publie" : "Brouillon"}
+                            {file.published ? "Publié" : "Brouillon"}
                           </Badge>
                         </div>
                         <p className="mt-1 line-clamp-2 text-base leading-7 text-[var(--muted)]">
                           {file.description || "Aucune description."}
                         </p>
                         <p className="mt-2 text-sm font-semibold text-[var(--muted)]">
-                          {formatSize(file.size)} - ajoute le{" "}
+                          {formatSize(file.size)} - ajouté le{" "}
                           {file.createdAt.toLocaleDateString("fr-FR")}
                         </p>
                       </div>

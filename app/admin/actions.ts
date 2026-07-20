@@ -58,15 +58,15 @@ const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
 const serviceRequestStatusLabels: Record<ServiceRequestStatus, string> = {
   SUBMITTED: "Deposee",
   IN_REVIEW: "En traitement",
-  MISSING_DOCUMENTS: "Elements a modifier",
-  APPROVED: "Approuvee",
-  REJECTED: "Refusee",
-  COMPLETED: "Terminee",
+  MISSING_DOCUMENTS: "Éléments à modifier",
+  APPROVED: "Approuvée",
+  REJECTED: "Refusée",
+  COMPLETED: "Terminée",
 };
 
 function serviceRequestTypeLabel(type: string) {
   return type === "VISA_STUDENT"
-    ? "visa etudiant"
+    ? "visa étudiant"
     : type === "KOUPAT_HOLIM"
       ? "koupat holim"
       : "demande";
@@ -249,7 +249,7 @@ export async function updateServiceRequest(formData: FormData) {
 export async function uploadServiceRequestFinalDocument(formData: FormData) {
   const admin = await requireAdminUser();
   const requestId = readString(formData, "requestId");
-  const label = readString(formData, "label") || "Visa recu";
+  const label = readString(formData, "label") || "Visa reçu";
   const file = formData.get("file");
 
   if (!requestId || !(file instanceof File) || file.size === 0) {
@@ -285,16 +285,16 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
     data: {
       status: ServiceRequestStatus.COMPLETED,
       publicNote:
-        label === "Visa recu"
-          ? "Votre visa recu est disponible dans votre espace."
+        label === "Visa reçu"
+          ? "Votre visa reçu est disponible dans votre espace."
           : "Un document final est disponible dans votre espace.",
       messages: {
         create: {
           authorId: admin.id,
           body:
-            label === "Visa recu"
-              ? "Votre visa recu est disponible en telechargement."
-              : "Un document final est disponible en telechargement.",
+            label === "Visa reçu"
+              ? "Votre visa reçu est disponible en téléchargement."
+              : "Un document final est disponible en téléchargement.",
           isInternal: false,
         },
       },
@@ -306,8 +306,8 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
       firstName: request.user.firstName,
       note:
-        label === "Visa recu"
-          ? "Votre visa recu est disponible en telechargement dans votre espace Bahour."
+        label === "Visa reçu"
+          ? "Votre visa reçu est disponible en téléchargement dans votre espace Bahour."
           : "Un document final est disponible dans votre espace Bahour.",
       statusLabel: serviceRequestStatusLabels.COMPLETED,
       typeLabel: serviceRequestTypeLabel(request.type),
@@ -1427,7 +1427,7 @@ export async function updateDonationReceiptStatus(formData: FormData) {
   const receiptStatus = readString(formData, "receiptStatus") as ReceiptStatus;
 
   if (!donationId || !Object.values(ReceiptStatus).includes(receiptStatus)) {
-    throw new Error("Statut de recu invalide.");
+    throw new Error("Statut de reçu invalide.");
   }
 
   await prisma.donation.update({

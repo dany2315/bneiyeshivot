@@ -42,13 +42,13 @@ export default function ProgrammePage() {
               <span className="eyebrow">Nos programmes</span>
               <h1>Faire grandir la jeunesse francophone dans la Torah</h1>
               <p>
-                Tout au long de l&apos;annee, Bnei Yeshivot propose des cadres
-                d&apos;etude, des rencontres, des Chabbatot et un accompagnement
-                adapte aux jeunes francophones en Israel.
+                Tout au long de l’année, Bnei Yeshivot propose des cadres
+                d’étude, des rencontres, des Chabbatot et un accompagnement
+                adapté aux jeunes francophones en Israël.
               </p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
-                  <Link href="#programmes">Decouvrir nos programmes</Link>
+                  <Link href="#programmes">Découvrir nos programmes</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
                   <Link href="/contact">Participer</Link>
@@ -56,13 +56,13 @@ export default function ProgrammePage() {
               </div>
             </div>
 
-            <div className="programme-hero-panel" aria-label="Apercu des programmes">
+            <div className="programme-hero-panel" aria-label="Aperçu des programmes">
               <div className="programme-hero-panel-row">
                 <span>
                   <BookOpen className="size-5" />
                 </span>
                 <div>
-                  <strong>Etude</strong>
+                  <strong>Étude</strong>
                   <small>Beth Hamidrach, Talmoudo Beyado</small>
                 </div>
               </div>
@@ -92,35 +92,35 @@ export default function ProgrammePage() {
           <div className="container split">
             <div>
               <span className="eyebrow">Introduction</span>
-              <h2>Une communaute qui accompagne chaque etape</h2>
+              <h2>Une communauté qui accompagne chaque étape</h2>
               <p>
-                Arriver en Israel est une grande etape dans la vie d&apos;un jeune.
-                Au-dela des demarches administratives, il est essentiel de
-                trouver un cadre, une communaute et des moments qui permettent
+                Arriver en Israël est une grande étape dans la vie d’un jeune.
+                Au-delà des démarches administratives, il est essentiel de
+                trouver un cadre, une communauté et des moments qui permettent
                 de grandir dans la Torah.
               </p>
               <p>
-                C&apos;est pourquoi Bnei Yeshivot developpe differents programmes
-                pour accompagner les jeunes avant leur arrivee, pendant leur
+                C’est pourquoi Bnei Yeshivot développe différents programmes
+                pour accompagner les jeunes avant leur arrivée, pendant leur
                 sejour et dans leur construction personnelle.
               </p>
             </div>
             <Card className="program-highlight-card">
               <CardHeader>
-                <CardTitle>Etude, rencontres et accompagnement</CardTitle>
+                <CardTitle>Étude, rencontres et accompagnement</CardTitle>
                 <CardDescription>
-                  Des cadres penses pour que chaque jeune puisse trouver sa
-                  place, avancer dans son limoud et rester relie a une
-                  communaute vivante.
+                  Des cadres pensés pour que chaque jeune puisse trouver sa
+                  place, avancer dans son limoud et rester relié à une
+                  communauté vivante.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="about-check-list">
                   {[
-                    "Des cadres d'etude reguliers",
+                    "Des cadres d’étude réguliers",
                     "Des rencontres avec des Rabbanim",
                     "Des Chabbatot et moments de rassemblement",
-                    "Un accompagnement dans les etapes importantes",
+                    "Un accompagnement dans les étapes importantes",
                   ].map((item) => (
                     <li key={item}>
                       <CheckCircle2 className="size-4" />
@@ -138,14 +138,14 @@ export default function ProgrammePage() {
             <div className="section-header">
               <div>
                 <span className="eyebrow">Nos grands programmes</span>
-                <h2>Des cadres pour etudier, grandir et construire</h2>
+                <h2>Des cadres pour étudier, grandir et construire</h2>
               </div>
               <p>
-                Chaque programme repond a un besoin concret du parcours
-                d&apos;un jeune francophone : approfondir son etude, etre entoure
-                de Rabbanim, vivre des experiences marquantes, developper des
-                liens durables et trouver sa place au sein d&apos;une communaute
-                engagee.
+                Chaque programme répond à un besoin concret du parcours
+                d’un jeune francophone : approfondir son étude, être entouré
+                de Rabbanim, vivre des expériences marquantes, développer des
+                liens durables et trouver sa place au sein d’une communauté
+                engagée.
               </p>
             </div>
 
@@ -219,12 +219,12 @@ export default function ProgrammePage() {
                         <div className="flex flex-wrap gap-3">
                           <Button asChild variant="accent">
                             <Link href="/programme/talmoudo-beyado#inscription-talmoudo">
-                              M&apos;inscrire au mivhan
+                              M’inscrire au mivhan
                               <ArrowRight className="size-4" />
                             </Link>
                           </Button>
                           <Button asChild variant="secondary">
-                            <Link href={href}>Decouvrir</Link>
+                            <Link href={href}>Découvrir</Link>
                           </Button>
                         </div>
                       ) : (
@@ -246,12 +246,12 @@ export default function ProgrammePage() {
         <section className="section about-final-cta">
           <div className="container about-final-cta-inner">
             <div>
-              <span className="eyebrow">Rejoignez une communaute</span>
-              <h2>Que vous soyez deja en Israel ou en preparation de votre arrivee, Bnei Yeshivot est la pour vous accompagner.</h2>
+              <span className="eyebrow">Rejoignez une communauté</span>
+              <h2>Que vous soyez déjà en Israël ou en préparation de votre arrivée, Bnei Yeshivot est là pour vous accompagner.</h2>
             </div>
             <div className="hero-actions">
               <Button asChild variant="accent" size="lg">
-                <Link href="/contact">Participer a un programme</Link>
+                <Link href="/contact">Participer à un programme</Link>
               </Button>
               <Button asChild variant="secondary" size="lg">
                 <Link href="/contact">Nous contacter</Link>

@@ -19,28 +19,28 @@ import { Separator } from "@/components/ui/separator";
 const trustItems = [
   {
     icon: ShieldCheck,
-    title: "Paiement securise",
-    text: "Le paiement est traite sur une page securisee, avec carte bancaire et protection 3D Secure si necessaire.",
+    title: "Paiement sécurisé",
+    text: "Le paiement est traité sur une page sécurisée, avec carte bancaire et protection 3D Secure si nécessaire.",
   },
   {
     icon: ReceiptText,
-    title: "Recu fiscal automatique",
-    text: "Le Cerfa est rattache au don confirme et envoye avec l'email de remerciement.",
+    title: "Reçu fiscal automatique",
+    text: "Le Cerfa est rattaché au don confirmé et envoyé avec l’email de remerciement.",
   },
   {
     icon: MailCheck,
     title: "Confirmation immediate",
-    text: "Vous recevez une confirmation par email apres validation du paiement.",
+    text: "Vous recevez une confirmation par email après validation du paiement.",
   },
   {
     icon: RefreshCcw,
     title: "Suivi en cas de besoin",
-    text: "L'equipe peut retrouver le don, le recu et le paiement depuis l'espace admin.",
+    text: "L’équipe peut retrouver le don, le reçu et le paiement depuis l’espace admin.",
   },
   {
     icon: Banknote,
     title: "Dons ponctuels ou mensuels",
-    text: "Vous choisissez librement un don unique ou recurrent pour la duree souhaitee.",
+    text: "Vous choisissez librement un don unique ou récurrent pour la durée souhaitée.",
   },
 ];
 
@@ -51,11 +51,11 @@ export function DonationTrustRail() {
         <CardHeader>
           <Badge variant="success" className="mb-2 w-fit gap-2 px-3 py-2">
             <LockKeyhole className="size-4" />
-            Paiement securise
+            Paiement sécurisé
           </Badge>
-          <CardTitle>Don simple et securise</CardTitle>
+          <CardTitle>Don simple et sécurisé</CardTitle>
           <CardDescription>
-            Votre don est confirme par email et votre recu fiscal est prepare
+            Votre don est confirmé par email et votre reçu fiscal est préparé
             automatiquement.
           </CardDescription>
         </CardHeader>

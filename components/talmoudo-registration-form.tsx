@@ -73,18 +73,18 @@ export function TalmoudoRegistrationForm({
   const title = compact ? "Inscription au prochain mivhan" : "Inscription Talmoudo Beyado";
   const description = useMemo(() => {
     if (sessions.length === 0) {
-      return "Aucun mivhan futur pour le moment.";
+      return "Aucun mivhan à venir pour le moment.";
     }
 
     if (enabledSessions.length === 0) {
-      return "Les prochains mivhanim sont affiches, mais les inscriptions sont fermees.";
+      return "Les prochains mivhanim sont affichés, mais les inscriptions sont fermées.";
     }
 
     if (isConnected) {
-      return "Completez la massehet et les 8 dapim choisis pour ce mivhan.";
+      return "Complétez la massehet et les 8 dapim choisis pour ce mivhan.";
     }
 
-    return "Creez votre inscription avec vos coordonnees, votre yeshiva et les dapim choisis.";
+    return "Créez votre inscription avec vos coordonnées, votre yeshiva et les dapim choisis.";
   }, [enabledSessions.length, isConnected, sessions.length]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -104,7 +104,7 @@ export function TalmoudoRegistrationForm({
       });
       const result = (await response.json().catch(() => ({
         ok: false,
-        message: "Le serveur n'a pas retourne une reponse lisible.",
+        message: "Le serveur n’a pas retourné une réponse lisible.",
       }))) as SubmitResult;
 
       if (!response.ok || !result.ok) {
@@ -112,7 +112,7 @@ export function TalmoudoRegistrationForm({
       }
 
       setStatus("success");
-      setMessage("Inscription enregistree. Elle apparaitra dans votre espace Bahour.");
+      setMessage("Inscription enregistrée. Elle apparaîtra dans votre espace Bahour.");
       form.reset();
     } catch (error) {
       const result = error as SubmitResult;
@@ -120,7 +120,7 @@ export function TalmoudoRegistrationForm({
       setMessage(
         result.issues?.[0]?.message ??
           result.message ??
-          "Impossible d'enregistrer l'inscription.",
+          "Impossible d’enregistrer l’inscription.",
       );
     }
   }
@@ -139,9 +139,9 @@ export function TalmoudoRegistrationForm({
                 <Check className="size-5" />
               </span>
               <div>
-                <strong className="text-lg">Inscription enregistree</strong>
+                <strong className="text-lg">Inscription enregistrée</strong>
                 <p className="text-sm text-emerald-900">
-                  Elle apparaitra dans votre espace Bahour avec le detail du
+                  Elle apparaîtra dans votre espace Bahour avec le détail du
                   mivhan.
                 </p>
               </div>
@@ -151,13 +151,13 @@ export function TalmoudoRegistrationForm({
                 <Link href="/client">Voir mon espace Bahour</Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link href="/">Retour a l&apos;accueil</Link>
+                <Link href="/">Retour à l’accueil</Link>
               </Button>
             </div>
           </div>
         ) : sessions.length === 0 ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-base text-[var(--muted)]">
-            Les inscriptions ouvriront des que l&apos;administration aura fixe le
+            Les inscriptions ouvriront dès que l’administration aura fixé le
             prochain mivhan.
           </div>
         ) : (
@@ -174,7 +174,7 @@ export function TalmoudoRegistrationForm({
                 >
                   {defaultSessionId ? null : (
                     <NativeSelectOption value="">
-                      Aucun mivhan ouvert a l&apos;inscription
+                      Aucun mivhan ouvert à l’inscription
                     </NativeSelectOption>
                   )}
                   {sessions.map((session) => (
@@ -184,7 +184,7 @@ export function TalmoudoRegistrationForm({
                       value={session.id}
                     >
                       {session.title} - {session.dateLabel}
-                      {session.disabled ? " - inscriptions fermees" : ""}
+                      {session.disabled ? " - inscriptions fermées" : ""}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -193,7 +193,7 @@ export function TalmoudoRegistrationForm({
               {!isConnected && (
                 <>
                   <Field>
-                    <FieldLabel htmlFor="talmoudo-first-name">Prenom</FieldLabel>
+                    <FieldLabel htmlFor="talmoudo-first-name">Prénom</FieldLabel>
                     <Input id="talmoudo-first-name" name="firstName" required />
                   </Field>
                   <Field>
@@ -205,7 +205,7 @@ export function TalmoudoRegistrationForm({
                     <Input id="talmoudo-email" name="email" required type="email" />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="talmoudo-phone">Telephone</FieldLabel>
+                    <FieldLabel htmlFor="talmoudo-phone">Téléphone</FieldLabel>
                     <PhoneInputGroup id="talmoudo-phone" name="phone" required />
                   </Field>
                   <Field>
@@ -223,7 +223,7 @@ export function TalmoudoRegistrationForm({
                   ) : (
                     <Field>
                       <FieldLabel htmlFor="talmoudo-connected-first-name">
-                        Prenom
+                        Prénom
                       </FieldLabel>
                       <Input id="talmoudo-connected-first-name" name="firstName" required />
                     </Field>
@@ -243,7 +243,7 @@ export function TalmoudoRegistrationForm({
                   ) : (
                     <Field>
                       <FieldLabel htmlFor="talmoudo-connected-phone">
-                        Telephone
+                        Téléphone
                       </FieldLabel>
                       <PhoneInputGroup id="talmoudo-connected-phone" name="phone" required />
                     </Field>
@@ -264,7 +264,7 @@ export function TalmoudoRegistrationForm({
               {(!isConnected || missingParentPhone) && (
                 <Field>
                   <FieldLabel htmlFor="talmoudo-parent-phone">
-                    Telephone des parents
+                    Téléphone des parents
                   </FieldLabel>
                   <PhoneInputGroup
                     defaultValue={initialUser?.parentPhone ?? ""}
@@ -306,7 +306,7 @@ export function TalmoudoRegistrationForm({
               ) : (
                 <>
                   <Send />
-                  S&apos;inscrire
+                  S’inscrire
                 </>
               )}
             </Button>

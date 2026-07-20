@@ -104,7 +104,7 @@ function formatFileSize(size: number | null) {
 function mediaTypeLabel(slot: Pick<Slot, "mimeType" | "type">) {
   if (slot.type === "YOUTUBE") return "YouTube / Short";
   if (slot.mimeType) return slot.mimeType;
-  return slot.type === "VIDEO" ? "Video" : "Image";
+  return slot.type === "VIDEO" ? "Vidéo" : "Image";
 }
 
 function slotDisplayName(slot: Slot) {
@@ -174,7 +174,7 @@ function uploadFileWithProgress(
       try {
         data = JSON.parse(request.responseText || "{}") as typeof data;
       } catch {
-        reject(new Error("Reponse upload invalide."));
+        reject(new Error("Réponse upload invalide."));
         return;
       }
 
@@ -186,12 +186,12 @@ function uploadFileWithProgress(
         return;
       }
 
-      reject(new Error(data.message ?? "Upload echoue."));
+      reject(new Error(data.message ?? "Upload échoué."));
     };
 
     request.onerror = () => reject(new Error("Connexion interrompue."));
     request.ontimeout = () => reject(new Error("Upload trop long."));
-    request.onabort = () => reject(new Error("Upload annule."));
+    request.onabort = () => reject(new Error("Upload annulé."));
     request.timeout = 1000 * 60 * 8;
     request.open("POST", "/api/uploads");
     request.send(formData);
@@ -273,7 +273,7 @@ export function AdminHomeGalleryClient({
         toast.error(
           error instanceof Error
             ? error.message
-            : "Impossible d'enregistrer l'ordre.",
+            : "Impossible d’enregistrer l’ordre.",
         );
       }
     });
@@ -309,7 +309,7 @@ export function AdminHomeGalleryClient({
     <>
       <div className="admin-header">
         <div>
-          <span className="eyebrow">Page d&apos;accueil</span>
+          <span className="eyebrow">Page d’accueil</span>
           <h1>Galerie</h1>
         </div>
         <AlbumDialog action={createAction} mode="create" />
@@ -322,10 +322,10 @@ export function AdminHomeGalleryClient({
               <Images className="size-12 text-[var(--muted)]" />
               <div>
                 <p className="text-lg font-bold text-[var(--primary)]">
-                  Aucune galerie configuree
+                  Aucune galerie configurée
                 </p>
                 <p className="text-base text-[var(--muted)]">
-                  Creez un premier album pour remplacer la galerie par defaut.
+                  Créez un premier album pour remplacer la galerie par défaut.
                 </p>
               </div>
               <AlbumDialog action={createAction} mode="create" />
@@ -407,7 +407,7 @@ export function AdminHomeGalleryClient({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Supprimer cette galerie ?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          L&apos;album et ses fichiers S3 seront supprimes.
+                          L’album et ses fichiers S3 seront supprimés.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -581,7 +581,7 @@ function AlbumDialog({
 
   async function reuploadSlot(slot: Slot) {
     if (!slot.file) {
-      toast.error("Fichier local indisponible. Supprimez-le puis selectionnez-le a nouveau.");
+      toast.error("Fichier local indisponible. Supprimez-le puis sélectionnez-le à nouveau.");
       return;
     }
 
@@ -679,7 +679,7 @@ function AlbumDialog({
         .join(", ");
       toast.error(
         pending
-          ? `Upload encore en cours: ${pending}`
+          ? `Upload encore en cours : ${pending}`
           : "Un upload est encore en cours.",
       );
       return;
@@ -702,11 +702,11 @@ function AlbumDialog({
     startTransition(async () => {
       try {
         await action(formData);
-        toast.success("Galerie enregistree.");
+        toast.success("Galerie enregistrée.");
         setOpen(false);
         if (mode === "create") reset();
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Enregistrement echoue.");
+        toast.error(error instanceof Error ? error.message : "Enregistrement échoué.");
       }
     });
   }
@@ -739,7 +739,7 @@ function AlbumDialog({
           <div className="grid gap-2">
             <DialogTitle>{mode === "edit" ? "Modifier la galerie" : "Nouvelle galerie"}</DialogTitle>
             <DialogDescription>
-              La preview reprend le rendu de la galerie de la page d&apos;accueil.
+              La prévisualisation reprend le rendu de la galerie de la page d’accueil.
             </DialogDescription>
           </div>
           <DialogClose render={<Button aria-label="Fermer" variant="ghost" size="icon-sm" />}>
@@ -770,7 +770,7 @@ function AlbumDialog({
               </Field>
               <label className="flex items-center gap-2 rounded-xl border border-[var(--border)] p-3 text-base font-semibold text-[var(--primary)]">
                 <input checked={active} name="active" onChange={(event) => setActive(event.target.checked)} type="checkbox" />
-                Afficher sur la page d&apos;accueil
+                Afficher sur la page d’accueil
               </label>
 
               <div className="flex flex-wrap gap-2">
@@ -828,7 +828,7 @@ function AlbumDialog({
                     </div>
                     <div className="grid min-w-0 gap-2">
                       <Badge variant={slot.type === "YOUTUBE" ? "warning" : "info"}>
-                        {slot.type === "YOUTUBE" ? "YouTube" : slot.type === "VIDEO" ? "Video" : "Image"}
+                        {slot.type === "YOUTUBE" ? "YouTube" : slot.type === "VIDEO" ? "Vidéo" : "Image"}
                       </Badge>
                       <div className="grid min-w-0 gap-1 rounded-lg border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm text-[var(--muted)]">
                         <span className="min-w-0 [overflow-wrap:anywhere]">
@@ -845,7 +845,7 @@ function AlbumDialog({
                         {slot.status === "error" ? (
                           <span className="grid gap-2">
                             <span className="min-w-0 [overflow-wrap:anywhere] font-semibold text-destructive">
-                              Erreur: {slot.uploadError || "Upload echoue."}
+                              Erreur : {slot.uploadError || "Upload échoué."}
                             </span>
                             {slot.file ? (
                               <Button
@@ -911,7 +911,7 @@ function AlbumDialog({
             <div className="grid h-fit min-w-0 gap-4 rounded-2xl bg-[var(--subtle)] p-4">
               <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
                 <Eye className="size-4" />
-                Preview page d&apos;accueil
+                Prévisualisation page d’accueil
               </span>
               <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white">
                 <div className="gallery-card-mosaic">

@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       {
         allowed: false,
         reason: "register-required",
-        message: "Aucun espace Bahour n'existe avec cet email. Inscris-toi d'abord.",
+        message: "Aucun espace Bahour n’existe avec cet email. Inscris-toi d’abord.",
       },
       { status: 404 },
     );
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         allowed: false,
         reason: "admin-account",
         message:
-          "Ce compte est administrateur. Connecte-toi depuis l'espace admin.",
+          "Ce compte est administrateur. Connecte-toi depuis l’espace admin.",
       },
       { status: 403 },
     );
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       {
         allowed: false,
         reason: "admin-required",
-        message: "Ce compte n'a pas les droits administrateur.",
+        message: "Ce compte n’a pas les droits administrateur.",
       },
       { status: 403 },
     );

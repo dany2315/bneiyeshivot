@@ -76,7 +76,7 @@ export function BahourMivhanSignupCards({
               render={<Button disabled={session.disabled} size="sm" variant="secondary" />}
             >
               <Plus className="size-4" />
-              S&apos;inscrire
+              S’inscrire
             </DialogTrigger>
             <DialogContent
               showCloseButton={false}
@@ -86,7 +86,7 @@ export function BahourMivhanSignupCards({
                 <div className="grid gap-2">
                   <DialogTitle>{session.title}</DialogTitle>
                   <DialogDescription>
-                    Completez votre massehet et vos plages de dapim pour ce
+                    Complétez votre massehet et vos plages de dapim pour ce
                     mivhan.
                   </DialogDescription>
                 </div>

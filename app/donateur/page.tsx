@@ -85,8 +85,8 @@ export default async function DonorPage({
                   Mes dons
                 </h1>
                 <p className="mt-2 max-w-2xl text-base text-[var(--muted)]">
-                  Retrouvez vos dons, recus de paiement et recus fiscaux
-                  disponibles rattaches a {user.email}.
+                  Retrouvez vos dons, reçus de paiement et reçus fiscaux
+                  disponibles rattachés à {user.email}.
                 </p>
               </div>
               <Button asChild>

@@ -72,11 +72,11 @@ export function DocumentAttachmentCard({
                 ? `Upload en cours... ${Math.round(uploadProgress ?? 0)}%`
                 : displayFileName
                   ? displayFileName
-                  : "Cliquez pour ajouter la piece."}
+                  : "Cliquez pour ajouter la pièce."}
             </AttachmentDescription>
           </AttachmentContent>
           <Badge variant={displayFileName || status === "received" ? "success" : "warning"}>
-            {displayFileName || status === "received" ? "Pret" : "A ajouter"}
+            {displayFileName || status === "received" ? "Prêt" : "À ajouter"}
           </Badge>
           {displayFileName && (
             <AttachmentActions>

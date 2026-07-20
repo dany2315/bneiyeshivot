@@ -117,7 +117,7 @@ function EmbeddedPaymentForm({
     const addressValue = await addressElement?.getValue();
 
     if (!addressValue?.complete) {
-      setPaymentError("Adresse fiscale obligatoire pour le recu Cerfa.");
+      setPaymentError("Adresse fiscale obligatoire pour le reçu Cerfa.");
       setIsConfirming(false);
       return;
     }
@@ -136,7 +136,7 @@ function EmbeddedPaymentForm({
       const payload = await addressResponse.json().catch(() => null);
 
       setPaymentError(
-        payload?.error ?? "Adresse fiscale invalide pour le recu Cerfa.",
+        payload?.error ?? "Adresse fiscale invalide pour le reçu Cerfa.",
       );
       setIsConfirming(false);
       return;
@@ -157,7 +157,7 @@ function EmbeddedPaymentForm({
     });
 
     if (result.error) {
-      setPaymentError(result.error.message ?? "Paiement refuse par Stripe.");
+      setPaymentError(result.error.message ?? "Paiement refusé par Stripe.");
       setIsConfirming(false);
       return;
     }
@@ -253,7 +253,7 @@ function NedarimPaymentFrame({
             : {};
 
         if (response.Status === "Error") {
-          setPaymentError(String(response.Message ?? "Paiement refuse."));
+          setPaymentError(String(response.Message ?? "Paiement refusé."));
           setIsConfirming(false);
           return;
         }
@@ -267,7 +267,7 @@ function NedarimPaymentFrame({
             if (!result.ok) {
               const payload = await result.json().catch(() => null);
               throw new Error(
-                payload?.error ?? "Paiement confirme, synchronisation incomplete.",
+                payload?.error ?? "Paiement confirmé, synchronisation incomplète.",
               );
             }
 
@@ -278,7 +278,7 @@ function NedarimPaymentFrame({
             setPaymentError(
               error instanceof Error
                 ? error.message
-                : "Paiement confirme, synchronisation incomplete.",
+                : "Paiement confirmé, synchronisation incomplète.",
             );
             setIsConfirming(false);
           });
@@ -308,7 +308,7 @@ function NedarimPaymentFrame({
         scrolling="no"
         src={nedarimFrameUrl}
         style={{ height: `${frameHeight}px` }}
-        title="Paiement securise"
+        title="Paiement sécurisé"
       />
       {paymentError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
@@ -317,7 +317,7 @@ function NedarimPaymentFrame({
       ) : null}
       {isPaid ? (
         <div className="rounded-xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-3 text-sm font-bold text-[var(--success)]">
-          Paiement confirme.
+          Paiement confirmé.
         </div>
       ) : null}
       <Button
@@ -395,22 +395,22 @@ export function DonationCheckoutForm({
       ? {
           description: "Choisissez une proposition ou entrez un montant libre.",
           icon: BadgeEuro,
-          title: "Montant et frequence",
+          title: "Montant et fréquence",
         }
       : activeStep === 1
         ? {
             description: receiptAvailable
-              ? "Une seule saisie pour le paiement, le donateur et le recu Cerfa."
+              ? "Une seule saisie pour le paiement, le donateur et le reçu Cerfa."
               : "Une seule saisie pour le paiement et la confirmation du don.",
             icon: User,
             title: receiptAvailable ? "Donateur et Cerfa" : "Donateur",
           }
         : {
             description: isNedarimPayment
-              ? "Saisissez votre carte bancaire dans le module securise pour les paiements en shekel."
-              : "Saisissez votre carte bancaire dans un module Stripe securise, sans quitter la page.",
+              ? "Saisissez votre carte bancaire dans le module sécurisé pour les paiements en shekel."
+              : "Saisissez votre carte bancaire dans un module Stripe sécurisé, sans quitter la page.",
             icon: ShieldCheck,
-            title: "Paiement securise",
+            title: "Paiement sécurisé",
           };
   const ActiveStepIcon = activeStepHeading.icon;
 
@@ -442,11 +442,11 @@ export function DonationCheckoutForm({
 
     if (step === 1) {
       if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()) {
-        return "Prenom, nom, email et telephone sont obligatoires.";
+        return "Prénom, nom, email et téléphone sont obligatoires.";
       }
 
       if (donorType === "ENTREPRISE" && !companyName.trim()) {
-        return "Le nom de l'entreprise est obligatoire.";
+        return "Le nom de l’entreprise est obligatoire.";
       }
 
       if (isNedarimPayment && (!nedarimStreet.trim() || !nedarimCity.trim())) {
@@ -496,7 +496,7 @@ export function DonationCheckoutForm({
 
     if (isNedarimPayment) {
       if (!nedarimPlusEnabled) {
-        setError("Nedarim Plus n'est pas configure pour les paiements en shekel.");
+        setError("Nedarim Plus n’est pas configuré pour les paiements en shekel.");
         return;
       }
     } else if (!stripePublishableKey) {
@@ -534,7 +534,7 @@ export function DonationCheckoutForm({
     ) {
       setError(
         payload?.error ??
-          `Impossible de preparer le paiement ${
+          `Impossible de préparer le paiement ${
             isNedarimPayment ? "Nedarim Plus" : "Stripe"
           }.`,
       );
@@ -573,7 +573,7 @@ export function DonationCheckoutForm({
           </div>
           <Badge variant="info" className="gap-2 px-3 py-2">
             <ShieldCheck className="size-4" />
-            Paiement securise
+            Paiement sécurisé
           </Badge>
         </div>
       </CardHeader>
@@ -645,7 +645,7 @@ export function DonationCheckoutForm({
                 <div className="grid gap-2 text-xs font-bold text-[var(--muted)]">
                   <span className="flex items-center gap-2">
                     <CheckCircle2 className="size-4 text-[var(--success)]" />
-                    Paiement securise
+                    Paiement sécurisé
                   </span>
                   <span className="flex items-center gap-2">
                     <Mail className="size-4 text-[var(--success)]" />
@@ -654,7 +654,7 @@ export function DonationCheckoutForm({
                   <span className="flex items-center gap-2">
                     <ReceiptText className="size-4 text-[var(--success)]" />
                     {receiptAvailable
-                      ? "Recu Cerfa automatique"
+                      ? "Reçu Cerfa automatique"
                       : "Confirmation de paiement sans Cerfa"}
                   </span>
                 </div>
@@ -750,7 +750,7 @@ export function DonationCheckoutForm({
               {receiptAvailable ? (
                 <div className="w-full max-w-sm rounded-2xl border border-[var(--success)]/25 bg-[var(--success-soft)] p-4 text-center">
                   <span className="text-sm font-bold text-[var(--primary)]">
-                    Apres reduction fiscale de 66%, ce don ne vous coute que
+                    Après réduction fiscale de 66 %, ce don ne vous coûte que
                   </span>
                   <strong className="mt-1 block font-serif text-xl text-[var(--success)]">
                     {moneyLabel(afterTaxAmount, currency)}
@@ -759,8 +759,8 @@ export function DonationCheckoutForm({
               ) : (
                 <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--subtle)] p-4 text-center">
                   <span className="text-sm font-bold text-[var(--primary)]">
-                    Paiement en shekel traite en Israel, sans recu Cerfa ni
-                    deduction fiscale francaise.
+                    Paiement en shekel traité en Israël, sans reçu Cerfa ni
+                    déduction fiscale française.
                   </span>
                 </div>
               )}
@@ -769,10 +769,10 @@ export function DonationCheckoutForm({
             <div className="mt-6 border-t border-[var(--border)] pt-5">
               <div className="flex items-center gap-2 text-[var(--primary)]">
                 <Repeat2 className="size-5 text-[var(--accent)]" />
-                <h3 className="text-lg font-bold">Frequence</h3>
+                <h3 className="text-lg font-bold">Fréquence</h3>
               </div>
               <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-                Pour un don recurrent, indiquez aussi la duree souhaitee.
+                Pour un don récurrent, indiquez aussi la durée souhaitée.
               </p>
             </div>
 
@@ -798,7 +798,7 @@ export function DonationCheckoutForm({
                 <Repeat2 className="size-5 text-[var(--accent)]" />
                 <span className="grid gap-0.5">
                   <strong className="text-[var(--primary)]">Don mensuel</strong>
-                  <small className="text-[var(--muted)]">Prelevement recurrent</small>
+                  <small className="text-[var(--muted)]">Prélèvement récurrent</small>
                 </span>
               </button>
             </div>
@@ -916,7 +916,7 @@ export function DonationCheckoutForm({
               <Input
                 name="firstName"
                 onChange={(event) => setFirstName(event.target.value)}
-                placeholder="Prenom"
+                placeholder="Prénom"
                 value={firstName}
               />
               <Input
@@ -971,7 +971,7 @@ export function DonationCheckoutForm({
                   <Input
                     name="companyName"
                     onChange={(event) => setCompanyName(event.target.value)}
-                    placeholder="Nom de l'entreprise"
+                    placeholder="Nom de l’entreprise"
                     value={companyName}
                   />
                   <NativeSelect className="w-full" name="companyLegalForm">
@@ -992,7 +992,7 @@ export function DonationCheckoutForm({
             <Label className="mt-3 grid gap-2">
               <Textarea
                 name="dedication"
-                placeholder="Pour une refoua, une reussite, a la memoire de..."
+                placeholder="Pour une refoua, une réussite, à la mémoire de..."
               />
             </Label>
           </section>
@@ -1031,12 +1031,12 @@ export function DonationCheckoutForm({
               >
                 <HeartHandshake className="size-5" />
                 {isPreparingPayment
-                  ? "Preparation..."
+                  ? "Préparation..."
                   : `Continuer au paiement ${moneyLabel(effectiveAmount, currency)}`}
               </Button>
             ) : (
               <span className="text-sm font-bold text-[var(--muted)]">
-                Paiement securise
+                Paiement sécurisé
               </span>
             )}
           </div>

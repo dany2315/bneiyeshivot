@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Impossible de creer l'inscription pour le moment.";
+        : "Impossible de créer l’inscription pour le moment.";
 
     return NextResponse.json({ ok: false, message }, { status: 400 });
   }

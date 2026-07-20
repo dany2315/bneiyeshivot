@@ -41,7 +41,7 @@ export function DvarTorahFileCard({
     }
 
     await navigator.clipboard.writeText(url);
-    toast.success("Lien copie.");
+    toast.success("Lien copié.");
   }
 
   return (
@@ -54,7 +54,7 @@ export function DvarTorahFileCard({
           <div className="min-w-0">
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <Badge variant={category === "Chabbat" ? "info" : "warning"}>
-                {category}
+                {category === "Fete" ? "Fête" : category}
               </Badge>
               <span className="text-xs font-semibold text-[var(--muted)]">
                 {date}
@@ -79,7 +79,7 @@ export function DvarTorahFileCard({
           <Button asChild variant="secondary" size="sm">
             <a href={href} download>
               <Download className="size-4" />
-              Telecharger
+              Télécharger
             </a>
           </Button>
           <Button type="button" variant="accent" size="sm" onClick={shareFile}>

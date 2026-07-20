@@ -15,7 +15,7 @@ function readString(formData: FormData, key: string) {
 export async function POST(request: Request) {
   if (!isNedarimPlusConfigured()) {
     return NextResponse.json(
-      { error: "Nedarim Plus n'est pas configure." },
+      { error: "Nedarim Plus n’est pas configuré." },
       { status: 503 },
     );
   }
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   if (currency !== "ILS") {
     return NextResponse.json(
-      { error: "Nedarim Plus est reserve aux dons en shekel." },
+      { error: "Nedarim Plus est réservé aux dons en shekel." },
       { status: 400 },
     );
   }
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
   if (!firstName || !lastName || !email || !phone) {
     return NextResponse.json(
-      { error: "Nom, prenom, email et telephone obligatoires." },
+      { error: "Nom, prénom, email et téléphone obligatoires." },
       { status: 400 },
     );
   }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
   if (donorType === "ENTREPRISE" && !companyName) {
     return NextResponse.json(
-      { error: "Le nom de l'entreprise est obligatoire." },
+      { error: "Le nom de l’entreprise est obligatoire." },
       { status: 400 },
     );
   }

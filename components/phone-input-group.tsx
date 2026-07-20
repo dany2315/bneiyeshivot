@@ -57,7 +57,7 @@ export function PhoneInputGroup({
       <InputGroup className="h-11 rounded-lg border-input bg-transparent">
         <InputGroupAddon align="inline-start" className="pl-3 pr-1">
           <select
-            aria-label="Indicatif telephone"
+            aria-label="Indicatif téléphone"
             className="h-9 rounded-md border-0 bg-transparent px-0 text-sm font-bold text-[var(--primary)] outline-none"
             disabled={disabled}
             onClick={(event) => event.stopPropagation()}

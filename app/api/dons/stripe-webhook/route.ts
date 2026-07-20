@@ -686,8 +686,8 @@ async function notifyFailedDonation(donationId: string) {
     },
     failureReason: donation.failureReason,
     frequency,
-    heading: "Don en echec",
-    paymentStatusLabel: "Echec",
+    heading: "Don en échec",
+    paymentStatusLabel: "Échec",
     receiptNumber: donation.receipt?.number,
   });
 
@@ -840,7 +840,7 @@ async function notifyRecurringPayment(paymentId: string, statusLabel: string) {
       },
       failureReason: payment.failureReason,
       frequency,
-      heading: `Paiement recurrent ${statusLabel.toLowerCase()}`,
+      heading: `Paiement récurrent ${statusLabel.toLowerCase()}`,
       paymentLabel: installmentLabel,
       paymentStatusLabel: statusLabel,
       stripeReceiptUrl: payment.stripeReceiptUrl,
@@ -939,7 +939,7 @@ async function updateInvoicePayment(
 
   await notifyRecurringPayment(
     payment.id,
-    status === "PAID" ? "Reussi" : "Echec",
+    status === "PAID" ? "Réussi" : "Échec",
   );
 }
 
@@ -983,7 +983,7 @@ export async function POST(request: Request) {
 
   if (!webhookSecret || !signature) {
     return NextResponse.json(
-      { error: "Webhook Stripe non configure." },
+      { error: "Webhook Stripe non configuré." },
       { status: 400 },
     );
   }

@@ -23,11 +23,11 @@ export default async function KoupatHolimRequestPage() {
         <section className="page-hero">
           <div className="container">
             <span className="eyebrow">Koupat Holim</span>
-            <h1>Demande koupat holim</h1>
+            <h1>Demande Koupat Holim</h1>
             <p>
-              Formulaire dedie pour l&apos;accompagnement koupat holim :
-              informations personnelles, passeport non israelien, formulaire
-              rempli et certificat etudiant ou Massa.
+              Formulaire dédié pour l’accompagnement Koupat Holim :
+              informations personnelles, passeport non israélien, formulaire
+              rempli et certificat étudiant ou Massa.
             </p>
           </div>
         </section>
@@ -38,21 +38,21 @@ export default async function KoupatHolimRequestPage() {
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle>Suivi koupat holim</CardTitle>
+                  <CardTitle>Suivi Koupat Holim</CardTitle>
                   <CardDescription>
-                    Apres depot, le Bahour pourra suivre le statut de la demande
-                    et ajouter les pieces demandees depuis son espace.
+                    Après dépôt, le Bahour pourra suivre le statut de la demande
+                    et ajouter les pièces demandées depuis son espace.
                   </CardDescription>
                 </CardHeader>
               </Card>
               <Card className="mt-4">
                 <CardHeader>
-                  <CardTitle>Besoin d&apos;un visa ?</CardTitle>
+                  <CardTitle>Besoin d’un visa ?</CardTitle>
                   <CardDescription>
-                    La demande visa etudiant a sa propre page separee.
+                    La demande visa étudiant a sa propre page séparée.
                   </CardDescription>
                   <Button asChild variant="secondary">
-                    <Link href="/demandes/visa">Aller au visa etudiant</Link>
+                    <Link href="/demandes/visa">Aller au visa étudiant</Link>
                   </Button>
                 </CardHeader>
               </Card>

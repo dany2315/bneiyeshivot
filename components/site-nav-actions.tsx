@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 const phoneNumbers = [
   { label: "France", number: "+33767967148", display: "+33 7 67 96 71 48" },
-  { label: "Israel", number: "+972534727103", display: "+972 53 472 7103" },
+  { label: "Israël", number: "+972534727103", display: "+972 53 472 7103" },
 ];
 
 function CallButton({
@@ -46,7 +46,7 @@ function CallButton({
         <DialogHeader>
           <DialogTitle>Appeler Bnei Yeshivot</DialogTitle>
           <DialogDescription>
-            Choisissez le numero que vous souhaitez appeler.
+            Choisissez le numéro que vous souhaitez appeler.
           </DialogDescription>
         </DialogHeader>
         <div className="phone-dialog-list">

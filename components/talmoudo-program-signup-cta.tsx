@@ -45,7 +45,7 @@ export function TalmoudoProgramSignupCta({
     return (
       <Card>
         <CardContent className="p-5 text-base text-[var(--muted)]">
-          Le prochain mivhan n&apos;est pas encore programme.
+          Le prochain mivhan n’est pas encore programmé.
         </CardContent>
       </Card>
     );
@@ -56,8 +56,8 @@ export function TalmoudoProgramSignupCta({
       <Button asChild size="lg" variant="secondary">
         <Link href="/client">
           <CheckCircle2 />
-          Tu es deja inscrit au prochain mivhan le {session.dateLabel}
-          {session.location ? ` a ${session.location}` : ""}
+          Tu es déjà inscrit au prochain mivhan le {session.dateLabel}
+          {session.location ? ` à ${session.location}` : ""}
         </Link>
       </Button>
     );
@@ -87,7 +87,7 @@ export function TalmoudoProgramSignupCta({
           <Dialog>
             <DialogTrigger render={<Button disabled={session.disabled} />}>
               <Send />
-              Je m&apos;inscris au mivhan
+              Je m’inscris au mivhan
             </DialogTrigger>
             <DialogContent
               showCloseButton={false}

@@ -23,12 +23,12 @@ export function OtpEmail({ otp }: OtpEmailProps) {
         <Container style={container}>
           <Section style={brandSection}>
             <Text style={brand}>Bnei Yeshivot</Text>
-            <Text style={subBrand}>France - Israel</Text>
+            <Text style={subBrand}>France - Israël</Text>
           </Section>
 
           <Heading style={heading}>Code de connexion</Heading>
           <Text style={paragraph}>
-            Voici votre code temporaire pour acceder a votre Espace Bahour.
+            Voici votre code temporaire pour accéder à votre Espace Bahour.
           </Text>
 
           <Section style={codeBox}>
@@ -36,14 +36,14 @@ export function OtpEmail({ otp }: OtpEmailProps) {
           </Section>
 
           <Text style={paragraph}>
-            Ce code expire dans quelques minutes. Si vous n&apos;etes pas a
-            l&apos;origine de cette demande, vous pouvez ignorer cet email.
+            Ce code expire dans quelques minutes. Si vous n’êtes pas à
+            l’origine de cette demande, vous pouvez ignorer cet email.
           </Text>
 
           <Hr style={divider} />
 
           <Text style={footer}>
-            Bnei Yeshivot - Accompagnement des jeunes francophones en Israel.
+            Bnei Yeshivot - Accompagnement des jeunes francophones en Israël.
           </Text>
         </Container>
       </Body>

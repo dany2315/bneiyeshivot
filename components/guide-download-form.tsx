@@ -35,12 +35,12 @@ export function GuideDownloadForm() {
       const response = await fetch("/api/guide/download");
 
       if (!response.ok) {
-        toast.error("Impossible de telecharger le guide pour le moment.");
+        toast.error("Impossible de télécharger le guide pour le moment.");
         return;
       }
 
       downloadBlob(await response.blob());
-      toast.success("Guide telecharge.");
+      toast.success("Guide téléchargé.");
     }
 
     downloadForConnectedUser();
@@ -61,12 +61,12 @@ export function GuideDownloadForm() {
       const result = (await response.json().catch(() => null)) as {
         message?: string;
       } | null;
-      toast.error(result?.message ?? "Impossible de telecharger le guide.");
+      toast.error(result?.message ?? "Impossible de télécharger le guide.");
       return;
     }
 
     downloadBlob(await response.blob());
-    toast.success("Guide telecharge.");
+    toast.success("Guide téléchargé.");
   }
 
   if (loading) {
@@ -82,10 +82,10 @@ export function GuideDownloadForm() {
       <div className="grid gap-4 rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
         <div>
           <h2 className="text-2xl font-bold text-[var(--primary)]">
-            Telechargement en cours
+            Téléchargement en cours
           </h2>
           <p className="mt-2 text-base leading-7 text-[var(--muted)]">
-            Vous etes connecte avec {user.email}. Le guide se telecharge
+            Vous êtes connecté avec {user.email}. Le guide se télécharge
             automatiquement.
           </p>
         </div>
@@ -97,7 +97,7 @@ export function GuideDownloadForm() {
           }}
         >
           <Download className="size-4" />
-          Relancer le telechargement
+          Relancer le téléchargement
         </Button>
       </div>
     );
@@ -113,14 +113,14 @@ export function GuideDownloadForm() {
           Recevoir le guide
         </h2>
         <p className="mt-2 text-base leading-7 text-[var(--muted)]">
-          Renseignez vos informations. Si votre email existe deja, le guide se
-          telecharge directement. Sinon, un acces Bahour sera prepare avec ces
+          Renseignez vos informations. Si votre email existe déjà, le guide se
+          télécharge directement. Sinon, un accès Bahour sera préparé avec ces
           informations.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="guide-first-name">Prenom</Label>
+          <Label htmlFor="guide-first-name">Prénom</Label>
           <Input id="guide-first-name" name="firstName" required />
         </div>
         <div className="grid gap-2">
@@ -132,7 +132,7 @@ export function GuideDownloadForm() {
           <Input id="guide-email" name="email" type="email" required />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="guide-phone">Numero de telephone</Label>
+          <Label htmlFor="guide-phone">Numéro de téléphone</Label>
           <PhoneInputGroup id="guide-phone" name="phone" required />
         </div>
       </div>
@@ -142,7 +142,7 @@ export function GuideDownloadForm() {
         ) : (
           <Download className="size-4" />
         )}
-        Telecharger le guide
+        Télécharger le guide
       </Button>
     </form>
   );

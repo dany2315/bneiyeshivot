@@ -66,27 +66,27 @@ export default async function EventDetailPage({
           <div className="container relative z-10 flex min-h-[620px] items-end pb-10 pt-24 md:min-h-[72vh] md:pb-12">
             <div className="max-w-3xl">
               <span className="inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-bold uppercase tracking-[0.12em] text-white">
-                Evenement passe
+                Événement passé
               </span>
               <h1 className="mt-5 text-white">{event.title}</h1>
               <p className="mt-4 text-lg leading-8 text-white/82 md:text-xl">
                 {event.description}
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <HeroStat label="Lieu" value={event.location || "A confirmer"} />
+                <HeroStat label="Lieu" value={event.location || "À confirmer"} />
                 <HeroStat
                   label="Participants"
                   value={event.capacity != null ? `${event.capacity}` : "—"}
                 />
                 <HeroStat
-                  label="Medias"
-                  value={`${content.videoUrls.length} video(s)`}
+                  label="Médias"
+                  value={`${content.videoUrls.length} vidéo(s)`}
                 />
               </div>
               <div className="mt-6">
                 <Button asChild>
                   <Link className="text-white" href="/evenements">
-                    Retour aux evenements
+                    Retour aux événements
                   </Link>
                 </Button>
               </div>
@@ -98,10 +98,10 @@ export default async function EventDetailPage({
           <div className="container grid gap-6 lg:grid-cols-[1fr_360px]">
             <Card>
               <CardHeader>
-                <CardTitle>Presentation</CardTitle>
+                <CardTitle>Présentation</CardTitle>
                 <CardDescription>
                   {formatDateTime(event.startsAt)} -{" "}
-                  {event.location || "Lieu a confirmer"}
+                  {event.location || "Lieu à confirmer"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-5">
@@ -115,7 +115,7 @@ export default async function EventDetailPage({
                     className="aspect-video w-full rounded-2xl border border-[var(--border)]"
                     key={videoUrl}
                     src={videoUrl}
-                    title={`${event.title} video ${index + 1}`}
+                    title={`${event.title} vidéo ${index + 1}`}
                   />
                 ))}
               </CardContent>
@@ -126,7 +126,7 @@ export default async function EventDetailPage({
                 <CardHeader>
                   <CardTitle>Informations</CardTitle>
                   <CardDescription>
-                    {event.location || "Lieu a confirmer"}
+                    {event.location || "Lieu à confirmer"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-2 text-base text-[var(--muted)]">
@@ -137,14 +137,14 @@ export default async function EventDetailPage({
                   <div className="flex flex-wrap gap-2 pt-1">
                     <span className="inline-flex items-center gap-2 rounded-full bg-[var(--subtle)] px-3 py-1">
                       <Film className="size-4" />
-                      {content.videoUrls.length} video(s)
+                      {content.videoUrls.length} vidéo(s)
                     </span>
                     <span className="inline-flex items-center gap-2 rounded-full bg-[var(--subtle)] px-3 py-1">
                       <Camera className="size-4" />
                       {galleryPhotos.length} photo(s)
                     </span>
                   </div>
-                  <StatusBadge tone="gold">Inscriptions fermees</StatusBadge>
+                  <StatusBadge tone="gold">Inscriptions fermées</StatusBadge>
                 </CardContent>
               </Card>
             </aside>
@@ -155,10 +155,10 @@ export default async function EventDetailPage({
           <section className="section band">
             <div className="container">
               <div className="section-header">
-                <h2>Galerie apres evenement</h2>
+                <h2>Galerie après événement</h2>
                 <p>
-                  Photos ajoutees par l&apos;equipe pour raconter
-                  l&apos;evenement.
+                  Photos ajoutées par l’équipe pour raconter
+                  l’événement.
                 </p>
               </div>
               <Dialog>
@@ -198,7 +198,7 @@ export default async function EventDetailPage({
                     <div className="grid gap-2">
                       <DialogTitle>{event.title}</DialogTitle>
                       <DialogDescription>
-                        Galerie apres evenement - {galleryPhotos.length} photo(s)
+                        Galerie après événement - {galleryPhotos.length} photo(s)
                       </DialogDescription>
                     </div>
                     <DialogClose

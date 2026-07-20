@@ -18,9 +18,9 @@ export const CERFA_ENTREPRISE_FIXED_DATA = {
   beneficiaryPostalCode: "93220",
   beneficiaryCity: "Gagny",
   beneficiaryObject:
-    "L'association a pour but d'aider les etudiants en leur proposant des cours, des repas et des bourses.",
+    "L’association a pour but d’aider les étudiants en leur proposant des cours, des repas et des bourses.",
   beneficiaryCategory:
-    "Oeuvre ou organisme d'interet general ayant un caractere philanthropique, educatif, scientifique, social, humanitaire, sportif, familial, culturel ou concourant a la mise en valeur du patrimoine artistique, a la defense de l'environnement naturel ou a la diffusion de la culture, de la langue et des connaissances scientifiques francaises (Association Loi 1901).",
+    "Œuvre ou organisme d’intérêt général ayant un caractère philanthropique, éducatif, scientifique, social, humanitaire, sportif, familial, culturel ou concourant à la mise en valeur du patrimoine artistique, à la défense de l’environnement naturel ou à la diffusion de la culture, de la langue et des connaissances scientifiques françaises (Association Loi 1901).",
 } as const;
 
 export const CERFA_ENTREPRISE_VARIABLE_FIELDS = [
@@ -45,8 +45,8 @@ export const CERFA_PARTICULIER_FIXED_DATA = {
   beneficiaryPostalCode: "93220",
   beneficiaryCity: "Gagny",
   beneficiaryObject:
-    "L'association a pour but d'aider les etudiants en leur proposant des cours, des repas et des bourses.",
-  beneficiaryCategory: "Oeuvre ou organisme d'interet general",
+    "L’association a pour but d’aider les étudiants en leur proposant des cours, des repas et des bourses.",
+  beneficiaryCategory: "Œuvre ou organisme d’intérêt général",
 } as const;
 
 export const CERFA_PARTICULIER_VARIABLE_FIELDS = [
@@ -412,7 +412,7 @@ async function renderEntrepriseCerfaReceiptPdf({
   });
 
   whiteout(page, 59, 468, 476, 77);
-  page.drawText("D\u00e9nomination de l'entreprise : ", {
+  page.drawText("Dénomination de l’entreprise : ", {
     x: 59.5,
     y: 534,
     size: 8.75,

@@ -338,13 +338,13 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
     <Dialog>
       <DialogTrigger render={<Button size="sm" variant="secondary" />}>
         <FileText className="size-4" />
-        Detail
+        Détail
       </DialogTrigger>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{donation.donorName || donation.donorEmail}</DialogTitle>
           <DialogDescription>
-            Don {donation.id} - cree le {dateTimeLabel(donation.createdAt)}
+            Don {donation.id} - créé le {dateTimeLabel(donation.createdAt)}
           </DialogDescription>
         </DialogHeader>
 
@@ -352,7 +352,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
           <div className="grid gap-1 text-sm">
             <strong className="text-[var(--primary)]">Actions rapides</strong>
             <span className="text-[var(--muted)]">
-              Recu, Cerfa, historique du donateur et liens paiement.
+              Reçu, Cerfa, historique du donateur et liens de paiement.
             </span>
           </div>
           <DonationActionsDropdown {...donationActionsProps(donation)} />
@@ -381,12 +381,12 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
               <CardTitle>
                 {hasCerfa
                   ? isReceiptSent(donation)
-                    ? "Cerfa envoye"
-                    : "Cerfa non envoye"
+                    ? "Cerfa envoyé"
+                    : "Cerfa non envoyé"
                   : "Sans Cerfa"}
               </CardTitle>
               <CardDescription>
-                {hasCerfa ? donation.receipt?.number ?? "Sans numero" : "Non applicable"}
+                {hasCerfa ? donation.receipt?.number ?? "Sans numéro" : "Non applicable"}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -397,20 +397,20 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             <CardTitle>Informations donateur</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2 text-sm md:grid-cols-2">
-            <span>Email: {donation.donorEmail}</span>
-            <span>Telephone: {donation.donorPhone ?? "-"}</span>
-            <span>Type: {metadataText(donation.metadata, "donorType") ?? "-"}</span>
-            <span>Entreprise: {metadataText(donation.metadata, "companyName") ?? "-"}</span>
-            <span>Type juridique: {metadataText(donation.metadata, "companyLegalForm") ?? "-"}</span>
-            <span>Compte rattache: {donation.user?.email ?? "Non"}</span>
-            <span>Email d&apos;envoi recus: {receiptEmail || donation.donorEmail}</span>
+            <span>Email : {donation.donorEmail}</span>
+            <span>Téléphone : {donation.donorPhone ?? "-"}</span>
+            <span>Type : {metadataText(donation.metadata, "donorType") ?? "-"}</span>
+            <span>Entreprise : {metadataText(donation.metadata, "companyName") ?? "-"}</span>
+            <span>Type juridique : {metadataText(donation.metadata, "companyLegalForm") ?? "-"}</span>
+            <span>Compte rattaché : {donation.user?.email ?? "Non"}</span>
+            <span>Email d’envoi des reçus : {receiptEmail || donation.donorEmail}</span>
           </CardContent>
         </Card>
 
         {donation.dedication && (
           <Card>
             <CardHeader>
-              <CardTitle>Dedicace</CardTitle>
+              <CardTitle>Dédicace</CardTitle>
               <CardDescription>{donation.dedication}</CardDescription>
             </CardHeader>
           </Card>
@@ -452,7 +452,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
               <Button asChild className="w-fit" variant="secondary">
                 <a href={stripeReceiptUrl} rel="noreferrer" target="_blank">
                   <ExternalLink className="size-4" />
-                  Recu Stripe
+                  Reçu Stripe
                 </a>
               </Button>
             )}
@@ -465,7 +465,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             <CardHeader>
               <CardTitle>Historique des paiements</CardTitle>
               <CardDescription>
-                Suivi paiement par paiement, y compris les mensualites.
+                Suivi paiement par paiement, y compris les mensualités.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -477,7 +477,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                       <TableHead>Montant</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Date</TableHead>
-                      <TableHead>Recu</TableHead>
+                      <TableHead>Reçu</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -531,7 +531,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                                   target="_blank"
                                 >
                                   <ExternalLink className="size-4" />
-                                  Recu
+                                  Reçu
                                 </a>
                               </Button>
                             ) : null}
@@ -551,14 +551,14 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
             <CardHeader>
               <CardTitle>PDF Cerfa</CardTitle>
               <CardDescription>
-                Recu fiscal genere automatiquement et stocke sur le don.
+                Reçu fiscal généré automatiquement et stocké sur le don.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="secondary">
                 <a href={cerfaUrl} rel="noreferrer" target="_blank">
                   <Download className="size-4" />
-                  Telecharger le Cerfa PDF
+                  Télécharger le Cerfa PDF
                 </a>
               </Button>
             </CardContent>
@@ -578,7 +578,7 @@ function DonationDetailsDialog({ donation }: { donation: AdminDonation }) {
                     typeof metadata.adminNote === "string" ? metadata.adminNote : ""
                   }
                   name="adminNote"
-                  placeholder="Note visible seulement par l'admin"
+                  placeholder="Note visible seulement par l’admin"
                 />
                 <Button type="submit" variant="secondary">
                   Enregistrer la note
@@ -633,7 +633,7 @@ function FilterBar({
     },
     {
       href: frequencyHref(DonationFrequency.MONTHLY),
-      label: "Recurrents",
+      label: "Récurrents",
       value: DonationFrequency.MONTHLY,
     },
   ];
@@ -666,7 +666,7 @@ function FilterBar({
           <InputGroupInput
             defaultValue={params.q ?? ""}
             name="q"
-            placeholder="Nom, email, telephone, ID don, recu, Stripe..."
+            placeholder="Nom, email, téléphone, ID don, reçu, Stripe..."
           />
         </InputGroup>
         <NativeSelect defaultValue={params.status ?? ""} name="status">
@@ -690,7 +690,7 @@ function FilterBar({
           Filtrer
         </Button>
         <Button asChild variant="secondary">
-          <Link href="/admin/dons">Reset</Link>
+        <Link href="/admin/dons">Réinitialiser</Link>
         </Button>
       </form>
     </div>
@@ -701,10 +701,10 @@ function ReceiptBulkDownloadCard() {
   return (
     <Card className="mt-5">
       <CardHeader>
-        <CardTitle>Telechargement groupe des recus</CardTitle>
+        <CardTitle>Téléchargement groupé des reçus</CardTitle>
         <CardDescription>
-          Selectionnez une plage de dates d&apos;emission. Le ZIP contient un index
-          CSV et un fichier PDF Cerfa par recu.
+          Sélectionnez une plage de dates d’émission. Le ZIP contient un index
+          CSV et un fichier PDF Cerfa par reçu.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -713,11 +713,11 @@ function ReceiptBulkDownloadCard() {
           className="grid gap-3 md:grid-cols-[180px_180px_auto]"
           method="get"
         >
-          <Input aria-label="Date debut" name="from" type="date" />
+          <Input aria-label="Date début" name="from" type="date" />
           <Input aria-label="Date fin" name="to" type="date" />
           <Button className="w-fit" type="submit" variant="secondary">
             <Download className="size-4" />
-            Telecharger les recus
+            Télécharger les reçus
           </Button>
         </form>
       </CardContent>
@@ -775,13 +775,13 @@ export default async function AdminDonationsPage({
         <Card>
           <CardHeader>
             <CardTitle>{formatMoney(totalPaidCents, "EUR")}</CardTitle>
-            <CardDescription>Total EUR reussi</CardDescription>
+            <CardDescription>Total EUR réussi</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>{pendingReceipts}</CardTitle>
-            <CardDescription>Recus Cerfa a creer</CardDescription>
+            <CardDescription>Reçus Cerfa à créer</CardDescription>
           </CardHeader>
         </Card>
         <Card>
@@ -811,7 +811,7 @@ export default async function AdminDonationsPage({
               </CardDescription>
             </div>
             <Badge variant="info" className="px-3 py-2">
-              {donations.length} resultat(s)
+              {donations.length} résultat(s)
             </Badge>
           </div>
         </CardHeader>
@@ -866,9 +866,9 @@ export default async function AdminDonationsPage({
                       <TableCell>
                         {canShowCerfaControls(donation) ? (
                           <div className="grid gap-1">
-                            <strong>{donation.receipt?.number ?? "A creer"}</strong>
+                            <strong>{donation.receipt?.number ?? "À créer"}</strong>
                             <span className="text-sm text-[var(--muted)]">
-                              {isReceiptSent(donation) ? "Envoye" : "Non envoye"}
+                              {isReceiptSent(donation) ? "Envoyé" : "Non envoyé"}
                             </span>
                           </div>
                         ) : (

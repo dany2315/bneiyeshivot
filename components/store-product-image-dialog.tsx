@@ -53,7 +53,7 @@ export function StoreProductImageDialog({
       <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl">
         <DialogHeader className="border-b border-[var(--border)] p-4">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Apercu du produit</DialogDescription>
+          <DialogDescription>Aperçu du produit</DialogDescription>
         </DialogHeader>
         <div className="relative bg-[#061e35] p-3">
           <div className="flex h-[min(70vh,620px)] snap-x snap-mandatory overflow-x-auto scroll-smooth rounded-lg">

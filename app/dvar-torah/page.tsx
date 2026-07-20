@@ -13,23 +13,23 @@ const demoFiles = [
     title: "Chabbat Berechit",
     category: "Chabbat" as const,
     description:
-      "Un feuillet clair pour ouvrir l'annee avec des idees courtes, partageables et faciles a transmettre a table.",
+      "Un feuillet clair pour ouvrir l’année avec des idées courtes, partageables et faciles à transmettre à table.",
     slug: "chabbat-berechit",
     date: "Chabbat",
   },
   {
-    title: "Hanouka - La lumiere qui reste",
+    title: "Hanouka - La lumière qui reste",
     category: "Fete" as const,
     description:
-      "Un support de lecture pour Hanouka avec points de reflexion, messages courts et questions pour animer l'echange.",
+      "Un support de lecture pour Hanouka avec points de réflexion, messages courts et questions pour animer l’échange.",
     slug: "hanouka-lumiere",
     date: "Fete",
   },
   {
-    title: "Pessah - Sortir avec clarte",
+    title: "Pessah - Sortir avec clarté",
     category: "Fete" as const,
     description:
-      "Un feuillet pour preparer Pessah, mettre en avant le sens de la liberte et accompagner les jeunes dans la lecture.",
+      "Un feuillet pour préparer Pessah, mettre en avant le sens de la liberté et accompagner les jeunes dans la lecture.",
     slug: "pessah-liberte",
     date: "Fete",
   },
@@ -47,7 +47,7 @@ export default async function DvarTorahPage() {
           category: file.category === "CHABBAT" ? ("Chabbat" as const) : ("Fete" as const),
           description:
             file.description ||
-            "Feuillet Bnei Yeshivot a ouvrir, telecharger ou partager.",
+            "Feuillet Bnei Yeshivot à ouvrir, télécharger ou partager.",
           slug: file.slug,
           date: file.createdAt.toLocaleDateString("fr-FR"),
         }))
@@ -59,10 +59,10 @@ export default async function DvarTorahPage() {
         <section className="page-hero page-hero-compact">
           <div className="container">
             <span className="eyebrow">Dvar Torah</span>
-            <h1>Feuillets a telecharger, ouvrir ou partager</h1>
+            <h1>Feuillets à télécharger, ouvrir ou partager</h1>
             <p className="max-w-2xl">
-              Retrouvez les feuillets mis a disposition par Bnei Yeshivot pour
-              les Chabbatot et les fetes.
+              Retrouvez les feuillets mis à disposition par Bnei Yeshivot pour
+              les Chabbatot et les fêtes.
             </p>
           </div>
         </section>

@@ -45,7 +45,7 @@ function BaseEmail({
             </Section>
           ) : null}
           <Hr style={divider} />
-          <Text style={footer}>L&apos;equipe Bnei Yeshivot</Text>
+          <Text style={footer}>L’équipe Bnei Yeshivot</Text>
         </Container>
       </Body>
     </Html>
@@ -64,12 +64,12 @@ export function NewRequestAdminEmail(props: {
       actionHref={props.link}
       actionLabel="Voir la demande"
       preview={`Nouvelle demande - ${props.typeLabel} - ${props.fullName}`}
-      title="Nouvelle demande recue"
+      title="Nouvelle demande reçue"
     >
       <InfoLine label="Type" value={props.typeLabel} />
       <InfoLine label="Nom" value={props.fullName} />
       <InfoLine label="Email" value={props.email} />
-      {props.phone ? <InfoLine label="Telephone" value={props.phone} /> : null}
+      {props.phone ? <InfoLine label="Téléphone" value={props.phone} /> : null}
     </BaseEmail>
   );
 }
@@ -82,13 +82,13 @@ export function RequestConfirmationEmail(props: {
 
   return (
     <BaseEmail
-      preview="Votre demande a bien ete recue"
-      title="Demande bien recue"
+      preview="Votre demande a bien été reçue"
+      title="Demande bien reçue"
     >
       <Text style={paragraph}>{greeting}</Text>
       <Text style={paragraph}>
-        Nous avons bien recu votre demande de <strong>{props.typeLabel}</strong>.
-        Notre equipe va l&apos;etudier avec attention.
+        Nous avons bien reçu votre demande de <strong>{props.typeLabel}</strong>.
+        Notre équipe va l’étudier avec attention.
       </Text>
       <Text style={paragraphStrong}>Nous reviendrons vers vous pour la suite.</Text>
     </BaseEmail>
@@ -106,14 +106,14 @@ export function StoreReservationAdminEmail(props: {
   return (
     <BaseEmail
       actionHref={props.link}
-      actionLabel="Voir les reservations"
-      preview={`Nouvelle reservation boutique - ${props.customerName}`}
-      title="Nouvelle reservation boutique"
+      actionLabel="Voir les réservations"
+      preview={`Nouvelle réservation boutique - ${props.customerName}`}
+      title="Nouvelle réservation boutique"
     >
       <InfoLine label="Client" value={props.customerName} />
       <InfoLine label="Email" value={props.customerEmail} />
       {props.customerPhone ? (
-        <InfoLine label="Telephone" value={props.customerPhone} />
+        <InfoLine label="Téléphone" value={props.customerPhone} />
       ) : null}
       <InfoLine label="Total indicatif" value={props.total} />
       <ItemsList items={props.items} />
@@ -128,14 +128,14 @@ export function StoreReservationConfirmationEmail(props: {
 }) {
   return (
     <BaseEmail
-      preview="Votre reservation boutique a bien ete recue"
-      title="Reservation bien recue"
+      preview="Votre réservation boutique a bien été reçue"
+      title="Réservation bien reçue"
     >
       <Text style={paragraph}>Bonjour {props.customerName},</Text>
       <Text style={paragraph}>
-        Nous avons bien recu votre reservation boutique. Aucun paiement n&apos;a
-        ete effectue en ligne. Notre equipe va verifier la disponibilite et vous
-        recontactera pour confirmer les details.
+        Nous avons bien reçu votre réservation boutique. Aucun paiement n’a
+        été effectué en ligne. Notre équipe va vérifier la disponibilité et vous
+        recontactera pour confirmer les détails.
       </Text>
       <InfoLine label="Total indicatif" value={props.total} />
       <ItemsList items={props.items} />
@@ -155,23 +155,23 @@ export function StoreReservationStatusEmail(props: {
 }) {
   return (
     <BaseEmail
-      preview={`Mise a jour de votre reservation boutique - ${props.statusLabel}`}
-      title="Mise a jour de votre reservation"
+      preview={`Mise à jour de votre réservation boutique - ${props.statusLabel}`}
+      title="Mise à jour de votre réservation"
     >
       <Text style={paragraph}>Bonjour {props.customerName},</Text>
       <Text style={paragraph}>
-        Votre reservation boutique est maintenant indiquee comme{" "}
+        Votre réservation boutique est maintenant indiquée comme{" "}
         <strong>{props.statusLabel}</strong>.
       </Text>
       {props.pickupDate ? (
-        <InfoLine label="Date de recuperation" value={props.pickupDate} />
+        <InfoLine label="Date de récupération" value={props.pickupDate} />
       ) : null}
       {props.pickupLocation ? (
-        <InfoLine label="Lieu de recuperation" value={props.pickupLocation} />
+        <InfoLine label="Lieu de récupération" value={props.pickupLocation} />
       ) : null}
       {props.unavailableItems ? (
         <Text style={paragraph}>
-          Produits non disponibles ou a ajuster :{" "}
+          Produits non disponibles ou à ajuster :{" "}
           <strong>{props.unavailableItems}</strong>
         </Text>
       ) : null}
@@ -197,9 +197,9 @@ export function DonationThankYouEmail(props: {
     <BaseEmail preview="Merci pour votre don" title="Merci pour votre don">
       <Text style={paragraph}>{greeting}</Text>
       <Text style={paragraph}>
-        Nous avons bien recu votre don de <strong>{props.amount}</strong> (
-        {props.frequency}). Votre soutien nous aide a accompagner les jeunes
-        francophones en Israel de facon concrete.
+        Nous avons bien reçu votre don de <strong>{props.amount}</strong> (
+        {props.frequency}). Votre soutien nous aide à accompagner les jeunes
+        francophones en Israël de façon concrète.
       </Text>
       {props.paymentLabel ? (
         <InfoLine label="Paiement" value={props.paymentLabel} />
@@ -209,13 +209,13 @@ export function DonationThankYouEmail(props: {
       ) : null}
       {props.receiptNumber ? (
         <Text style={paragraph}>
-          Votre recu fiscal Cerfa <strong>{props.receiptNumber}</strong> est
-          joint a cet email.
+          Votre reçu fiscal Cerfa <strong>{props.receiptNumber}</strong> est
+          joint à cet email.
         </Text>
       ) : null}
       {props.stripeReceiptUrl ? (
         <Button href={props.stripeReceiptUrl} style={secondaryButton}>
-          Voir le recu Stripe
+          Voir le reçu Stripe
         </Button>
       ) : null}
       <Text style={paragraph}>Avec toute notre reconnaissance,</Text>
@@ -233,30 +233,30 @@ export function DonationRecurringPaymentEmail(props: {
   stripeReceiptUrl?: string | null;
 }) {
   const greeting = props.donorName ? `Bonjour ${props.donorName},` : "Bonjour,";
-  const isFailed = props.statusLabel.toLowerCase().includes("echec");
+  const isFailed = props.statusLabel.toLowerCase().includes("échec");
 
   return (
     <BaseEmail
-      preview={`Paiement recurrent ${props.statusLabel.toLowerCase()} - ${props.paymentLabel}`}
-      title={isFailed ? "Paiement recurrent a verifier" : "Paiement recurrent confirme"}
+      preview={`Paiement récurrent ${props.statusLabel.toLowerCase()} - ${props.paymentLabel}`}
+      title={isFailed ? "Paiement récurrent à vérifier" : "Paiement récurrent confirmé"}
     >
       <Text style={paragraph}>{greeting}</Text>
       <Text style={paragraph}>
-        Votre paiement mensuel de <strong>{props.amount}</strong> a ete mis a
-        jour pour votre don recurrent Bnei Yeshivot.
+        Votre paiement mensuel de <strong>{props.amount}</strong> a été mis à
+        jour pour votre don récurrent Bnei Yeshivot.
       </Text>
       <InfoLine label="Paiement" value={props.paymentLabel} />
-      <InfoLine label="Frequence" value={props.frequency} />
+      <InfoLine label="Fréquence" value={props.frequency} />
       <InfoLine label="Statut" value={props.statusLabel} />
       {props.failureReason ? (
         <InfoLine label="Raison" value={props.failureReason} />
       ) : null}
       {props.stripeReceiptUrl ? (
         <Button href={props.stripeReceiptUrl} style={secondaryButton}>
-          Voir le recu Stripe
+          Voir le reçu Stripe
         </Button>
       ) : null}
-      <Text style={paragraph}>Merci pour votre soutien regulier.</Text>
+      <Text style={paragraph}>Merci pour votre soutien régulier.</Text>
     </BaseEmail>
   );
 }
@@ -271,18 +271,18 @@ export function TalmoudoResultEmail(props: {
   const greeting = props.firstName ? `Bonjour ${props.firstName},` : "Bonjour,";
   const rewardLine = props.rewardAmount
     ? props.rewardPaid
-      ? `Une recompense de ${props.rewardAmount} a ete indiquee comme remise.`
-      : `Une recompense de ${props.rewardAmount} est prevue.`
-    : "Aucune recompense n'a ete indiquee pour ce mivhan.";
+      ? `Une récompense de ${props.rewardAmount} a été indiquée comme remise.`
+      : `Une récompense de ${props.rewardAmount} est prévue.`
+    : "Aucune récompense n’a été indiquée pour ce mivhan.";
 
   return (
     <BaseEmail
-      preview={`Resultat Talmoudo Beyado - ${props.sessionTitle}`}
-      title="Resultat Talmoudo Beyado"
+      preview={`Résultat Talmoudo Beyado - ${props.sessionTitle}`}
+      title="Résultat Talmoudo Beyado"
     >
       <Text style={paragraph}>{greeting}</Text>
       <Text style={paragraph}>
-        Votre resultat pour <strong>{props.sessionTitle}</strong> a ete mis a
+        Votre résultat pour <strong>{props.sessionTitle}</strong> a été mis à
         jour.
       </Text>
       <InfoLine label="Note" value={`${props.grade} / 100`} />
@@ -304,14 +304,14 @@ export function TalmoudoRegistrationAdminEmail(props: {
   return (
     <BaseEmail
       actionHref={props.adminLink}
-      actionLabel="Voir l'inscription"
+      actionLabel="Voir l’inscription"
       preview={`Nouvelle inscription Talmoudo - ${props.fullName}`}
       title="Nouvelle inscription Talmoudo"
     >
       <InfoLine label="Session" value={props.sessionTitle} />
       <InfoLine label="Nom" value={props.fullName} />
       <InfoLine label="Email" value={props.email} />
-      <InfoLine label="Telephone" value={props.phone} />
+      <InfoLine label="Téléphone" value={props.phone} />
       <InfoLine label="Yeshiva" value={props.yeshiva} />
       <InfoLine label="Massehet" value={props.massehet} />
       <InfoLine label="Dapim" value={props.dapim} />

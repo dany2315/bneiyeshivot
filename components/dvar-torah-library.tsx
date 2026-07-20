@@ -21,7 +21,7 @@ const filters: Array<{
 }> = [
   { label: "Tous", value: "Tous", icon: BookOpenText },
   { label: "Chabbat", value: "Chabbat", icon: CalendarDays },
-  { label: "Fetes", value: "Fete", icon: Sparkles },
+  { label: "Fêtes", value: "Fete", icon: Sparkles },
 ];
 
 export function DvarTorahLibrary({

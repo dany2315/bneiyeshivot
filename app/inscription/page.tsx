@@ -24,7 +24,7 @@ export default async function RegisterPage({
             <span className="eyebrow">Espace Bahour</span>
             <h1>Inscription</h1>
             <p>
-              Cree ton acces personnel pour suivre tes demandes, documents,
+              Crée ton accès personnel pour suivre tes demandes, documents,
               inscriptions, dons et mivhanim.
             </p>
           </div>
@@ -33,16 +33,16 @@ export default async function RegisterPage({
           <div className="container grid max-w-3xl gap-5">
             <OtpLoginCard
               audience="bahour"
-              description="Renseigne tes informations, puis valide le code envoye par email."
+              description="Renseigne tes informations, puis valide le code envoyé par email."
               initialEmail={params.email ?? ""}
               initialMessage={params.error ?? ""}
               mode="register"
               redirectTo="/client"
-              title="Creer mon acces Bahour"
+              title="Créer mon accès Bahour"
             />
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white/90 p-5">
               <p className="text-base text-[var(--muted)]">
-                Tu as deja un acces ?
+                Tu as déjà un accès ?
               </p>
               <Button asChild variant="secondary">
                 <Link href="/connexion">Se connecter</Link>

@@ -43,9 +43,9 @@ import {
 import { countries } from "countries-list";
 
 const steps = [
-  { label: "Identite", detail: "Coordonnees" },
+  { label: "Identité", detail: "Coordonnées" },
   { label: "Dossier", detail: "Informations" },
-  { label: "Documents", detail: "Pieces" },
+  { label: "Documents", detail: "Pièces" },
   { label: "Validation", detail: "Envoi" },
 ];
 
@@ -54,21 +54,21 @@ const regionNames = new Intl.DisplayNames(["fr"], { type: "region" });
 const feminineNationalities: Record<string, string> = {
   AF: "Afghane",
   AL: "Albanaise",
-  DZ: "Algerienne",
+  DZ: "Algérienne",
   DE: "Allemande",
   AD: "Andorrane",
   AO: "Angolaise",
   AR: "Argentine",
-  AM: "Armenienne",
+  AM: "Arménienne",
   AU: "Australienne",
   AT: "Autrichienne",
-  AZ: "Azerbaidjanaise",
+  AZ: "Azerbaïdjanaise",
   BE: "Belge",
-  BJ: "Beninoise",
+  BJ: "Béninoise",
   BA: "Bosnienne",
-  BR: "Bresilienne",
+  BR: "Brésilienne",
   BG: "Bulgare",
-  BF: "Burkinabe",
+  BF: "Burkinabè",
   BI: "Burundaise",
   KH: "Cambodgienne",
   CM: "Camerounaise",
@@ -79,35 +79,35 @@ const feminineNationalities: Record<string, string> = {
   KM: "Comorienne",
   CG: "Congolaise",
   CD: "Congolaise",
-  KR: "Sud-coreenne",
-  KP: "Nord-coreenne",
+  KR: "Sud-coréenne",
+  KP: "Nord-coréenne",
   CI: "Ivoirienne",
   HR: "Croate",
   CU: "Cubaine",
   DK: "Danoise",
-  EG: "Egyptienne",
-  AE: "Emirienne",
-  EC: "Equatorienne",
+  EG: "Égyptienne",
+  AE: "Émirienne",
+  EC: "Équatorienne",
   ES: "Espagnole",
   EE: "Estonienne",
-  US: "Americaine",
-  ET: "Ethiopienne",
+  US: "Américaine",
+  ET: "Éthiopienne",
   FI: "Finlandaise",
-  FR: "Francaise",
+  FR: "Française",
   GA: "Gabonaise",
   GM: "Gambienne",
-  GE: "Georgienne",
-  GH: "Ghaneenne",
+  GE: "Géorgienne",
+  GH: "Ghanéenne",
   GR: "Grecque",
-  GN: "Guineenne",
-  HT: "Haitienne",
+  GN: "Guinéenne",
+  HT: "Haïtienne",
   HU: "Hongroise",
   IN: "Indienne",
-  ID: "Indonesienne",
+  ID: "Indonésienne",
   IR: "Iranienne",
   IQ: "Irakienne",
   IE: "Irlandaise",
-  IL: "Israelienne",
+  IL: "Israélienne",
   IT: "Italienne",
   JP: "Japonaise",
   JO: "Jordanienne",
@@ -124,18 +124,18 @@ const feminineNationalities: Record<string, string> = {
   MR: "Mauritanienne",
   MX: "Mexicaine",
   MD: "Moldave",
-  MC: "Monegasque",
+  MC: "Monégasque",
   MN: "Mongole",
-  ME: "Montenegrine",
+  ME: "Monténégrine",
   MZ: "Mozambicaine",
-  NL: "Neerlandaise",
-  NE: "Nigerienne",
-  NG: "Nigeriane",
-  NO: "Norvegienne",
-  NZ: "Neo-zelandaise",
+  NL: "Néerlandaise",
+  NE: "Nigérienne",
+  NG: "Nigériane",
+  NO: "Norvégienne",
+  NZ: "Néo-zélandaise",
   PK: "Pakistanaise",
   PS: "Palestinienne",
-  PE: "Peruvienne",
+  PE: "Péruvienne",
   PH: "Philippine",
   PL: "Polonaise",
   PT: "Portugaise",
@@ -145,26 +145,26 @@ const feminineNationalities: Record<string, string> = {
   RU: "Russe",
   RW: "Rwandaise",
   SA: "Saoudienne",
-  SN: "Senegalaise",
+  SN: "Sénégalaise",
   RS: "Serbe",
   SG: "Singapourienne",
   SK: "Slovaque",
-  SI: "Slovene",
+  SI: "Slovène",
   SO: "Somalienne",
   SD: "Soudanaise",
-  SE: "Suedoise",
+  SE: "Suédoise",
   CH: "Suisse",
   SY: "Syrienne",
   TD: "Tchadienne",
-  CZ: "Tcheque",
-  TH: "Thailandaise",
+  CZ: "Tchèque",
+  TH: "Thaïlandaise",
   TN: "Tunisienne",
   TR: "Turque",
   UA: "Ukrainienne",
   UY: "Uruguayenne",
-  VE: "Venezuelienne",
+  VE: "Vénézuélienne",
   VN: "Vietnamienne",
-  YE: "Yemenite",
+  YE: "Yéménite",
 };
 
 function countryCodeToFlag(code: string) {
@@ -210,20 +210,20 @@ type UploadedDocument = {
 };
 
 const documentLabels: Record<string, string> = {
-  passportFile: "Photo du passeport non israelien",
+  passportFile: "Photo du passeport non israélien",
   formFile: "Formulaire rempli",
   birthCertificateFile: "Acte de naissance",
-  studentCertificateFile: "Certificat d'etudiant ou Massa",
-  identityFile: "Document d'identite / visa",
+  studentCertificateFile: "Certificat d’étudiant ou Massa",
+  identityFile: "Document d’identité / visa",
 };
 
 const koupatFormDownloads = [
   {
-    label: "Formulaire Meuhedet en francais",
+    label: "Formulaire Meuhedet en français",
     href: "/formulaires/formulaire-meuhedet-francais.pdf",
   },
   {
-    label: "Formulaire Meuhedet en hebreu",
+    label: "Formulaire Meuhedet en hébreu",
     href: "/formulaires/formulaire-meuhedet-hebreu.pdf",
   },
   {
@@ -234,7 +234,7 @@ const koupatFormDownloads = [
 
 const visaFormDownloads = [
   {
-    label: "Formulaire visa etudiant",
+    label: "Formulaire visa étudiant",
     href: "/formulaires/formulaire-visa.pdf",
   },
 ] as const;
@@ -261,10 +261,10 @@ function putFileToS3(
         return;
       }
 
-      reject(new Error("Upload S3 refuse."));
+      reject(new Error("Upload S3 refusé."));
     };
     request.onerror = () => {
-      reject(new Error("Connexion interrompue pendant l'upload."));
+      reject(new Error("Connexion interrompue pendant l’upload."));
     };
     request.send(file);
   });
@@ -281,7 +281,7 @@ async function createRequestPayload(
 
   const result = (await response.json().catch(() => ({
     ok: false,
-    message: "Le serveur n'a pas retourne une reponse lisible.",
+    message: "Le serveur n’a pas retourné une réponse lisible.",
   }))) as RequestSubmitResult;
 
   if (!response.ok || !result.ok) {
@@ -300,11 +300,11 @@ function FormDownloadCard({
     <div className="grid gap-2 rounded-2xl border border-[var(--border)] bg-[var(--subtle)] p-4">
       <div>
         <strong className="text-base text-[var(--primary)]">
-          Formulaire a remplir
+          Formulaire à remplir
         </strong>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Telechargez le formulaire, remplissez-le, puis uploadez le fichier
-          complete juste en dessous.
+          Téléchargez le formulaire, remplissez-le, puis uploadez le fichier
+          complété juste en dessous.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -357,7 +357,7 @@ function NationalityCombobox({ id, name }: { id: string; name: string }) {
               {selected.label}
             </>
           ) : (
-            "Selectionner la nationalite"
+            "Sélectionner la nationalité"
           )}
         </span>
       </button>
@@ -368,7 +368,7 @@ function NationalityCombobox({ id, name }: { id: string; name: string }) {
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher une nationalite..."
+            placeholder="Rechercher une nationalité..."
           />
           <div className="grid max-h-[280px] gap-0.5 overflow-y-auto pr-1" role="listbox">
             {filteredOptions.map((option) => (
@@ -433,12 +433,12 @@ export function RequestStepForm({
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
-  const title = type === "visa" ? "Visa etudiant" : "Koupat Holim";
+  const title = type === "visa" ? "Visa étudiant" : "Koupat Holim";
   const isSubmitting = submitState.status === "loading";
   const isUploadingDocuments = Object.values(uploadingFields).some(Boolean);
   const successTitle = isVisa
-    ? "Demande de visa envoyee"
-    : "Demande Koupat Holim envoyee";
+    ? "Demande de visa envoyée"
+    : "Demande Koupat Holim envoyée";
 
   function validateStep(stepIndex: number) {
     const form = formRef.current;
@@ -465,13 +465,13 @@ export function RequestStepForm({
         !hasText("birthDate") ||
         !hasText("nationality")
       ) {
-        return missing("Completez les informations d'identite avant de continuer.");
+        return missing("Complétez les informations d’identité avant de continuer.");
       }
     }
 
     if (stepIndex === 1) {
       if ((isVisa && !hasText("personStatus")) || !hasText("passportNumber") || !hasText("school")) {
-        return missing("Completez les informations du dossier avant de continuer.");
+        return missing("Complétez les informations du dossier avant de continuer.");
       }
     }
 
@@ -482,16 +482,16 @@ export function RequestStepForm({
         (isVisa && !hasUploadedFile("birthCertificateFile")) ||
         !hasUploadedFile("studentCertificateFile")
       ) {
-        return missing("Ajoutez toutes les pieces demandees avant de continuer.");
+        return missing("Ajoutez toutes les pièces demandées avant de continuer.");
       }
 
       if (isUploadingDocuments) {
-        return missing("Attendez la fin de l'upload des pieces avant de continuer.");
+        return missing("Attendez la fin de l’upload des pièces avant de continuer.");
       }
     }
 
     if (stepIndex === 3 && !acceptedTerms) {
-      return missing("Vous devez accepter les conditions generales avant l'envoi.");
+      return missing("Vous devez accepter les conditions générales avant l’envoi.");
     }
 
     setStepError("");
@@ -570,7 +570,7 @@ export function RequestStepForm({
       });
       const presignResult = (await presignResponse.json().catch(() => ({
         ok: false,
-        message: "Impossible de preparer l'upload du document.",
+        message: "Impossible de préparer l’upload du document.",
       }))) as {
         ok: boolean;
         message?: string;
@@ -580,7 +580,7 @@ export function RequestStepForm({
 
       if (!presignResponse.ok || !presignResult.ok || !upload) {
         throw new Error(
-          presignResult.message ?? "Impossible de preparer l'upload du document.",
+          presignResult.message ?? "Impossible de préparer l’upload du document.",
         );
       }
 
@@ -606,7 +606,7 @@ export function RequestStepForm({
       setStepError(
         error instanceof Error
           ? error.message
-          : "Impossible d'uploader le document.",
+          : "Impossible d’uploader le document.",
       );
       setFileUploadProgress((current) => {
         const next = { ...current };
@@ -652,8 +652,8 @@ export function RequestStepForm({
       setSubmitState({
         status: "success",
         message: adminMode
-          ? `Demande creee avec succes (reference ${result.requestId}). Le dossier apparait dans la liste admin et l'utilisateur a ete notifie par email.`
-          : `Votre demande a bien ete envoyee (reference ${result.requestId}). Un email de confirmation vient de vous etre envoye. Notre equipe va etudier votre dossier et reviendra vers vous pour la suite.`,
+          ? `Demande créée avec succès (référence ${result.requestId}). Le dossier apparaît dans la liste admin et l’utilisateur a été notifié par email.`
+          : `Votre demande a bien été envoyée (référence ${result.requestId}). Un email de confirmation vient de vous être envoyé. Notre équipe va étudier votre dossier et reviendra vers vous pour la suite.`,
       });
       router.refresh();
     } catch (error) {
@@ -663,7 +663,7 @@ export function RequestStepForm({
         message:
           result.issues?.[0]?.message ??
           result.message ??
-          "Impossible d'envoyer la demande. Reessayez.",
+          "Impossible d’envoyer la demande. Réessayez.",
       });
       setSendProgress(0);
       setFileUploadProgress({});
@@ -702,8 +702,8 @@ export function RequestStepForm({
         <CardTitle>{title}</CardTitle>
         <CardDescription>
           {isVisa
-            ? "Formulaire de demande de visa etudiant avec les informations et pieces demandees."
-            : "Formulaire de demande koupat holim avec les informations et pieces demandees."}
+            ? "Formulaire de demande de visa étudiant avec les informations et pièces demandées."
+            : "Formulaire de demande Koupat Holim avec les informations et pièces demandées."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -738,7 +738,7 @@ export function RequestStepForm({
         <div className={step === 0 ? "block" : "hidden"} data-step="0">
           <FieldGroup className="form-grid">
             <Field>
-              <FieldLabel htmlFor={`${type}-first-name`}>Prenom</FieldLabel>
+              <FieldLabel htmlFor={`${type}-first-name`}>Prénom</FieldLabel>
               <Input
                 defaultValue={initialUser?.firstName ?? ""}
                 id={`${type}-first-name`}
@@ -769,7 +769,7 @@ export function RequestStepForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={`${type}-phone`}>Telephone</FieldLabel>
+              <FieldLabel htmlFor={`${type}-phone`}>Téléphone</FieldLabel>
               <PhoneInputGroup
                 defaultValue={initialUser?.phone ?? ""}
                 id={`${type}-phone`}
@@ -779,7 +779,7 @@ export function RequestStepForm({
             </Field>
             <Field>
               <FieldLabel htmlFor={`${type}-parent-phone`}>
-                Telephone des parents
+                Téléphone des parents
               </FieldLabel>
               <PhoneInputGroup
                 autoComplete="tel"
@@ -799,7 +799,7 @@ export function RequestStepForm({
                 </Field>
                 <Field>
                   <FieldLabel htmlFor={`${type}-nationality`}>
-                    Nationalite
+                    Nationalité
                   </FieldLabel>
                   <NationalityCombobox
                     id={`${type}-nationality`}
@@ -827,7 +827,7 @@ export function RequestStepForm({
                         onValueChange={(value) => setPersonStatus(value ?? "")}
                       >
                         <SelectTrigger className="h-11 w-full bg-white">
-                          <SelectValue placeholder="Selectionner le statut" />
+                          <SelectValue placeholder="Sélectionner le statut" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="bahour-yeshiva">
@@ -840,12 +840,12 @@ export function RequestStepForm({
                   ) : (
                     <>
                       <FieldLabel htmlFor="koupat-passport-number">
-                        Numero de passeport non israelien
+                        Numéro de passeport non israélien
                       </FieldLabel>
                       <Input
                         id="koupat-passport-number"
                         name="passportNumber"
-                        placeholder="Numero du passeport"
+                        placeholder="Numéro du passeport"
                         required
                       />
                     </>
@@ -854,12 +854,12 @@ export function RequestStepForm({
                 {isVisa && (
                   <Field>
                     <FieldLabel htmlFor="visa-passport-number">
-                      Numero de passeport non israelien
+                      Numéro de passeport non israélien
                     </FieldLabel>
                     <Input
                       id="visa-passport-number"
                       name="passportNumber"
-                      placeholder="Numero du passeport"
+                      placeholder="Numéro du passeport"
                       required
                     />
                   </Field>
@@ -868,15 +868,15 @@ export function RequestStepForm({
             ) : (
               <Field>
                 <FieldLabel htmlFor={`${type}-country`}>
-                  Pays d&apos;origine
+                  Pays d’origine
                 </FieldLabel>
                 <Select>
                   <SelectTrigger className="h-11 w-full bg-white">
-                    <SelectValue placeholder="Selectionner" />
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="france">France</SelectItem>
-                    <SelectItem value="israel">Israel</SelectItem>
+                    <SelectItem value="israel">Israël</SelectItem>
                     <SelectItem value="autre">Autre pays</SelectItem>
                   </SelectContent>
                 </Select>
@@ -894,7 +894,7 @@ export function RequestStepForm({
                   onValueChange={(value) => setKoupatProgram(value ?? "")}
                 >
                   <SelectTrigger className="h-11 w-full bg-white">
-                    <SelectValue placeholder="Selectionner" />
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="yeshiva">Yeshiva</SelectItem>
@@ -913,14 +913,14 @@ export function RequestStepForm({
             {!isVisa && !isKoupat && (
               <Field>
                 <FieldLabel htmlFor={`${type}-arrival`}>
-                  Date d&apos;arrivee prevue
+                  Date d’arrivée prévue
                 </FieldLabel>
                 <div className="relative">
                   <Calendar className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
                   <Input id={`${type}-arrival`} className="pl-9" type="date" />
                 </div>
                 <FieldDescription>
-                  Champ provisoire, a confirmer avec tes donnees exactes.
+                  Champ provisoire, à confirmer avec tes données exactes.
                 </FieldDescription>
               </Field>
             )}
@@ -933,7 +933,7 @@ export function RequestStepForm({
                 <DocumentAttachmentCard
                   name="passportFile"
                   required
-                  title="Photo du passeport non israelien"
+                  title="Photo du passeport non israélien"
                   status="missing"
                   disabled={isSubmitting}
                   fileName={uploadedDocuments.passportFile?.originalName ?? ""}
@@ -955,7 +955,7 @@ export function RequestStepForm({
                   title={
                     isVisa
                       ? "Formulaire de visa rempli"
-                      : "Formulaire koupat holim rempli"
+                      : "Formulaire Koupat Holim rempli"
                   }
                   status="missing"
                   disabled={isSubmitting}
@@ -965,7 +965,7 @@ export function RequestStepForm({
                       "formFile",
                       isVisa
                         ? "Formulaire de visa rempli"
-                        : "Formulaire koupat holim rempli",
+                        : "Formulaire Koupat Holim rempli",
                       file,
                     )
                   }
@@ -992,7 +992,7 @@ export function RequestStepForm({
                 <DocumentAttachmentCard
                   name="studentCertificateFile"
                   required
-                  title="Certificat d'etudiant ou Massa"
+                  title="Certificat d’étudiant ou Massa"
                   status="missing"
                   disabled={isSubmitting}
                   fileName={uploadedDocuments.studentCertificateFile?.originalName ?? ""}
@@ -1023,7 +1023,7 @@ export function RequestStepForm({
                 <DocumentAttachmentCard
                   name="identityFile"
                   required
-                  title="Document d'identite / visa"
+                  title="Document d’identité / visa"
                   status="missing"
                   disabled={isSubmitting}
                   fileName={uploadedDocuments.identityFile?.originalName ?? ""}
@@ -1065,11 +1065,11 @@ export function RequestStepForm({
                 />
                 <div className="grid gap-1">
                   <FieldLabel htmlFor={`${type}-terms`}>
-                    J&apos;accepte les conditions generales des demandes{" "}
-                    {isVisa ? "de visa" : "de koupat holim"}
+                    J’accepte les conditions générales des demandes{" "}
+                    {isVisa ? "de visa" : "de Koupat Holim"}
                   </FieldLabel>
                   <FieldDescription>
-                    Cette acceptation sera obligatoire avant l&apos;envoi du
+                    Cette acceptation sera obligatoire avant l’envoi du
                     dossier.
                   </FieldDescription>
                 </div>

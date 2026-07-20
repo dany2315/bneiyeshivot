@@ -17,8 +17,8 @@ export default async function AdminLoginPage() {
             <span className="eyebrow">Back-office</span>
             <h1>Connexion admin</h1>
             <p>
-              Acces reserve aux comptes administrateurs autorises. Aucun
-              enregistrement public n&apos;est disponible pour l&apos;admin.
+              Accès réservé aux comptes administrateurs autorisés. Aucun
+              enregistrement public n’est disponible pour l’admin.
             </p>
           </div>
         </section>
