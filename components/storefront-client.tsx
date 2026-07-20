@@ -33,7 +33,6 @@ import {
 import {
   Drawer,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -523,12 +522,9 @@ function ProductOptionDrawerContent({
             {formatPrice(product.priceCents, product.currency)}
           </strong>
         </div>
-        <DrawerDescription>
-          Sélectionnez les options avant l’ajout au panier.
-        </DrawerDescription>
       </DrawerHeader>
       <Separator />
-      <div className="grid gap-4 px-4">
+      <div className="grid gap-4 px-4 pt-3">
         {cuts.length > 0 ? (
           <div className="grid gap-2">
             <span className="text-sm font-bold text-[var(--primary)]">Coupe</span>
