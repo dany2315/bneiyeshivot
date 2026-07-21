@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { StoreReservationStatus } from "@prisma/client";
 import {
@@ -12,6 +12,7 @@ import {
   EyeOff,
   ImageIcon,
   PackagePlus,
+  Plus,
   Save,
   Settings,
   Trash2,
@@ -97,6 +98,13 @@ type ProductView = {
   stockQuantity: number | null;
   active: boolean;
   featured: boolean;
+  variants: Array<{
+    id: string;
+    size: string;
+    cut: string | null;
+    stockQuantity: number | null;
+    active: boolean;
+  }>;
 };
 
 type ReservationView = {
@@ -118,6 +126,7 @@ type ReservationView = {
   items: Array<{
     id: string;
     productId: string;
+    variantLabel: string | null;
     quantity: number;
     unitCents: number;
     productTitle: string;
@@ -126,11 +135,25 @@ type ReservationView = {
 
 type SupplyView = {
   productId: string;
+  productVariantId: string | null;
   title: string;
+  variantLabel: string | null;
   orderedQuantity: number;
   stockQuantity: number | null;
   missingQuantity: number | null;
   active: boolean;
+};
+
+type VariantOptionView = {
+  id: string;
+  label: string;
+  active: boolean;
+  sortOrder: number;
+};
+
+type VariantOptionsView = {
+  sizes: VariantOptionView[];
+  cuts: VariantOptionView[];
 };
 
 const statusLabels: Record<StoreReservationStatus, string> = {
@@ -279,11 +302,13 @@ function SubmitButton({
 export function AdminStorePageClient({
   storefront,
   products,
+  variantOptions,
   reservations,
   supplyOverview,
 }: {
   storefront: StorefrontView;
   products: ProductView[];
+  variantOptions: VariantOptionsView;
   reservations: ReservationView[];
   supplyOverview: SupplyView[];
 }) {
@@ -305,14 +330,14 @@ export function AdminStorePageClient({
           <span className="eyebrow">Back-office</span>
           <h1>Boutique</h1>
         </div>
-        <ProductDialog mode="create" />
+        <ProductDialog mode="create" variantOptions={variantOptions} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>{reservations.length}</CardTitle>
-            <CardDescription>Reservations recues</CardDescription>
+            <CardDescription>Réservations reçues</CardDescription>
           </CardHeader>
         </Card>
         <Card>
@@ -335,7 +360,7 @@ export function AdminStorePageClient({
             className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
             value="reservations"
           >
-            Reservations
+            Réservations
           </TabsTrigger>
           <TabsTrigger
             className="!text-white hover:bg-white/10 hover:!text-white data-active:bg-white data-active:!text-[var(--primary)]"
@@ -362,7 +387,7 @@ export function AdminStorePageClient({
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductsTab products={products} />
+          <ProductsTab products={products} variantOptions={variantOptions} />
         </TabsContent>
 
         <TabsContent value="supply">
@@ -370,14 +395,20 @@ export function AdminStorePageClient({
         </TabsContent>
 
         <TabsContent value="settings">
-          <SettingsTab storefront={storefront} />
+          <SettingsTab storefront={storefront} variantOptions={variantOptions} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function ProductsTab({ products }: { products: ProductView[] }) {
+function ProductsTab({
+  products,
+  variantOptions,
+}: {
+  products: ProductView[];
+  variantOptions: VariantOptionsView;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -387,7 +418,7 @@ function ProductsTab({ products }: { products: ProductView[] }) {
             {products.length} produit(s) configuré(s) pour la boutique.
           </CardDescription>
         </div>
-        <ProductDialog mode="create" />
+        <ProductDialog mode="create" variantOptions={variantOptions} />
       </CardHeader>
       <CardContent>
         <Table>
@@ -415,14 +446,25 @@ function ProductsTab({ products }: { products: ProductView[] }) {
                   ) : null}
                   {product.featured ? (
                     <Badge className="mt-2" variant="success">
-                      Recommande
+                      Recommandé
                     </Badge>
+                  ) : null}
+                  {product.variants.length > 0 ? (
+                    <span className="mt-2 flex flex-wrap gap-1">
+                      {Array.from(new Set(product.variants.map((variant) => variant.size)))
+                        .slice(0, 6)
+                        .map((size) => (
+                          <Badge key={size} variant="outline">
+                            {size}
+                          </Badge>
+                        ))}
+                    </span>
                   ) : null}
                 </TableCell>
                 <TableCell>{formatPrice(product.priceCents, product.currency)}</TableCell>
                 <TableCell>
                   {product.stockQuantity == null
-                    ? "Non limite"
+                    ? "Non limité"
                     : product.stockQuantity}
                 </TableCell>
                 <TableCell>
@@ -432,7 +474,11 @@ function ProductsTab({ products }: { products: ProductView[] }) {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
-                    <ProductDialog mode="edit" product={product} />
+                    <ProductDialog
+                      mode="edit"
+                      product={product}
+                      variantOptions={variantOptions}
+                    />
                     <ProductActiveDialog product={product} />
                     <ProductDeleteDialog product={product} />
                   </div>
@@ -454,9 +500,11 @@ function ProductsTab({ products }: { products: ProductView[] }) {
 function ProductDialog({
   mode,
   product,
+  variantOptions,
 }: {
   mode: "create" | "edit";
   product?: ProductView;
+  variantOptions: VariantOptionsView;
 }) {
   const isEdit = mode === "edit";
   const [open, setOpen] = useState(false);
@@ -464,7 +512,17 @@ function ProductDialog({
   const [description, setDescription] = useState(product?.description ?? "");
   const [details, setDetails] = useState(product?.details ?? "");
   const [price, setPrice] = useState(product ? moneyInput(product.priceCents) : "");
-  const [currency, setCurrency] = useState(product?.currency ?? "EUR");
+  const currency = "ILS";
+  const [variants, setVariants] = useState<ProductVariantFormItem[]>(
+    product?.variants.map((variant) => ({
+      localId: variant.id,
+      id: variant.id,
+      size: variant.size,
+      cut: variant.cut ?? "",
+      stockQuantity: variant.stockQuantity == null ? "" : String(variant.stockQuantity),
+      active: variant.active,
+    })) ?? [],
+  );
   const initialImages =
     product?.imageUrls && product.imageUrls.length > 0
       ? product.imageUrls
@@ -484,7 +542,7 @@ function ProductDialog({
   const parsedPrice = Number(price.replace(",", "."));
   const previewPrice = formatPrice(
     Number.isFinite(parsedPrice) ? Math.round(parsedPrice * 100) : 0,
-    currency || "EUR",
+    currency,
   );
 
   return (
@@ -549,23 +607,20 @@ function ProductDialog({
               <Textarea
                 name="details"
                 onChange={(event) => setDetails(event.target.value)}
-                placeholder="Details, contenu du pack, dimensions..."
+                placeholder="Détails, contenu du pack, dimensions..."
                 value={details}
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   name="price"
                   onChange={(event) => setPrice(event.target.value)}
-                  placeholder="Prix"
+                  placeholder="Prix en shekels"
                   required
                   value={price}
                 />
-                <Input
-                  name="currency"
-                  onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-                  value={currency}
-                />
+                <Input readOnly value="ILS" />
               </div>
+              <input name="currency" type="hidden" value="ILS" />
               <Input
                 name="stockQuantity"
                 placeholder="Stock optionnel"
@@ -588,10 +643,15 @@ function ProductDialog({
                   Produit recommandé
                 </label>
               </div>
+              <ProductVariantConfigurator
+                onVariantsChange={setVariants}
+                variantOptions={variantOptions}
+                variants={variants}
+              />
             </div>
 
             <ProductPreviewPanel
-              currency={currency || "EUR"}
+              currency={currency}
               description={description}
               details={details}
               featured={featured}
@@ -609,6 +669,579 @@ function ProductDialog({
         </InteractiveForm>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type ProductVariantFormItem = {
+  localId: string;
+  id?: string;
+  size: string;
+  cut: string;
+  stockQuantity: string;
+  active: boolean;
+};
+
+// Conservé temporairement pendant la transition vers le configurateur global.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ProductVariantsField({
+  onVariantsChange,
+  variants,
+}: {
+  onVariantsChange: Dispatch<SetStateAction<ProductVariantFormItem[]>>;
+  variants: ProductVariantFormItem[];
+}) {
+  const [sizesInput, setSizesInput] = useState("");
+  const [cutsInput, setCutsInput] = useState("");
+
+  function addVariant() {
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `new-${Date.now()}`,
+        size: "",
+        cut: "",
+        stockQuantity: "",
+        active: true,
+      },
+    ]);
+  }
+
+  function updateVariant(
+    localId: string,
+    next: Partial<ProductVariantFormItem>,
+  ) {
+    onVariantsChange((current) =>
+      current.map((variant) =>
+        variant.localId === localId ? { ...variant, ...next } : variant,
+      ),
+    );
+  }
+
+  function removeVariant(localId: string) {
+    onVariantsChange((current) =>
+      current.filter((variant) => variant.localId !== localId),
+    );
+  }
+
+  function splitValues(value: string) {
+    return value
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function addGeneratedVariants(sizes: string[], cuts: string[]) {
+    const existingKeys = new Set(
+      variants.map(
+        (variant) =>
+          `${variant.size.toLowerCase()}::${variant.cut.trim().toLowerCase()}`,
+      ),
+    );
+    const effectiveCuts = cuts.length > 0 ? cuts : [""];
+    const nextVariants: ProductVariantFormItem[] = [];
+
+    for (const size of sizes) {
+      for (const cut of effectiveCuts) {
+        const key = `${size.toLowerCase()}::${cut.toLowerCase()}`;
+        if (existingKeys.has(key)) continue;
+        existingKeys.add(key);
+        nextVariants.push({
+          localId: `generated-${Date.now()}-${nextVariants.length}`,
+          size,
+          cut,
+          stockQuantity: "",
+          active: true,
+        });
+      }
+    }
+
+    if (nextVariants.length > 0) {
+      onVariantsChange((current) => [...current, ...nextVariants]);
+    }
+  }
+
+  function applyPreset(sizes: string[], cuts: string[] = []) {
+    addGeneratedVariants(sizes, cuts);
+  }
+
+  function generateFromInputs() {
+    const sizes = splitValues(sizesInput);
+    const cuts = splitValues(cutsInput);
+    if (sizes.length === 0) return;
+    addGeneratedVariants(sizes, cuts);
+    setSizesInput("");
+    setCutsInput("");
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <strong className="text-sm text-[var(--primary)]">Variations</strong>
+          <p className="text-xs text-[var(--muted)]">
+            Ajoutez des tailles, puis une coupe si nécessaire.
+          </p>
+        </div>
+        <Button onClick={addVariant} size="sm" type="button" variant="secondary">
+          Ajouter
+        </Button>
+      </div>
+      <div className="grid gap-3 rounded-lg bg-[var(--subtle)] p-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => applyPreset(["XS", "S", "M", "L", "XL", "XXL"])}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Tailles vêtement
+          </Button>
+          <Button
+            onClick={() => applyPreset(["90x200", "120x200", "140x200", "160x200"])}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Tailles literie
+          </Button>
+          <Button
+            onClick={() =>
+              applyPreset(["S", "M", "L", "XL"], ["Coupe droite", "Coupe cintrée"])
+            }
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Chemises avec coupes
+          </Button>
+        </div>
+        <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+          <Textarea
+            onChange={(event) => setSizesInput(event.target.value)}
+            placeholder="Tailles à ajouter : S, M, L ou une par ligne"
+            value={sizesInput}
+          />
+          <Textarea
+            onChange={(event) => setCutsInput(event.target.value)}
+            placeholder="Coupes optionnelles : droite, cintrée..."
+            value={cutsInput}
+          />
+          <Button onClick={generateFromInputs} type="button">
+            Générer
+          </Button>
+        </div>
+      </div>
+      {variants.length > 0 ? (
+        <div className="grid gap-2">
+          {variants.map((variant, index) => (
+            <div
+              className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_1fr_120px_auto_auto]"
+              key={variant.localId}
+            >
+              <input name="variantId" type="hidden" value={variant.id ?? ""} />
+              <Input
+                name="variantSize"
+                onChange={(event) =>
+                  updateVariant(variant.localId, { size: event.target.value })
+                }
+                placeholder="Taille"
+                value={variant.size}
+              />
+              <Input
+                name="variantCut"
+                onChange={(event) =>
+                  updateVariant(variant.localId, { cut: event.target.value })
+                }
+                placeholder="Coupe"
+                value={variant.cut}
+              />
+              <Input
+                min="0"
+                name="variantStockQuantity"
+                onChange={(event) =>
+                  updateVariant(variant.localId, {
+                    stockQuantity: event.target.value,
+                  })
+                }
+                placeholder="Stock"
+                type="number"
+                value={variant.stockQuantity}
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  checked={variant.active}
+                  onChange={(event) =>
+                    updateVariant(variant.localId, {
+                      active: event.target.checked,
+                    })
+                  }
+                  type="checkbox"
+                />
+                Visible
+              </label>
+              {variant.active ? (
+                <input name="variantActiveIndex" type="hidden" value={index} />
+              ) : null}
+              <Button
+                aria-label="Supprimer la variation"
+                onClick={() => removeVariant(variant.localId)}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+          Aucune variation : le produit sera réservé sans taille ni coupe.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ProductVariantConfigurator({
+  onVariantsChange,
+  variantOptions,
+  variants,
+}: {
+  onVariantsChange: Dispatch<SetStateAction<ProductVariantFormItem[]>>;
+  variantOptions: VariantOptionsView;
+  variants: ProductVariantFormItem[];
+}) {
+  type VariantMode = "NONE" | "SIZE" | "SIZE_CUT";
+  const [mode, setMode] = useState<VariantMode>(() => {
+    const activeVariants = variants.filter((variant) => variant.active);
+    if (activeVariants.some((variant) => variant.cut)) return "SIZE_CUT";
+    if (activeVariants.length > 0) return "SIZE";
+    return "NONE";
+  });
+  const [selectedCuts, setSelectedCuts] = useState<string[]>(() =>
+    Array.from(
+      new Set(
+        variants
+          .filter((variant) => variant.active && variant.cut)
+          .map((variant) => variant.cut),
+      ),
+    ),
+  );
+
+  function variantKey(size: string, cut: string) {
+    return `${size.toLowerCase()}::${cut.toLowerCase()}`;
+  }
+
+  const variantByKey = useMemo(() => {
+    const map = new Map<string, ProductVariantFormItem>();
+    for (const variant of variants) {
+      map.set(variantKey(variant.size, variant.cut), variant);
+    }
+    return map;
+  }, [variants]);
+
+  const availableSizes = useMemo(() => {
+    const map = new Map<string, VariantOptionView>();
+    for (const option of variantOptions.sizes) {
+      if (option.active) map.set(option.label.toLowerCase(), option);
+    }
+    for (const variant of variants) {
+      if (!variant.size) continue;
+      const key = variant.size.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          id: `variant-size-${variant.size}`,
+          label: variant.size,
+          active: variant.active,
+          sortOrder: Number.MAX_SAFE_INTEGER,
+        });
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label),
+    );
+  }, [variantOptions.sizes, variants]);
+
+  const availableCuts = useMemo(() => {
+    const map = new Map<string, VariantOptionView>();
+    for (const option of variantOptions.cuts) {
+      if (option.active) map.set(option.label.toLowerCase(), option);
+    }
+    for (const variant of variants) {
+      if (!variant.cut) continue;
+      const key = variant.cut.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          id: `variant-cut-${variant.cut}`,
+          label: variant.cut,
+          active: variant.active,
+          sortOrder: Number.MAX_SAFE_INTEGER,
+        });
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label),
+    );
+  }, [variantOptions.cuts, variants]);
+
+  const selectedVariants = variants.filter((variant) => {
+    if (!variant.active || !variant.size) return false;
+    if (mode === "SIZE") return variant.cut === "";
+    if (mode === "SIZE_CUT") {
+      return Boolean(variant.cut) && selectedCuts.includes(variant.cut);
+    }
+    return false;
+  });
+
+  function updateVariant(
+    localId: string,
+    next: Partial<ProductVariantFormItem>,
+  ) {
+    onVariantsChange((current) =>
+      current.map((variant) =>
+        variant.localId === localId ? { ...variant, ...next } : variant,
+      ),
+    );
+  }
+
+  function setVariantMode(nextMode: VariantMode) {
+    setMode(nextMode);
+    if (nextMode === "NONE") {
+      onVariantsChange((current) =>
+        current.map((variant) => ({ ...variant, active: false })),
+      );
+    }
+  }
+
+  function setVariantSelection(size: string, cut: string, active: boolean) {
+    const existing = variantByKey.get(variantKey(size, cut));
+
+    if (existing) {
+      updateVariant(existing.localId, { active });
+      return;
+    }
+
+    if (!active) return;
+
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `variant-${Date.now()}-${size}-${cut}`,
+        size,
+        cut,
+        stockQuantity: "",
+        active: true,
+      },
+    ]);
+  }
+
+  function setVariantStock(size: string, cut: string, stockQuantity: string) {
+    const existing = variantByKey.get(variantKey(size, cut));
+
+    if (existing) {
+      updateVariant(existing.localId, { stockQuantity, active: true });
+      return;
+    }
+
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `variant-${Date.now()}-${size}-${cut}`,
+        size,
+        cut,
+        stockQuantity,
+        active: true,
+      },
+    ]);
+  }
+
+  function toggleCut(cut: string, active: boolean) {
+    setSelectedCuts((current) =>
+      active
+        ? Array.from(new Set([...current, cut]))
+        : current.filter((item) => item !== cut),
+    );
+
+    if (!active) {
+      onVariantsChange((current) =>
+        current.map((variant) =>
+          variant.cut === cut ? { ...variant, active: false } : variant,
+        ),
+      );
+    }
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
+      {selectedVariants.map((variant, index) => (
+        <span key={variant.localId}>
+          <input name="variantId" type="hidden" value={variant.id ?? ""} />
+          <input name="variantSize" type="hidden" value={variant.size} />
+          <input name="variantCut" type="hidden" value={variant.cut} />
+          <input
+            name="variantStockQuantity"
+            type="hidden"
+            value={variant.stockQuantity}
+          />
+          <input name="variantActiveIndex" type="hidden" value={index} />
+        </span>
+      ))}
+      <div>
+        <strong className="text-sm text-[var(--primary)]">Variations</strong>
+        <p className="text-xs text-[var(--muted)]">
+          Utilisez les tailles et les coupes définies dans les paramètres.
+        </p>
+      </div>
+
+      <div className="grid gap-2 md:grid-cols-3">
+        {[
+          ["NONE", "Sans variation"],
+          ["SIZE", "Tailles uniquement"],
+          ["SIZE_CUT", "Coupes + tailles"],
+        ].map(([value, label]) => (
+          <label
+            className="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] px-3 py-2 text-sm"
+            key={value}
+          >
+            <input
+              checked={mode === value}
+              onChange={() => setVariantMode(value as VariantMode)}
+              type="radio"
+            />
+            {label}
+          </label>
+        ))}
+      </div>
+
+      {mode !== "NONE" && availableSizes.length === 0 ? (
+        <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+          Ajoutez d’abord des tailles possibles dans l’onglet Paramètres.
+        </p>
+      ) : null}
+
+      {mode === "SIZE" && availableSizes.length > 0 ? (
+        <div className="grid gap-2">
+          {availableSizes.map((size) => {
+            const variant = variantByKey.get(variantKey(size.label, ""));
+            const checked = Boolean(variant?.active);
+
+            return (
+              <div
+                className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_140px]"
+                key={size.id}
+              >
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <input
+                    checked={checked}
+                    onChange={(event) =>
+                      setVariantSelection(size.label, "", event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  {size.label}
+                </label>
+                <Input
+                  disabled={!checked}
+                  min="0"
+                  onChange={(event) =>
+                    setVariantStock(size.label, "", event.target.value)
+                  }
+                  placeholder="Stock"
+                  type="number"
+                  value={variant?.stockQuantity ?? ""}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {mode === "SIZE_CUT" ? (
+        <div className="grid gap-3">
+          {availableCuts.length === 0 ? (
+            <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+              Ajoutez d’abord des coupes possibles dans l’onglet Paramètres.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {availableCuts.map((cut) => {
+                const checked = selectedCuts.includes(cut.label);
+
+                return (
+                  <label
+                    className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${
+                      checked
+                        ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                        : "border-[var(--border)] bg-white text-[var(--primary)]"
+                    }`}
+                    key={cut.id}
+                  >
+                    <input
+                      checked={checked}
+                      className="sr-only"
+                      onChange={(event) => toggleCut(cut.label, event.target.checked)}
+                      type="checkbox"
+                    />
+                    {cut.label}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+          {selectedCuts.map((cut) => (
+            <div className="grid gap-2 rounded-lg border border-[var(--border)] p-3" key={cut}>
+              <strong className="text-sm text-[var(--primary)]">{cut}</strong>
+              <div className="grid gap-2">
+                {availableSizes.map((size) => {
+                  const variant = variantByKey.get(variantKey(size.label, cut));
+                  const checked = Boolean(variant?.active);
+
+                  return (
+                    <div
+                      className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_140px]"
+                      key={`${cut}-${size.id}`}
+                    >
+                      <label className="flex items-center gap-2 text-sm font-medium">
+                        <input
+                          checked={checked}
+                          onChange={(event) =>
+                            setVariantSelection(size.label, cut, event.target.checked)
+                          }
+                          type="checkbox"
+                        />
+                        {size.label}
+                      </label>
+                      <Input
+                        disabled={!checked}
+                        min="0"
+                        onChange={(event) =>
+                          setVariantStock(size.label, cut, event.target.value)
+                        }
+                        placeholder="Stock"
+                        type="number"
+                        value={variant?.stockQuantity ?? ""}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {mode === "NONE" ? (
+        <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+          Aucune variation : le produit sera réservé sans taille ni coupe.
+        </p>
+      ) : null}
+      {selectedVariants.length > 0 ? (
+        <div className="text-xs text-[var(--muted)]">
+          {selectedVariants.length} combinaison(s) sélectionnée(s).
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -783,7 +1416,7 @@ function ProductImagesField({
                   {image.status === "uploading"
                     ? "Upload..."
                     : image.status === "error"
-                      ? "Echec"
+                      ? "Échec"
                       : index === 0
                         ? "Image principale"
                         : "Glisser pour ordonner"}
@@ -853,11 +1486,11 @@ function ProductPreviewPanel({
   return (
     <div className="grid h-fit gap-4 rounded-xl bg-[var(--subtle)] p-4">
       <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">
-        Preview
+        Aperçu
       </span>
       <div>
         <p className="mb-2 text-sm font-semibold text-[var(--muted)]">
-          Card boutique
+          Carte boutique
         </p>
         <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-[0_20px_60px_rgba(6,40,70,0.08)]">
           <div className="flex aspect-[16/10] items-center justify-center overflow-hidden bg-[var(--primary-soft)]">
@@ -871,7 +1504,7 @@ function ProductPreviewPanel({
           <div className="grid gap-2 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                {featured ? <Badge variant="success">Recommande</Badge> : null}
+                {featured ? <Badge variant="success">Recommandé</Badge> : null}
                 <strong className="mt-2 block text-[var(--primary)]">
                   {title || "Nom du produit"}
                 </strong>
@@ -911,7 +1544,7 @@ function ProductPreviewPanel({
               {description || "Description courte du produit."}
             </p>
             <p className="text-sm leading-6 text-[var(--muted)]">
-              {details || "Details, contenu du pack, dimensions..."}
+              {details || "Détails, contenu du pack, dimensions..."}
             </p>
           </div>
         </div>
@@ -927,7 +1560,7 @@ function ProductActiveDialog({ product }: { product: ProductView }) {
     <AlertDialog>
       <AlertDialogTrigger render={<Button size="icon-sm" variant="ghost" />}>
         {nextActive ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-        <span className="sr-only">{nextActive ? "Activer" : "Desactiver"}</span>
+        <span className="sr-only">{nextActive ? "Activer" : "Désactiver"}</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <InteractiveForm
@@ -949,7 +1582,7 @@ function ProductActiveDialog({ product }: { product: ProductView }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <SubmitButton variant="secondary">
-              {nextActive ? "Activer" : "Desactiver"}
+              {nextActive ? "Activer" : "Désactiver"}
             </SubmitButton>
           </AlertDialogFooter>
         </InteractiveForm>
@@ -994,9 +1627,9 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reservations recues</CardTitle>
+        <CardTitle>Réservations reçues</CardTitle>
         <CardDescription>
-          Les 100 dernieres reservations sans paiement.
+          Les 100 dernières réservations sans paiement.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -1034,6 +1667,7 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
                   {reservation.items.map((item) => (
                     <span className="block" key={item.id}>
                       {item.quantity} x {item.productTitle}
+                      {item.variantLabel ? ` (${item.variantLabel})` : ""}
                     </span>
                   ))}
                   {reservation.note ? (
@@ -1106,6 +1740,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
               {reservation.items.map((item) => (
                 <span key={item.id}>
                   {item.quantity} x {item.productTitle}
+                  {item.variantLabel ? ` (${item.variantLabel})` : ""}
                 </span>
               ))}
             </div>
@@ -1187,9 +1822,14 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
           </TableHeader>
           <TableBody>
             {supplyOverview.map((item) => (
-              <TableRow key={item.productId}>
+              <TableRow key={`${item.productId}-${item.productVariantId ?? "base"}`}>
                 <TableCell>
                   <strong>{item.title}</strong>
+                  {item.variantLabel ? (
+                    <small className="block text-[var(--muted)]">
+                      {item.variantLabel}
+                    </small>
+                  ) : null}
                 </TableCell>
                 <TableCell>{item.orderedQuantity}</TableCell>
                 <TableCell>
@@ -1218,7 +1858,24 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
   );
 }
 
-function SettingsTab({ storefront }: { storefront: StorefrontView }) {
+function SettingsTab({
+  storefront,
+  variantOptions,
+}: {
+  storefront: StorefrontView;
+  variantOptions: VariantOptionsView;
+}) {
+  const [sizeLabels, setSizeLabels] = useState(
+    variantOptions.sizes
+      .filter((option) => option.active)
+      .map((option) => option.label),
+  );
+  const [cutLabels, setCutLabels] = useState(
+    variantOptions.cuts
+      .filter((option) => option.active)
+      .map((option) => option.label),
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -1241,6 +1898,28 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
             required
           />
           <Textarea name="description" defaultValue={storefront.description} required />
+          <div className="grid gap-3 md:grid-cols-2">
+            <VariantOptionsDialog
+              addLabel="Ajouter une taille"
+              description="Gérez les tailles réutilisables dans les fiches produit."
+              emptyLabel="Aucune taille définie."
+              labels={sizeLabels}
+              onLabelsChange={setSizeLabels}
+              title="Tailles possibles"
+              triggerLabel="Modifier les tailles"
+            />
+            <VariantOptionsDialog
+              addLabel="Ajouter une coupe"
+              description="Gérez les coupes réutilisables dans les fiches produit."
+              emptyLabel="Aucune coupe définie."
+              labels={cutLabels}
+              onLabelsChange={setCutLabels}
+              title="Coupes possibles"
+              triggerLabel="Modifier les coupes"
+            />
+          </div>
+          <input name="sizeOptions" type="hidden" value={sizeLabels.join("\n")} />
+          <input name="cutOptions" type="hidden" value={cutLabels.join("\n")} />
           <Textarea
             name="pickupDetails"
             defaultValue={storefront.pickupDetails ?? ""}
@@ -1259,7 +1938,7 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
           />
           <label className="flex items-center gap-2 text-sm">
             <input name="active" type="checkbox" defaultChecked={storefront.active} />
-            Boutique ouverte aux reservations
+            Boutique ouverte aux réservations
           </label>
           <SubmitButton>
             <Settings className="size-4" />
@@ -1268,5 +1947,100 @@ function SettingsTab({ storefront }: { storefront: StorefrontView }) {
         </InteractiveForm>
       </CardContent>
     </Card>
+  );
+}
+
+function VariantOptionsDialog({
+  addLabel,
+  description,
+  emptyLabel,
+  labels,
+  onLabelsChange,
+  title,
+  triggerLabel,
+}: {
+  addLabel: string;
+  description: string;
+  emptyLabel: string;
+  labels: string[];
+  onLabelsChange: Dispatch<SetStateAction<string[]>>;
+  title: string;
+  triggerLabel: string;
+}) {
+  const filledLabels = labels.filter((label) => label.trim());
+
+  function addOption() {
+    onLabelsChange((current) => [...current, ""]);
+  }
+
+  function updateOption(index: number, value: string) {
+    onLabelsChange((current) =>
+      current.map((item, itemIndex) => (itemIndex === index ? value : item)),
+    );
+  }
+
+  function removeOption(index: number) {
+    onLabelsChange((current) =>
+      current.filter((_, itemIndex) => itemIndex !== index),
+    );
+  }
+
+  return (
+    <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+      <div>
+        <strong className="text-sm text-[var(--primary)]">{title}</strong>
+        <p className="text-xs text-[var(--muted)]">
+          {filledLabels.length > 0 ? filledLabels.join(", ") : emptyLabel}
+        </p>
+      </div>
+      <Dialog>
+        <DialogTrigger
+          render={
+            <Button className="w-fit" type="button" variant="secondary" />
+          }
+        >
+          <Edit className="size-4" />
+          {triggerLabel}
+        </DialogTrigger>
+        <DialogContent className="flex max-h-[86vh] flex-col overflow-hidden sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="-mx-1 grid min-h-0 flex-1 gap-2 overflow-y-auto px-1 pr-2">
+            {labels.length > 0 ? (
+              labels.map((label, index) => (
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2" key={index}>
+                  <Input
+                    onChange={(event) => updateOption(index, event.target.value)}
+                    placeholder={title === "Tailles possibles" ? "S" : "Coupe droite"}
+                    value={label}
+                  />
+                  <Button
+                    aria-label="Supprimer"
+                    onClick={() => removeOption(index)}
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                {emptyLabel}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={addOption} type="button" variant="secondary">
+              <Plus className="size-4" />
+              {addLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   ServiceRequestStatus,
   ServiceRequestType,
   StoreReservationStatus,
+  StoreVariantOptionType,
   UserRole,
 } from "@prisma/client";
 import {
@@ -46,13 +47,22 @@ function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function storeReservationItemLabel(item: {
+  productTitle: string;
+  variantLabel: string | null;
+}) {
+  return item.variantLabel
+    ? `${item.productTitle} (${item.variantLabel})`
+    : item.productTitle;
+}
+
 const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
   SUBMITTED: "Nouvelle",
-  CONFIRMED: "Confirmee",
-  PREPARING: "En preparation",
-  READY: "Prete",
-  COLLECTED: "Recuperee",
-  CANCELED: "Annulee",
+  CONFIRMED: "Confirmée",
+  PREPARING: "En préparation",
+  READY: "Prête",
+  COLLECTED: "Récupérée",
+  CANCELED: "Annulée",
 };
 
 const serviceRequestStatusLabels: Record<ServiceRequestStatus, string> = {
@@ -113,6 +123,112 @@ function readGalleryKeys(formData: FormData) {
     .getAll("galleryKeys")
     .map((value) => String(value).trim())
     .filter(Boolean);
+}
+
+function readStoreProductVariants(formData: FormData) {
+  const ids = formData.getAll("variantId").map((value) => String(value).trim());
+  const sizes = formData.getAll("variantSize").map((value) => String(value).trim());
+  const cuts = formData.getAll("variantCut").map((value) => String(value).trim());
+  const stocks = formData
+    .getAll("variantStockQuantity")
+    .map((value) => String(value).trim());
+  const activeIndexes = new Set(
+    formData
+      .getAll("variantActiveIndex")
+      .map((value) => Number(String(value)))
+      .filter(Number.isFinite),
+  );
+
+  return sizes
+    .map((size, index) => {
+      if (!size) return null;
+      const stock = stocks[index] ? Number(stocks[index]) : null;
+
+      return {
+        id: ids[index] || null,
+        size,
+        cut: cuts[index] || null,
+        stockQuantity: stock == null || !Number.isFinite(stock) ? null : stock,
+        active: activeIndexes.has(index),
+      };
+    })
+    .filter((variant): variant is NonNullable<typeof variant> => Boolean(variant));
+}
+
+function validateStoreProductVariants(
+  variants: ReturnType<typeof readStoreProductVariants>,
+) {
+  const keys = new Set<string>();
+
+  for (const variant of variants) {
+    const key = `${variant.size.toLowerCase()}::${(variant.cut ?? "").toLowerCase()}`;
+    if (keys.has(key)) {
+      throw new Error("Chaque variation taille/coupe doit être unique.");
+    }
+    keys.add(key);
+  }
+}
+
+function readStoreVariantOptionLabels(formData: FormData, key: string) {
+  const labels = splitLines(readString(formData, key));
+  const seen = new Set<string>();
+
+  return labels.filter((label) => {
+    const normalized = label.toLowerCase();
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
+async function syncStoreVariantOptions(
+  tx: Prisma.TransactionClient,
+  storefrontId: string,
+  type: StoreVariantOptionType,
+  labels: string[],
+) {
+  const existingOptions = await tx.storeVariantOption.findMany({
+    where: { storefrontId, type },
+  });
+  const existingByLabel = new Map(
+    existingOptions.map((option) => [option.label.toLowerCase(), option]),
+  );
+
+  for (const [sortOrder, label] of labels.entries()) {
+    const existing = existingByLabel.get(label.toLowerCase());
+
+    if (existing) {
+      await tx.storeVariantOption.update({
+        where: { id: existing.id },
+        data: { label, active: true, sortOrder },
+      });
+      continue;
+    }
+
+    await tx.storeVariantOption.create({
+      data: {
+        storefrontId,
+        type,
+        label,
+        active: true,
+        sortOrder,
+      },
+    });
+  }
+
+  await tx.storeVariantOption.updateMany({
+    where: {
+      storefrontId,
+      type,
+      label:
+        labels.length > 0
+          ? {
+              notIn: labels,
+            }
+          : undefined,
+    },
+    data: { active: false },
+  });
 }
 
 function readHomeGalleryItems(formData: FormData) {
@@ -945,32 +1061,49 @@ export async function updateStorefront(formData: FormData) {
   const heroTitle = readString(formData, "heroTitle");
   const heroSubtitle = readString(formData, "heroSubtitle");
   const description = readString(formData, "description");
+  const sizeOptions = readStoreVariantOptionLabels(formData, "sizeOptions");
+  const cutOptions = readStoreVariantOptionLabels(formData, "cutOptions");
 
   if (!name || !heroTitle || !heroSubtitle || !description) {
     throw new Error("Nom, titre, sous-titre et description obligatoires.");
   }
 
-  await prisma.storefront.update({
-    where: { id: storefront.id },
-    data: {
-      name,
-      heroTitle,
-      heroSubtitle,
-      description,
-      pickupDetails: readString(formData, "pickupDetails") || null,
-      contactEmail: readString(formData, "contactEmail") || null,
-      contactPhone: readString(formData, "contactPhone") || null,
-      active: formData.get("active") === "on",
-    },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.storefront.update({
+      where: { id: storefront.id },
+      data: {
+        name,
+        heroTitle,
+        heroSubtitle,
+        description,
+        pickupDetails: readString(formData, "pickupDetails") || null,
+        contactEmail: readString(formData, "contactEmail") || null,
+        contactPhone: readString(formData, "contactPhone") || null,
+        active: formData.get("active") === "on",
+      },
+    });
 
-  await prisma.auditLog.create({
-    data: {
-      actorId: admin.id,
-      action: "storefront.updated",
-      entity: "Storefront",
-      entityId: storefront.id,
-    },
+    await syncStoreVariantOptions(
+      tx,
+      storefront.id,
+      StoreVariantOptionType.SIZE,
+      sizeOptions,
+    );
+    await syncStoreVariantOptions(
+      tx,
+      storefront.id,
+      StoreVariantOptionType.CUT,
+      cutOptions,
+    );
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "storefront.updated",
+        entity: "Storefront",
+        entityId: storefront.id,
+      },
+    });
   });
 
   revalidatePath("/admin/boutique");
@@ -984,6 +1117,8 @@ export async function createStoreProduct(formData: FormData) {
   const description = readString(formData, "description");
   const priceCents = readStorePrice(formData.get("price"));
   const imageUrls = formData.getAll("imageUrls").map(String).filter(Boolean);
+  const variants = readStoreProductVariants(formData);
+  validateStoreProductVariants(variants);
 
   if (!title || !description || !priceCents) {
     throw new Error("Titre, description et prix obligatoires.");
@@ -997,7 +1132,7 @@ export async function createStoreProduct(formData: FormData) {
       description,
       details: readString(formData, "details") || null,
       priceCents,
-      currency: readString(formData, "currency").toUpperCase() || "EUR",
+      currency: "ILS",
       imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
       imageUrls,
       stockQuantity: readString(formData, "stockQuantity")
@@ -1005,6 +1140,14 @@ export async function createStoreProduct(formData: FormData) {
         : null,
       active: formData.get("active") === "on",
       featured: formData.get("featured") === "on",
+      variants: {
+        create: variants.map((variant) => ({
+          size: variant.size,
+          cut: variant.cut,
+          stockQuantity: variant.stockQuantity,
+          active: variant.active,
+        })),
+      },
     },
   });
 
@@ -1029,27 +1172,75 @@ export async function updateStoreProduct(formData: FormData) {
   const description = readString(formData, "description");
   const priceCents = readStorePrice(formData.get("price"));
   const imageUrls = formData.getAll("imageUrls").map(String).filter(Boolean);
+  const variants = readStoreProductVariants(formData);
+  validateStoreProductVariants(variants);
 
   if (!productId || !title || !description || !priceCents) {
     throw new Error("Produit invalide.");
   }
 
-  await prisma.storeProduct.update({
-    where: { id: productId },
-    data: {
-      title,
-      description,
-      details: readString(formData, "details") || null,
-      priceCents,
-      currency: readString(formData, "currency").toUpperCase() || "EUR",
-      imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
-      imageUrls,
-      stockQuantity: readString(formData, "stockQuantity")
-        ? Number(readString(formData, "stockQuantity"))
-        : null,
-      active: formData.get("active") === "on",
-      featured: formData.get("featured") === "on",
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.storeProduct.update({
+      where: { id: productId },
+      data: {
+        title,
+        description,
+        details: readString(formData, "details") || null,
+        priceCents,
+        currency: "ILS",
+        imageUrl: (imageUrls[0] ?? readString(formData, "imageUrl")) || null,
+        imageUrls,
+        stockQuantity: readString(formData, "stockQuantity")
+          ? Number(readString(formData, "stockQuantity"))
+          : null,
+        active: formData.get("active") === "on",
+        featured: formData.get("featured") === "on",
+      },
+    });
+
+    const keptVariantIds = variants
+      .map((variant) => variant.id)
+      .filter((id): id is string => Boolean(id));
+
+    await tx.storeProductVariant.deleteMany({
+      where: {
+        productId,
+        id: { notIn: keptVariantIds.length > 0 ? keptVariantIds : [""] },
+        reservationItems: { none: {} },
+      },
+    });
+
+    await tx.storeProductVariant.updateMany({
+      where: {
+        productId,
+        id: { notIn: keptVariantIds.length > 0 ? keptVariantIds : [""] },
+      },
+      data: { active: false },
+    });
+
+    for (const variant of variants) {
+      if (variant.id) {
+        await tx.storeProductVariant.update({
+          where: { id: variant.id },
+          data: {
+            size: variant.size,
+            cut: variant.cut,
+            stockQuantity: variant.stockQuantity,
+            active: variant.active,
+          },
+        });
+      } else {
+        await tx.storeProductVariant.create({
+          data: {
+            productId,
+            size: variant.size,
+            cut: variant.cut,
+            stockQuantity: variant.stockQuantity,
+            active: variant.active,
+          },
+        });
+      }
+    }
   });
 
   await prisma.auditLog.create({
@@ -1162,7 +1353,7 @@ export async function updateStoreReservation(formData: FormData) {
     }).format(reservation.totalCents / 100);
     const items = reservation.items.map(
       (item) =>
-        `${item.quantity} x ${item.productTitle} - ${new Intl.NumberFormat(
+        `${item.quantity} x ${storeReservationItemLabel(item)} - ${new Intl.NumberFormat(
           "fr-FR",
           {
             style: "currency",

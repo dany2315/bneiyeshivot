@@ -20,6 +20,12 @@ export default async function StorePage({
   ]);
   const products = await prisma.storeProduct.findMany({
     where: { storefrontId: storefront.id, active: true },
+    include: {
+      variants: {
+        where: { active: true },
+        orderBy: [{ size: "asc" }, { cut: "asc" }],
+      },
+    },
     orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
   });
 
@@ -50,6 +56,12 @@ export default async function StorePage({
               imageUrls: product.imageUrls,
               stockQuantity: product.stockQuantity,
               featured: product.featured,
+              variants: product.variants.map((variant) => ({
+                id: variant.id,
+                size: variant.size,
+                cut: variant.cut,
+                stockQuantity: variant.stockQuantity,
+              })),
             }))}
             reservationOk={params.reservation === "ok"}
             storefront={{

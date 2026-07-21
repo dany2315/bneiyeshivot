@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export function formatStorePrice(cents: number, currency = "EUR") {
+export function formatStorePrice(cents: number, currency = "ILS") {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency,
