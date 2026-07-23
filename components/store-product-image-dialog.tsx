@@ -74,12 +74,12 @@ export function StoreProductImageDialog({
           <Maximize2 className="size-4" />
         </span>
       </DialogTrigger>
-      <DialogContent className="max-h-[80vh] w-[min(96vw,1000px)] gap-0 overflow-hidden p-0 sm:max-w-none [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:top-4">
+      <DialogContent className="grid h-[78dvh] max-h-[78dvh] w-[min(96vw,1000px)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-none [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:top-4">
         <DialogHeader className="border-b border-[var(--border)] p-4 pb-3 pr-14 pt-5 sm:p-5 sm:pr-14">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Aperçu du produit</DialogDescription>
         </DialogHeader>
-        <div className="grid h-[calc(80vh-85px)] min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-[#061e35]">
+        <div className="grid min-h-0 grid-rows-[minmax(0,1fr)_4rem] bg-[#061e35] sm:grid-rows-[minmax(0,1fr)_4.5rem]">
           <div className="grid min-h-0 overflow-hidden bg-[#061e35] p-2 sm:p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -89,10 +89,10 @@ export function StoreProductImageDialog({
             />
           </div>
           {images.length > 1 ? (
-            <div className="flex max-w-full justify-center gap-2 overflow-x-auto border-t border-white/10 bg-[#061e35] p-2">
+            <div className="flex h-16 max-w-full items-center justify-center gap-2 overflow-x-auto border-t border-white/10 bg-[#061e35] px-2 py-1.5 sm:h-[4.5rem] sm:py-2">
               {images.map((image, index) => (
                 <button
-                  className="size-12 shrink-0 overflow-hidden rounded-md border border-white/20 bg-white/8 p-0 transition hover:border-white/70 data-[active=true]:border-[var(--gold)] sm:size-14"
+                  className="size-11 shrink-0 overflow-hidden rounded-md border border-white/20 bg-white/8 p-0 transition hover:border-white/70 data-[active=true]:border-[var(--gold)] sm:size-14"
                   data-active={index === selectedIndex}
                   key={image}
                   onClick={() => {
