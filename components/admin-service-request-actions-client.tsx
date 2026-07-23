@@ -10,6 +10,7 @@ import {
 } from "@prisma/client";
 import {
   deleteServiceRequest,
+  deleteServiceRequestDocument,
   updateServiceRequest,
   updateServiceRequestData,
   uploadServiceRequestFinalDocument,
@@ -52,8 +53,10 @@ import {
   Eye,
   ExternalLink,
   FileCheck2,
+  FileText,
   Loader2,
   MoreHorizontal,
+  Paperclip,
   Pencil,
   Send,
   Trash2,
@@ -152,8 +155,12 @@ export function AdminServiceRequestActionsClient({
 }) {
   const router = useRouter();
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<
+    AdminServiceRequestActionView["documents"][number] | null
+  >(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingData, setIsUpdatingData] = useState(false);
+  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
   const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
   const requestedFields = new Set(
@@ -209,6 +216,29 @@ export function AdminServiceRequestActionsClient({
       );
     } finally {
       setIsUpdatingData(false);
+    }
+  }
+
+  async function handleDeleteDocument() {
+    if (!documentToDelete) return;
+
+    setIsDeletingDocument(true);
+    const toastId = toast.loading("Suppression du fichier...");
+    const formData = new FormData();
+    formData.set("documentId", documentToDelete.id);
+
+    try {
+      await deleteServiceRequestDocument(formData);
+      toast.success("Fichier supprimé du dossier et de S3.", { id: toastId });
+      setDocumentToDelete(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible de supprimer ce fichier."),
+        { id: toastId },
+      );
+    } finally {
+      setIsDeletingDocument(false);
     }
   }
 
@@ -497,10 +527,35 @@ export function AdminServiceRequestActionsClient({
                 <div className="grid gap-3">
                   {request.documents.map((document) => (
                     <div
-                      className="grid gap-3 rounded-lg border border-[var(--border)] bg-white p-3"
+                      className="grid gap-4 rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm"
                       key={document.id}
                     >
                       <input name="documentId" type="hidden" value={document.id} />
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent-strong)]">
+                          <FileText className="size-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-[var(--primary)]">
+                            {document.label}
+                          </p>
+                          <p className="mt-1 flex min-w-0 items-center gap-1 truncate text-xs text-[var(--muted)]">
+                            <Paperclip className="size-3.5 shrink-0" />
+                            <span className="truncate">
+                              {originalNameFromKey(document.fileKey)}
+                            </span>
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setDocumentToDelete(document)}
+                          size="sm"
+                          type="button"
+                          variant="destructive"
+                        >
+                          <Trash2 className="size-4" />
+                          Supprimer
+                        </Button>
+                      </div>
                       <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
                         Nom du fichier
                         <Input
@@ -508,25 +563,22 @@ export function AdminServiceRequestActionsClient({
                           name="documentLabel"
                         />
                       </label>
-                      <p className="truncate text-xs text-[var(--muted)]">
-                        Fichier actuel : {originalNameFromKey(document.fileKey)}
-                      </p>
-                      <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
-                        Remplacer le fichier
-                        <Input
-                          accept="application/pdf,image/*"
-                          name="documentFile"
-                          type="file"
-                        />
-                      </label>
-                      <label className="flex items-center gap-2 text-sm text-red-700">
-                        <input
-                          name="deleteDocumentId"
-                          type="checkbox"
-                          value={document.id}
-                        />
-                        Supprimer ce fichier du dossier et de S3
-                      </label>
+                      <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--subtle)] p-3">
+                        <label className="grid gap-2 text-sm font-semibold text-[var(--primary)]">
+                          <span className="flex items-center gap-2">
+                            <Paperclip className="size-4 text-[var(--accent)]" />
+                            Remplacer le fichier
+                          </span>
+                          <Input
+                            accept="application/pdf,image/*"
+                            name="documentFile"
+                            type="file"
+                          />
+                        </label>
+                        <p className="mt-2 text-xs text-[var(--muted)]">
+                          L’ancien fichier S3 sera supprimé uniquement après l’enregistrement du remplacement.
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -582,6 +634,42 @@ export function AdminServiceRequestActionsClient({
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(documentToDelete)}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingDocument) setDocumentToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce fichier ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer le fichier
+              {documentToDelete ? ` « ${documentToDelete.label} »` : ""} ?
+              Il sera supprimé du dossier et de S3.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingDocument}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeletingDocument}
+              onClick={handleDeleteDocument}
+              type="button"
+              variant="destructive"
+            >
+              {isDeletingDocument ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+              {isDeletingDocument ? "Suppression..." : "Oui, supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={openDialog === "delete"}

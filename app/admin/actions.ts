@@ -632,6 +632,50 @@ export async function updateServiceRequestData(formData: FormData) {
   revalidatePath("/client");
 }
 
+export async function deleteServiceRequestDocument(formData: FormData) {
+  const admin = await requireAdminUser();
+  const documentId = readString(formData, "documentId");
+
+  if (!documentId) {
+    throw new Error("Document introuvable.");
+  }
+
+  const document = await prisma.requestDocument.findUnique({
+    where: { id: documentId },
+    include: {
+      request: {
+        select: { id: true, type: true },
+      },
+    },
+  });
+
+  if (!document) {
+    throw new Error("Document introuvable.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.requestDocument.delete({ where: { id: documentId } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "service_request.document_deleted",
+        entity: "RequestDocument",
+        entityId: documentId,
+        metadata: {
+          requestId: document.requestId,
+          requestType: document.request.type,
+          label: document.label,
+        },
+      },
+    });
+  });
+
+  await deleteFilesFromS3([document.fileKey]);
+
+  revalidatePath(`/admin/${serviceRequestAdminPath(document.request.type)}`);
+  revalidatePath("/client");
+}
+
 export async function deleteServiceRequest(formData: FormData) {
   const admin = await requireAdminUser();
   const requestId = readString(formData, "requestId");
