@@ -34,6 +34,7 @@ export default async function StorePage({
       <main>
         <section className="section pt-0">
           <StorefrontClient
+            key={params.reservation === "ok" ? "reservation-ok" : "reservation-open"}
             initialUser={
               user
                 ? {

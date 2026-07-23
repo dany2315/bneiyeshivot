@@ -336,14 +336,19 @@ export function StorefrontClient({
 
       <div className="container grid gap-4 pt-28">
         {reservationOk ? (
-          <Alert className="border-green-200 bg-green-50 text-green-950">
-            <CheckCircle2 className="size-4" />
-            <AlertTitle>Réservation envoyée</AlertTitle>
-            <AlertDescription>
-              Nous avons bien reçu votre réservation. L’équipe vous recontactera
-              pour confirmer la disponibilité.
-            </AlertDescription>
-          </Alert>
+          <Card className="border-green-200 bg-green-50 text-green-950">
+            <CardHeader className="items-center text-center">
+              <span className="grid size-12 place-items-center rounded-full bg-white text-green-700 shadow-sm">
+                <CheckCircle2 className="size-7" />
+              </span>
+              <Badge variant="success">Réservation envoyée</Badge>
+              <CardTitle>Votre réservation a bien été prise en compte</CardTitle>
+              <CardDescription className="max-w-xl text-green-950/75">
+                Le panier a été vidé. Vous allez recevoir un email de confirmation,
+                puis l’équipe vous recontactera pour confirmer la disponibilité.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : null}
 
         {!storefront.active ? (
@@ -961,7 +966,7 @@ function CartSheet({
                 >
                   Retour
                 </Button>
-                <Button disabled={!canReserve}>
+                <Button disabled={!canReserve} type="submit">
                   <ShoppingBag className="size-4" />
                   {storefront.active ? "Réserver" : "Réservations fermées"}
                 </Button>
@@ -1346,7 +1351,10 @@ export function StoreProductReservationPanel({
         placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
         disabled={disabled}
       />
-      <Button disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}>
+      <Button
+        disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}
+        type="submit"
+      >
         <ShoppingBag className="size-4" />
         {disabled ? "Réservations fermées" : "Réserver"}
       </Button>
