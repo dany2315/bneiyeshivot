@@ -5263,6 +5263,30 @@ a.card:hover,
   }
 }
 
+@keyframes cart-button-bump {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cart-count-pop {
+  0% {
+    transform: scale(0.72);
+  }
+  55% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
