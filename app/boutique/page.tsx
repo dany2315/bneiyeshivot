@@ -60,6 +60,7 @@ export default async function StorePage({
                 id: variant.id,
                 size: variant.size,
                 cut: variant.cut,
+                priceCents: variant.priceCents,
                 stockQuantity: variant.stockQuantity,
               })),
             }))}

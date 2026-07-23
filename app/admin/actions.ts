@@ -132,6 +132,7 @@ function readStoreProductVariants(formData: FormData) {
   const stocks = formData
     .getAll("variantStockQuantity")
     .map((value) => String(value).trim());
+  const prices = formData.getAll("variantPrice").map((value) => String(value).trim());
   const activeIndexes = new Set(
     formData
       .getAll("variantActiveIndex")
@@ -143,11 +144,13 @@ function readStoreProductVariants(formData: FormData) {
     .map((size, index) => {
       if (!size) return null;
       const stock = stocks[index] ? Number(stocks[index]) : null;
+      const priceCents = prices[index] ? readStorePrice(prices[index]) : 0;
 
       return {
         id: ids[index] || null,
         size,
         cut: cuts[index] || null,
+        priceCents: priceCents > 0 ? priceCents : null,
         stockQuantity: stock == null || !Number.isFinite(stock) ? null : stock,
         active: activeIndexes.has(index),
       };
@@ -1144,6 +1147,7 @@ export async function createStoreProduct(formData: FormData) {
         create: variants.map((variant) => ({
           size: variant.size,
           cut: variant.cut,
+          priceCents: variant.priceCents,
           stockQuantity: variant.stockQuantity,
           active: variant.active,
         })),
@@ -1225,6 +1229,7 @@ export async function updateStoreProduct(formData: FormData) {
           data: {
             size: variant.size,
             cut: variant.cut,
+            priceCents: variant.priceCents,
             stockQuantity: variant.stockQuantity,
             active: variant.active,
           },
@@ -1235,6 +1240,7 @@ export async function updateStoreProduct(formData: FormData) {
             productId,
             size: variant.size,
             cut: variant.cut,
+            priceCents: variant.priceCents,
             stockQuantity: variant.stockQuantity,
             active: variant.active,
           },

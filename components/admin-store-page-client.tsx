@@ -102,6 +102,7 @@ type ProductView = {
     id: string;
     size: string;
     cut: string | null;
+    priceCents: number | null;
     stockQuantity: number | null;
     active: boolean;
   }>;
@@ -519,9 +520,13 @@ function ProductDialog({
       id: variant.id,
       size: variant.size,
       cut: variant.cut ?? "",
+      price: variant.priceCents == null ? "" : moneyInput(variant.priceCents),
       stockQuantity: variant.stockQuantity == null ? "" : String(variant.stockQuantity),
       active: variant.active,
     })) ?? [],
+  );
+  const [samePrice, setSamePrice] = useState(
+    () => !(product?.variants.some((variant) => variant.priceCents != null) ?? false),
   );
   const initialImages =
     product?.imageUrls && product.imageUrls.length > 0
@@ -644,7 +649,10 @@ function ProductDialog({
                 </label>
               </div>
               <ProductVariantConfigurator
+                basePrice={price}
+                onSamePriceChange={setSamePrice}
                 onVariantsChange={setVariants}
+                samePrice={samePrice}
                 variantOptions={variantOptions}
                 variants={variants}
               />
@@ -677,6 +685,7 @@ type ProductVariantFormItem = {
   id?: string;
   size: string;
   cut: string;
+  price: string;
   stockQuantity: string;
   active: boolean;
 };
@@ -700,6 +709,7 @@ function ProductVariantsField({
         localId: `new-${Date.now()}`,
         size: "",
         cut: "",
+        price: "",
         stockQuantity: "",
         active: true,
       },
@@ -749,6 +759,7 @@ function ProductVariantsField({
           localId: `generated-${Date.now()}-${nextVariants.length}`,
           size,
           cut,
+          price: "",
           stockQuantity: "",
           active: true,
         });
@@ -904,11 +915,17 @@ function ProductVariantsField({
 }
 
 function ProductVariantConfigurator({
+  basePrice,
+  onSamePriceChange,
   onVariantsChange,
+  samePrice,
   variantOptions,
   variants,
 }: {
+  basePrice: string;
+  onSamePriceChange: (samePrice: boolean) => void;
   onVariantsChange: Dispatch<SetStateAction<ProductVariantFormItem[]>>;
+  samePrice: boolean;
   variantOptions: VariantOptionsView;
   variants: ProductVariantFormItem[];
 }) {
@@ -1030,6 +1047,7 @@ function ProductVariantConfigurator({
         localId: `variant-${Date.now()}-${size}-${cut}`,
         size,
         cut,
+        price: "",
         stockQuantity: "",
         active: true,
       },
@@ -1050,7 +1068,29 @@ function ProductVariantConfigurator({
         localId: `variant-${Date.now()}-${size}-${cut}`,
         size,
         cut,
+        price: "",
         stockQuantity,
+        active: true,
+      },
+    ]);
+  }
+
+  function setVariantPrice(size: string, cut: string, price: string) {
+    const existing = variantByKey.get(variantKey(size, cut));
+
+    if (existing) {
+      updateVariant(existing.localId, { price, active: true });
+      return;
+    }
+
+    onVariantsChange((current) => [
+      ...current,
+      {
+        localId: `variant-${Date.now()}-${size}-${cut}`,
+        size,
+        cut,
+        price,
+        stockQuantity: "",
         active: true,
       },
     ]);
@@ -1080,6 +1120,11 @@ function ProductVariantConfigurator({
           <input name="variantSize" type="hidden" value={variant.size} />
           <input name="variantCut" type="hidden" value={variant.cut} />
           <input
+            name="variantPrice"
+            type="hidden"
+            value={samePrice ? "" : variant.price}
+          />
+          <input
             name="variantStockQuantity"
             type="hidden"
             value={variant.stockQuantity}
@@ -1093,6 +1138,21 @@ function ProductVariantConfigurator({
           Utilisez les tailles et les coupes définies dans les paramètres.
         </p>
       </div>
+
+      <label className="flex items-center gap-2 rounded-lg bg-[var(--subtle)] px-3 py-2 text-sm font-medium text-[var(--primary)]">
+        <input
+          checked={samePrice}
+          onChange={(event) => onSamePriceChange(event.target.checked)}
+          type="checkbox"
+        />
+        Prix identique pour toutes les variations
+      </label>
+      {!samePrice ? (
+        <p className="text-xs text-[var(--muted)]">
+          Indiquez un prix par variation. Laissez vide pour utiliser le prix de
+          base du produit.
+        </p>
+      ) : null}
 
       <div className="grid gap-2 md:grid-cols-3">
         {[
@@ -1128,7 +1188,11 @@ function ProductVariantConfigurator({
 
             return (
               <div
-                className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_140px]"
+                className={`grid gap-2 rounded-lg bg-[var(--subtle)] p-2 ${
+                  samePrice
+                    ? "md:grid-cols-[1fr_140px]"
+                    : "md:grid-cols-[1fr_140px_140px]"
+                }`}
                 key={size.id}
               >
                 <label className="flex items-center gap-2 text-sm font-medium">
@@ -1141,6 +1205,17 @@ function ProductVariantConfigurator({
                   />
                   {size.label}
                 </label>
+                {!samePrice ? (
+                  <Input
+                    disabled={!checked}
+                    inputMode="decimal"
+                    onChange={(event) =>
+                      setVariantPrice(size.label, "", event.target.value)
+                    }
+                    placeholder={basePrice ? `Prix (${basePrice})` : "Prix"}
+                    value={variant?.price ?? ""}
+                  />
+                ) : null}
                 <Input
                   disabled={!checked}
                   min="0"
@@ -1199,7 +1274,11 @@ function ProductVariantConfigurator({
 
                   return (
                     <div
-                      className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 md:grid-cols-[1fr_140px]"
+                      className={`grid gap-2 rounded-lg bg-[var(--subtle)] p-2 ${
+                        samePrice
+                          ? "md:grid-cols-[1fr_140px]"
+                          : "md:grid-cols-[1fr_140px_140px]"
+                      }`}
                       key={`${cut}-${size.id}`}
                     >
                       <label className="flex items-center gap-2 text-sm font-medium">
@@ -1212,6 +1291,17 @@ function ProductVariantConfigurator({
                         />
                         {size.label}
                       </label>
+                      {!samePrice ? (
+                        <Input
+                          disabled={!checked}
+                          inputMode="decimal"
+                          onChange={(event) =>
+                            setVariantPrice(size.label, cut, event.target.value)
+                          }
+                          placeholder={basePrice ? `Prix (${basePrice})` : "Prix"}
+                          value={variant?.price ?? ""}
+                        />
+                      ) : null}
                       <Input
                         disabled={!checked}
                         min="0"
