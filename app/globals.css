@@ -2501,15 +2501,16 @@ a.card:hover,
 
 .program-detail-visual-hero > img {
   object-fit: cover;
+  object-position: center;
 }
 
 .program-detail-hero-overlay {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(3, 23, 41, 0.95), rgba(6, 40, 70, 0.76) 48%, rgba(6, 40, 70, 0.28)),
-    radial-gradient(circle at 78% 18%, rgba(246, 170, 28, 0.22), transparent 23rem),
-    linear-gradient(0deg, rgba(3, 23, 41, 0.74), rgba(3, 23, 41, 0.06) 64%);
+    linear-gradient(90deg, rgba(3, 23, 41, 0.72), rgba(6, 40, 70, 0.44) 46%, rgba(6, 40, 70, 0.1)),
+    radial-gradient(circle at 78% 18%, rgba(246, 170, 28, 0.16), transparent 23rem),
+    linear-gradient(0deg, rgba(3, 23, 41, 0.66), rgba(3, 23, 41, 0.02) 54%);
 }
 
 .program-detail-hero-grid {
@@ -5012,6 +5013,35 @@ a.card:hover,
   .admin-mobile-topbar {
     display: flex;
   }
+
+  /* Heros moins hauts sur tablette / grand mobile pour éviter un rendu agressif */
+  .program-detail-visual-hero {
+    min-height: 430px;
+  }
+
+  .programme-hero {
+    min-height: 440px;
+  }
+
+  .programme-hero-content {
+    padding: 54px 0;
+  }
+
+  .about-hero {
+    min-height: 460px;
+  }
+
+  .about-hero-content {
+    padding: 72px 0 56px;
+  }
+
+  .arrival-hero-inner {
+    padding: 56px 0;
+  }
+
+  .page-hero {
+    padding: 58px 0;
+  }
 }
 
 @media (max-width: 720px) {
@@ -5158,6 +5188,35 @@ a.card:hover,
 
   .admin-table-actions > * {
     flex: 1;
+  }
+
+  /* Heros nettement plus compacts sur téléphone */
+  .program-detail-visual-hero {
+    min-height: 340px;
+  }
+
+  .programme-hero {
+    min-height: 360px;
+  }
+
+  .programme-hero-content {
+    padding: 40px 0;
+  }
+
+  .about-hero {
+    min-height: 380px;
+  }
+
+  .about-hero-content {
+    padding: 52px 0 40px;
+  }
+
+  .arrival-hero-inner {
+    padding: 44px 0;
+  }
+
+  .page-hero {
+    padding: 44px 0;
   }
 }
 
