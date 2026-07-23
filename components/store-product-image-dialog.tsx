@@ -74,22 +74,22 @@ export function StoreProductImageDialog({
           <Maximize2 className="size-4" />
         </span>
       </DialogTrigger>
-      <DialogContent className="max-h-[80vh] w-[min(96vw,1000px)] gap-0 overflow-hidden p-0 sm:max-w-none">
-        <DialogHeader className="border-b border-[var(--border)] p-3 pr-12 sm:p-4">
+      <DialogContent className="max-h-[80vh] w-[min(96vw,1000px)] gap-0 overflow-hidden p-0 sm:max-w-none [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:top-4">
+        <DialogHeader className="border-b border-[var(--border)] p-4 pb-3 pr-14 pt-5 sm:p-5 sm:pr-14">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Aperçu du produit</DialogDescription>
         </DialogHeader>
-        <div className="grid h-[calc(80vh-73px)] min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-[#061e35] p-2 sm:p-3">
-          <div className="grid min-h-0 place-items-center rounded-lg bg-[#061e35]">
+        <div className="grid h-[calc(80vh-85px)] min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-[#061e35]">
+          <div className="grid min-h-0 overflow-hidden bg-[#061e35] p-2 sm:p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               alt={`${title} ${selectedIndex + 1}`}
-              className="max-h-full max-w-full object-contain"
+              className="m-auto max-h-full max-w-full object-contain"
               src={images[selectedIndex] ?? src}
             />
           </div>
           {images.length > 1 ? (
-            <div className="mt-2 flex max-w-full justify-center gap-2 overflow-x-auto rounded-lg bg-white/8 p-2 backdrop-blur">
+            <div className="flex max-w-full justify-center gap-2 overflow-x-auto border-t border-white/10 bg-[#061e35] p-2">
               {images.map((image, index) => (
                 <button
                   className="size-12 shrink-0 overflow-hidden rounded-md border border-white/20 bg-white/8 p-0 transition hover:border-white/70 data-[active=true]:border-[var(--gold)] sm:size-14"
