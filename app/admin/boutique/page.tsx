@@ -142,6 +142,7 @@ export default async function AdminStorePage() {
             id: variant.id,
             size: variant.size,
             cut: variant.cut,
+            priceCents: variant.priceCents,
             stockQuantity: variant.stockQuantity,
             active: variant.active,
           })),

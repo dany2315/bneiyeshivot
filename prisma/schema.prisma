@@ -214,6 +214,7 @@ model StoreProductVariant {
   product         StoreProduct           @relation(fields: [productId], references: [id], onDelete: Cascade)
   size            String
   cut             String?
+  priceCents      Int?
   stockQuantity   Int?
   active          Boolean                @default(true)
   reservationItems StoreReservationItem[]

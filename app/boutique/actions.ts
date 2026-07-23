@@ -118,8 +118,10 @@ export async function createStoreReservation(formData: FormData) {
     }
   }
 
+  const unitCentsFor = (item: (typeof selectedItems)[number]) =>
+    item.variant?.priceCents ?? item.product.priceCents;
   const totalCents = selectedItems.reduce(
-    (total, item) => total + item.product.priceCents * item.quantity,
+    (total, item) => total + unitCentsFor(item) * item.quantity,
     0,
   );
   const currency = selectedItems[0]?.product.currency ?? "ILS";
@@ -136,13 +138,13 @@ export async function createStoreReservation(formData: FormData) {
       totalCents,
       currency,
       items: {
-        create: selectedItems.map(({ product, quantity, variant }) => ({
-          productId: product.id,
-          productVariantId: variant?.id ?? null,
-          variantLabel: variantLabel(variant),
-          quantity,
-          unitCents: product.priceCents,
-          productTitle: product.title,
+        create: selectedItems.map((item) => ({
+          productId: item.product.id,
+          productVariantId: item.variant?.id ?? null,
+          variantLabel: variantLabel(item.variant),
+          quantity: item.quantity,
+          unitCents: unitCentsFor(item),
+          productTitle: item.product.title,
         })),
       },
     },

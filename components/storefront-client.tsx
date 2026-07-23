@@ -54,6 +54,7 @@ type ProductVariantView = {
   id: string;
   size: string;
   cut: string | null;
+  priceCents: number | null;
   stockQuantity: number | null;
 };
 
@@ -98,6 +99,26 @@ function variantLabel(variant: ProductVariantView | null) {
   return [variant.size, variant.cut].filter(Boolean).join(" / ");
 }
 
+// Prix effectif d'une variation : son prix propre ou, à défaut, le prix de base
+// du produit (cas « prix identique pour toutes les variations »).
+function effectivePrice(product: ProductView, variant: ProductVariantView | null) {
+  return variant?.priceCents ?? product.priceCents;
+}
+
+function priceSummary(product: ProductView) {
+  if (product.variants.length === 0) {
+    return { min: product.priceCents, max: product.priceCents, varies: false };
+  }
+
+  const prices = product.variants.map(
+    (variant) => variant.priceCents ?? product.priceCents,
+  );
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+
+  return { min, max, varies: min !== max };
+}
+
 function sizesFor(product: ProductView) {
   return Array.from(new Set(product.variants.map((variant) => variant.size)));
 }
@@ -132,7 +153,11 @@ export function StorefrontClient({
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
   const totalCents = cartLines.reduce((total, line) => {
     const product = products.find((item) => item.id === line.productId);
-    return total + (product?.priceCents ?? 0) * line.quantity;
+    if (!product) return total;
+    const variant = line.variantId
+      ? product.variants.find((item) => item.id === line.variantId) ?? null
+      : null;
+    return total + effectivePrice(product, variant) * line.quantity;
   }, 0);
   const currency =
     products.find((product) => product.id === cartLines[0]?.productId)?.currency ??
@@ -317,7 +342,19 @@ function ProductCard({
       </CardHeader>
       <CardContent className="grid gap-3 px-3 pb-3 pt-0 md:px-4">
         <strong className="text-base text-[var(--primary)] md:text-xl">
-          {formatPrice(product.priceCents, product.currency)}
+          {(() => {
+            const summary = priceSummary(product);
+            return summary.varies ? (
+              <>
+                <span className="mr-1 text-xs font-bold text-[var(--muted)] md:text-sm">
+                  À partir de
+                </span>
+                {formatPrice(summary.min, product.currency)}
+              </>
+            ) : (
+              formatPrice(product.priceCents, product.currency)
+            );
+          })()}
         </strong>
         <ProductAddButton
           disabled={disabled}
@@ -518,7 +555,7 @@ function ProductOptionDrawerContent({
             {product.title}
           </DrawerTitle>
           <strong className="whitespace-nowrap text-base font-black text-[var(--primary)]">
-            {formatPrice(product.priceCents, product.currency)}
+            {formatPrice(effectivePrice(product, selectedVariant), product.currency)}
           </strong>
         </div>
       </DrawerHeader>
@@ -669,11 +706,14 @@ function CartSheet({
                         </small>
                       ) : null}
                       <small className="text-[var(--muted)]">
-                        {formatPrice(product.priceCents, product.currency)}
+                        {formatPrice(effectivePrice(product, variant), product.currency)}
                       </small>
                     </span>
                     <strong className="whitespace-nowrap text-[var(--primary)]">
-                      {formatPrice(product.priceCents * line.quantity, product.currency)}
+                      {formatPrice(
+                        effectivePrice(product, variant) * line.quantity,
+                        product.currency,
+                      )}
                     </strong>
                   </div>
                   <div className="flex items-center justify-between gap-2">
@@ -747,10 +787,13 @@ export function StoreProductDetailReservationClient({
   initialUser?: StoreInitialUser | null;
 }) {
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
-  const totalCents = cartLines.reduce(
-    (total, line) => total + product.priceCents * line.quantity,
-    0,
-  );
+  const detailPriceSummary = priceSummary(product);
+  const totalCents = cartLines.reduce((total, line) => {
+    const variant = line.variantId
+      ? product.variants.find((item) => item.id === line.variantId) ?? null
+      : null;
+    return total + effectivePrice(product, variant) * line.quantity;
+  }, 0);
 
   function addToCart(variantId: string | null, quantity: number) {
     const key = `${product.id}:${variantId ?? "base"}`;
@@ -824,7 +867,16 @@ export function StoreProductDetailReservationClient({
               {product.title}
             </strong>
             <span className="text-sm font-black text-[var(--primary)]">
-              {formatPrice(product.priceCents, product.currency)}
+              {detailPriceSummary.varies ? (
+                <>
+                  <span className="mr-1 text-xs font-bold text-[var(--muted)]">
+                    À partir de
+                  </span>
+                  {formatPrice(detailPriceSummary.min, product.currency)}
+                </>
+              ) : (
+                formatPrice(product.priceCents, product.currency)
+              )}
             </span>
           </div>
           <div className="w-44 max-w-[52vw]">

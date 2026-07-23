@@ -210,7 +210,7 @@ export default async function AdminDvarTorahPage() {
                         </Link>
                       </Button>
                       <Button asChild variant="secondary">
-                        <a href={fileHref} download>
+                        <a href={`${fileHref}?download=1`} download>
                           <Download className="size-4" />
                           PDF
                         </a>

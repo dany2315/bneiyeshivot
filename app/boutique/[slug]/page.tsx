@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
-import { ensureDefaultStorefront, formatStorePrice } from "@/lib/store";
+import {
+  ensureDefaultStorefront,
+  formatStorePrice,
+  productPriceSummary,
+} from "@/lib/store";
 
 export async function generateMetadata({
   params,
@@ -67,9 +71,11 @@ export default async function StoreProductPage({
       id: variant.id,
       size: variant.size,
       cut: variant.cut,
+      priceCents: variant.priceCents,
       stockQuantity: variant.stockQuantity,
     })),
   };
+  const priceSummary = productPriceSummary(productView);
   const initialUser = user
     ? {
         email: user.email,
@@ -125,7 +131,16 @@ export default async function StoreProductPage({
                       {product.title}
                     </h1>
                     <p className="mt-4 text-3xl font-black text-[var(--primary)]">
-                      {formatStorePrice(product.priceCents, product.currency)}
+                      {priceSummary.varies ? (
+                        <>
+                          <span className="mr-1 text-lg font-bold text-[var(--muted)]">
+                            À partir de
+                          </span>
+                          {formatStorePrice(priceSummary.min, product.currency)}
+                        </>
+                      ) : (
+                        formatStorePrice(product.priceCents, product.currency)
+                      )}
                     </p>
                   </div>
                   <p className="text-lg leading-8 text-[var(--muted)]">
