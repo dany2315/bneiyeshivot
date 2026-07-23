@@ -529,6 +529,7 @@ function ProductAddButton({
   const [addedKey, setAddedKey] = useState(0);
   const hasVariants = product.variants.length > 0;
   const directMaxQuantity = stockLimit(product, null);
+  const addLabel = fixed ? "Ajouter au panier" : "Ajouter panier";
 
   function animateAdded() {
     setAddedKey((current) => current + 1);
@@ -551,7 +552,7 @@ function ProductAddButton({
         type="button"
       >
         <ShoppingBag className="size-4" />
-        Ajouter au panier
+        {addLabel}
         {addedKey > 0 ? <CartAddedPulse key={addedKey} /> : null}
       </Button>
     );
@@ -575,7 +576,7 @@ function ProductAddButton({
         }
       >
         <ShoppingBag className="size-4" />
-        Ajouter au panier
+        {addLabel}
       </DrawerTrigger>
       <DrawerContent className="max-h-[85vh] sm:max-w-md">
         <ProductOptionDrawerContent
@@ -768,6 +769,7 @@ function CartSheet({
   const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
   const previousItemCount = useRef(itemCount);
   const [countPulseKey, setCountPulseKey] = useState(0);
+  const [step, setStep] = useState<"products" | "reservation">("products");
   const cartItems = cartLines
     .map((line) => {
       const product = products.find((item) => item.id === line.productId);
@@ -785,6 +787,9 @@ function CartSheet({
       previousItemCount.current = itemCount;
     }
   }, [itemCount]);
+
+  const activeStep = cartItems.length > 0 ? step : "products";
+  const canReserve = storefront.active && products.length > 0 && cartItems.length > 0;
 
   return (
     <Sheet>
@@ -809,14 +814,16 @@ function CartSheet({
           {itemCount}
         </span>
       </SheetTrigger>
-      <SheetContent className="w-full max-w-full overflow-x-hidden overflow-y-auto sm:max-w-md">
-        <SheetHeader>
+      <SheetContent className="w-full max-w-full gap-0 overflow-hidden sm:max-w-md">
+        <SheetHeader className="border-b border-[var(--border)]">
           <SheetTitle>Panier de réservation</SheetTitle>
           <SheetDescription>
-            Aucun paiement en ligne. L’équipe confirme ensuite.
+            {activeStep === "products"
+              ? "Vérifiez vos produits avant de passer à la réservation."
+              : "Renseignez les informations nécessaires à la réservation."}
           </SheetDescription>
         </SheetHeader>
-        <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pt-0 ">
+        <form action={createStoreReservation} className="flex min-h-0 flex-1 flex-col">
           {cartItems.map(({ line }) => (
             <div key={`hidden-${line.key}`}>
               <input name="cartProductId" type="hidden" value={line.productId} />
@@ -825,114 +832,142 @@ function CartSheet({
             </div>
           ))}
 
-          <div className="grid gap-2 pt-0">
-            {cartItems.length > 0 ? (
-              cartItems.map(({ line, product, variant }) => {
-                const unitCents = effectivePrice(product, variant);
-                const max = stockLimit(product, variant);
-                const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+            {activeStep === "products" ? (
+              <div className="grid gap-2">
+                {cartItems.length > 0 ? (
+                  cartItems.map(({ line, product, variant }) => {
+                    const unitCents = effectivePrice(product, variant);
+                    const max = stockLimit(product, variant);
+                    const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
 
-                return (
-                <div
-                  className="relative grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm"
-                  key={line.key}
-                >
-                  <Button
-                    aria-label="Retirer du panier"
-                    className="absolute right-2 top-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
-                    onClick={() => onRemoveLine(line.key)}
-                    size="icon-sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                  <div className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] gap-3 sm:grid-cols-[64px_minmax(0,1fr)_auto]">
-                    <div className="flex size-14 overflow-hidden rounded-lg bg-[var(--subtle)] sm:size-16">
-                      {imageSrc ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          alt=""
-                          className="h-full w-full object-cover"
-                          src={imageSrc}
-                        />
-                      ) : (
-                        <span className="grid h-full w-full place-items-center">
-                          <ShoppingBag className="size-5 text-[var(--primary)]" />
-                        </span>
-                      )}
-                    </div>
-                    <span className="min-w-0 self-center pr-12">
-                      <strong className="block truncate text-sm text-[var(--primary)] sm:text-base">
-                        {product.title}
-                      </strong>
-                      {variant ? (
-                        <small className="block truncate text-[var(--muted)] font-bold ">
-                          {variantLabel(variant)}
-                        </small>
-                      ) : null}
-                      <small className="block text-[var(--muted)]">
-                        {formatPrice(unitCents, product.currency)} l’unité
-                      </small>
-                    </span>
-                  </div>
-                  {product.variants.length > 0 ? (
-                    <CartLineVariantSelect
-                      line={line}
-                      onChange={(variantId) => onUpdateLineVariant(line.key, variantId)}
-                      product={product}
-                      variant={variant}
-                    />
-                  ) : null}
-                  <div className="flex justify-between min-w-0 items-center gap-2">
-                    <QuantityControl
-                      max={max}
-                      min={1}
-                      onChange={(quantity) => onUpdateLine(line.key, quantity)}
-                      quantity={line.quantity}
-                    />
-                    <strong className="col-span-2 whitespace-nowrap text-right text-lg text-[var(--primary)] sm:col-span-1 sm:self-center sm:text-base">
-                      {formatPrice(unitCents * line.quantity, product.currency)}
-                    </strong>
-                  </div>
-                </div>
-                );
-              })
+                    return (
+                      <div
+                        className="relative grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm"
+                        key={line.key}
+                      >
+                        <Button
+                          aria-label="Retirer du panier"
+                          className="absolute right-2 top-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
+                          onClick={() => onRemoveLine(line.key)}
+                          size="icon-sm"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                        <div className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] gap-3 sm:grid-cols-[64px_minmax(0,1fr)_auto]">
+                          <div className="flex size-14 overflow-hidden rounded-lg bg-[var(--subtle)] sm:size-16">
+                            {imageSrc ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                alt=""
+                                className="h-full w-full object-cover"
+                                src={imageSrc}
+                              />
+                            ) : (
+                              <span className="grid h-full w-full place-items-center">
+                                <ShoppingBag className="size-5 text-[var(--primary)]" />
+                              </span>
+                            )}
+                          </div>
+                          <span className="min-w-0 self-center pr-12">
+                            <strong className="block truncate text-sm text-[var(--primary)] sm:text-base">
+                              {product.title}
+                            </strong>
+                            {variant ? (
+                              <small className="block truncate font-bold text-[var(--muted)]">
+                                {variantLabel(variant)}
+                              </small>
+                            ) : null}
+                            <small className="block text-[var(--muted)]">
+                              {formatPrice(unitCents, product.currency)} l’unité
+                            </small>
+                          </span>
+                        </div>
+                        {product.variants.length > 0 ? (
+                          <CartLineVariantSelect
+                            line={line}
+                            onChange={(variantId) =>
+                              onUpdateLineVariant(line.key, variantId)
+                            }
+                            product={product}
+                            variant={variant}
+                          />
+                        ) : null}
+                        <div className="flex min-w-0 items-center justify-between gap-2">
+                          <QuantityControl
+                            compact
+                            max={max}
+                            min={1}
+                            onChange={(quantity) => onUpdateLine(line.key, quantity)}
+                            quantity={line.quantity}
+                          />
+                          <strong className="min-w-0 shrink text-right text-sm font-black leading-tight text-[var(--primary)] sm:self-center sm:text-base">
+                            {formatPrice(unitCents * line.quantity, product.currency)}
+                          </strong>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                    Choisissez une variation puis cliquez sur Ajouter.
+                  </p>
+                )}
+              </div>
             ) : (
-              <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-                Choisissez une variation puis cliquez sur Ajouter.
-              </p>
+              <div className="grid gap-4">
+                <StoreReservationCustomerFields
+                  disabled={!storefront.active}
+                  initialUser={initialUser}
+                />
+                <Textarea
+                  name="note"
+                  placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
+                />
+
+                {storefront.pickupDetails ? (
+                  <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
+                    {storefront.pickupDetails}
+                  </p>
+                ) : null}
+              </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
-            <span className="font-bold text-[var(--primary)]">Total indicatif</span>
-            <strong className="text-xl text-[var(--primary)]">
-              {formatPrice(totalCents, currency)}
-            </strong>
+          <div className="border-t border-[var(--border)] bg-white/95 p-4 shadow-[0_-14px_40px_rgba(6,40,70,0.12)] backdrop-blur">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <span className="font-bold text-[var(--primary)]">Total indicatif</span>
+              <strong className="whitespace-nowrap text-xl text-[var(--primary)]">
+                {formatPrice(totalCents, currency)}
+              </strong>
+            </div>
+            {activeStep === "products" ? (
+              <Button
+                className="w-full"
+                disabled={!canReserve}
+                onClick={() => setStep("reservation")}
+                type="button"
+              >
+                Continuer vers la réservation
+              </Button>
+            ) : (
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2">
+                <Button
+                  onClick={() => setStep("products")}
+                  type="button"
+                  variant="outline"
+                >
+                  Retour
+                </Button>
+                <Button disabled={!canReserve}>
+                  <ShoppingBag className="size-4" />
+                  {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
+                </Button>
+              </div>
+            )}
           </div>
-
-          <StoreReservationCustomerFields
-            disabled={!storefront.active}
-            initialUser={initialUser}
-          />
-          <Textarea
-            name="note"
-            placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
-          />
-
-          {storefront.pickupDetails ? (
-            <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
-              {storefront.pickupDetails}
-            </p>
-          ) : null}
-
-          <Button
-            disabled={!storefront.active || products.length === 0 || cartItems.length === 0}
-          >
-            <ShoppingBag className="size-4" />
-            {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
-          </Button>
         </form>
       </SheetContent>
     </Sheet>
@@ -1320,6 +1355,7 @@ export function StoreProductReservationPanel({
 }
 
 function QuantityControl({
+  compact = false,
   disabled,
   fullWidth = false,
   max,
@@ -1327,6 +1363,7 @@ function QuantityControl({
   onChange,
   quantity,
 }: {
+  compact?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
   max?: number;
@@ -1353,6 +1390,8 @@ function QuantityControl({
       className={`relative grid items-center rounded-lg border border-[var(--border)] bg-white p-1 shadow-sm ${
         fullWidth
           ? "w-full grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]"
+          : compact
+            ? "w-fit grid-cols-[1.85rem_2.55rem_1.85rem]"
           : "w-fit grid-cols-[2.35rem_3.25rem_2.35rem] sm:grid-cols-[2rem_3rem_2rem]"
       }`}
     >
@@ -1375,7 +1414,9 @@ function QuantityControl({
         <Minus className="size-4" />
       </Button>
       <Input
-        className="h-9 w-full border-0 p-0 text-center text-sm font-bold tabular-nums"
+        className={`w-full border-0 p-0 text-center font-bold tabular-nums ${
+          compact ? "h-8 text-xs" : "h-9 text-sm"
+        }`}
         max={max}
         min={min}
         onChange={(event) => updateQuantity(Number(event.target.value) || min)}
