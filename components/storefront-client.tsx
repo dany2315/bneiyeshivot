@@ -963,7 +963,7 @@ function CartSheet({
                 </Button>
                 <Button disabled={!canReserve}>
                   <ShoppingBag className="size-4" />
-                  {storefront.active ? "Envoyer la réservation" : "Réservations fermées"}
+                  {storefront.active ? "Réserver" : "Réservations fermées"}
                 </Button>
               </div>
             )}
@@ -1348,7 +1348,7 @@ export function StoreProductReservationPanel({
       />
       <Button disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}>
         <ShoppingBag className="size-4" />
-        {disabled ? "Réservations fermées" : "Envoyer la réservation"}
+        {disabled ? "Réservations fermées" : "Réserver"}
       </Button>
     </form>
   );
