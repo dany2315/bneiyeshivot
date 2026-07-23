@@ -58,7 +58,7 @@ export function StoreProductImageDialog({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     alt={`${title} ${index + 1}`}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                     src={image}
                   />
                 </span>
@@ -80,11 +80,11 @@ export function StoreProductImageDialog({
           <DialogDescription>Aperçu du produit</DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 grid-rows-[minmax(0,1fr)_4rem] bg-[#061e35] sm:grid-rows-[minmax(0,1fr)_4.5rem]">
-          <div className="grid min-h-0 overflow-hidden bg-[#061e35] p-2 sm:p-3">
+          <div className="min-h-0 overflow-hidden bg-[#061e35] p-2 sm:p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               alt={`${title} ${selectedIndex + 1}`}
-              className="m-auto max-h-full max-w-full object-contain"
+              className="h-full w-full object-contain"
               src={images[selectedIndex] ?? src}
             />
           </div>
@@ -107,7 +107,7 @@ export function StoreProductImageDialog({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     alt={`${title} ${index + 1}`}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                     src={image}
                   />
                 </button>
