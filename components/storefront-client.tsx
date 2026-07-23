@@ -543,6 +543,7 @@ function ProductAddButton({
       </DrawerTrigger>
       <DrawerContent className="max-h-[85vh] sm:max-w-md">
         <ProductOptionDrawerContent
+          ignoreSwipeOnOptions={!fixed}
           onAdd={(variantId, quantity) => {
             onAdd(variantId, quantity);
             window.setTimeout(() => setOpen(false), 520);
@@ -555,9 +556,11 @@ function ProductAddButton({
 }
 
 function ProductOptionDrawerContent({
+  ignoreSwipeOnOptions = false,
   onAdd,
   product,
 }: {
+  ignoreSwipeOnOptions?: boolean;
   onAdd: (variantId: string | null, quantity: number) => void;
   product: ProductView;
 }) {
@@ -595,6 +598,9 @@ function ProductOptionDrawerContent({
   const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
   const maxQuantity = stockLimit(product, selectedVariant);
   const safeQuantity = Math.min(maxQuantity || 1, quantity);
+  const swipeIgnoreProps = ignoreSwipeOnOptions
+    ? { "data-base-ui-swipe-ignore": "" }
+    : {};
 
   function selectCut(nextCut: string) {
     const nextVariant =
@@ -628,7 +634,7 @@ function ProductOptionDrawerContent({
         {cuts.length > 0 ? (
           <div className="grid gap-2">
             <span className="text-sm font-bold text-[var(--primary)]">Coupe</span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" {...swipeIgnoreProps}>
               {cuts.map((item) => (
                 <button
                   className={`rounded-full border px-3 py-1.5 text-sm font-bold transition ${
@@ -648,7 +654,10 @@ function ProductOptionDrawerContent({
         ) : null}
         <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Taille</span>
-          <div className="-mx-4 overflow-x-auto px-4 pb-1">
+          <div
+            className="-mx-4 overflow-x-auto px-4 pb-1"
+            {...swipeIgnoreProps}
+          >
             <div className="flex w-max min-w-full gap-2">
               {availableVariants.map((variant) => (
                 <button
@@ -670,7 +679,7 @@ function ProductOptionDrawerContent({
       </div>
       <Separator className="mt-4" />
       <DrawerFooter className="bg-popover pt-4">
-        <div className="grid gap-2">
+        <div className="grid gap-2" {...swipeIgnoreProps}>
           <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
           <QuantityControl
             fullWidth
