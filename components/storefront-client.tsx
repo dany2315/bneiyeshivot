@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
@@ -139,6 +139,14 @@ function findVariant(product: ProductView, size: string, variantId: string) {
   );
 }
 
+function stockLimit(product: ProductView, variant: ProductVariantView | null) {
+  return Math.min(50, variant?.stockQuantity ?? product.stockQuantity ?? 50);
+}
+
+function cartLineKey(productId: string, variantId: string | null) {
+  return `${productId}:${variantId ?? "base"}`;
+}
+
 export function StorefrontClient({
   initialUser,
   products,
@@ -151,6 +159,7 @@ export function StorefrontClient({
   storefront: StorefrontView;
 }) {
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [cartPulseKey, setCartPulseKey] = useState(0);
   const totalCents = cartLines.reduce((total, line) => {
     const product = products.find((item) => item.id === line.productId);
     if (!product) return total;
@@ -164,11 +173,12 @@ export function StorefrontClient({
     "ILS";
 
   function addToCart(product: ProductView, variantId: string | null, quantity = 1) {
-    const key = `${product.id}:${variantId ?? "base"}`;
+    const key = cartLineKey(product.id, variantId);
     const variant = variantId
       ? product.variants.find((item) => item.id === variantId) ?? null
       : null;
-    const max = Math.min(50, variant?.stockQuantity ?? product.stockQuantity ?? 50);
+    const max = stockLimit(product, variant);
+    if (max < 1) return;
 
     setCartLines((current) => {
       const existing = current.find((line) => line.key === key);
@@ -185,16 +195,65 @@ export function StorefrontClient({
         { key, productId: product.id, variantId, quantity: Math.min(max, quantity) },
       ];
     });
+    setCartPulseKey((current) => current + 1);
   }
 
   function updateCartLine(key: string, quantity: number) {
     setCartLines((current) =>
       current
-        .map((line) =>
-          line.key === key ? { ...line, quantity: Math.max(1, quantity) } : line,
-        )
+        .map((line) => {
+          if (line.key !== key) return line;
+          const product = products.find((item) => item.id === line.productId);
+          const variant = line.variantId
+            ? product?.variants.find((item) => item.id === line.variantId) ?? null
+            : null;
+          const max = product ? stockLimit(product, variant) : 50;
+
+          return { ...line, quantity: Math.min(max, Math.max(1, quantity)) };
+        })
         .filter((line) => line.quantity > 0),
     );
+    setCartPulseKey((current) => current + 1);
+  }
+
+  function updateCartLineVariant(key: string, variantId: string | null) {
+    setCartLines((current) => {
+      const line = current.find((item) => item.key === key);
+      if (!line) return current;
+
+      const product = products.find((item) => item.id === line.productId);
+      if (!product) return current;
+
+      const variant = variantId
+        ? product.variants.find((item) => item.id === variantId) ?? null
+        : null;
+      const nextKey = cartLineKey(product.id, variant?.id ?? null);
+      const max = stockLimit(product, variant);
+      const nextQuantity = Math.min(max, line.quantity);
+      const duplicate = current.find((item) => item.key === nextKey);
+
+      if (duplicate && duplicate.key !== key) {
+        return current
+          .filter((item) => item.key !== key)
+          .map((item) =>
+            item.key === duplicate.key
+              ? { ...item, quantity: Math.min(max, item.quantity + nextQuantity) }
+              : item,
+          );
+      }
+
+      return current.map((item) =>
+        item.key === key
+          ? {
+              ...item,
+              key: nextKey,
+              variantId: variant?.id ?? null,
+              quantity: nextQuantity,
+            }
+          : item,
+      );
+    });
+    setCartPulseKey((current) => current + 1);
   }
 
   function removeCartLine(key: string) {
@@ -219,7 +278,9 @@ export function StorefrontClient({
             initialUser={initialUser}
             onRemoveLine={removeCartLine}
             onUpdateLine={updateCartLine}
+            onUpdateLineVariant={updateCartLineVariant}
             products={products}
+            pulseKey={cartPulseKey}
             storefront={storefront}
             totalCents={totalCents}
           />
@@ -431,6 +492,7 @@ function ProductAddButton({
   const [open, setOpen] = useState(false);
   const [addedKey, setAddedKey] = useState(0);
   const hasVariants = product.variants.length > 0;
+  const directMaxQuantity = stockLimit(product, null);
 
   function animateAdded() {
     setAddedKey((current) => current + 1);
@@ -445,7 +507,7 @@ function ProductAddButton({
     return (
       <Button
         className={fixed ? "relative w-full shadow-lg" : "relative w-full"}
-        disabled={disabled}
+        disabled={disabled || directMaxQuantity < 1}
         onClick={(event) => {
           event.stopPropagation();
           addDirect();
@@ -531,6 +593,8 @@ function ProductOptionDrawerContent({
   const [quantity, setQuantity] = useState(1);
   const [addedKey, setAddedKey] = useState(0);
   const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
+  const maxQuantity = stockLimit(product, selectedVariant);
+  const safeQuantity = Math.min(maxQuantity || 1, quantity);
 
   function selectCut(nextCut: string) {
     const nextVariant =
@@ -608,14 +672,20 @@ function ProductOptionDrawerContent({
       <DrawerFooter className="bg-popover pt-4">
         <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
-          <QuantityControl fullWidth min={1} onChange={setQuantity} quantity={quantity} />
+          <QuantityControl
+            fullWidth
+            max={maxQuantity}
+            min={1}
+            onChange={setQuantity}
+            quantity={safeQuantity}
+          />
         </div>
         <Button
           className="relative"
-          disabled={!selectedVariant}
+          disabled={!selectedVariant || maxQuantity < 1}
           onClick={() => {
             setAddedKey((current) => current + 1);
-            onAdd(selectedVariant?.id ?? null, quantity);
+            onAdd(selectedVariant?.id ?? null, safeQuantity);
           }}
           type="button"
         >
@@ -642,7 +712,9 @@ function CartSheet({
   initialUser,
   onRemoveLine,
   onUpdateLine,
+  onUpdateLineVariant,
   products,
+  pulseKey,
   storefront,
   totalCents,
 }: {
@@ -651,11 +723,15 @@ function CartSheet({
   initialUser?: StoreInitialUser | null;
   onRemoveLine: (key: string) => void;
   onUpdateLine: (key: string, quantity: number) => void;
+  onUpdateLineVariant: (key: string, variantId: string | null) => void;
   products: ProductView[];
+  pulseKey: number;
   storefront: StorefrontView;
   totalCents: number;
 }) {
   const itemCount = cartLines.reduce((total, item) => total + item.quantity, 0);
+  const previousItemCount = useRef(itemCount);
+  const [countPulseKey, setCountPulseKey] = useState(0);
   const cartItems = cartLines
     .map((line) => {
       const product = products.find((item) => item.id === line.productId);
@@ -667,12 +743,35 @@ function CartSheet({
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
+  useEffect(() => {
+    if (itemCount !== previousItemCount.current) {
+      setCountPulseKey((current) => current + 1);
+      previousItemCount.current = itemCount;
+    }
+  }, [itemCount]);
+
   return (
     <Sheet>
-      <SheetTrigger render={<Button className="shadow-lg" />}>
+      <SheetTrigger
+        render={
+          <Button
+            className={`relative shadow-lg ${
+              pulseKey > 0 ? "animate-[cart-button-bump_360ms_ease-out]" : ""
+            }`}
+            key={pulseKey}
+          />
+        }
+      >
         <ShoppingBag className="size-4" />
         Panier
-        {itemCount > 0 ? ` (${itemCount})` : ""}
+        <span
+          className={`ml-1 inline-grid min-w-6 place-items-center rounded-full bg-white/20 px-1.5 text-xs font-black tabular-nums ${
+            countPulseKey > 0 ? "animate-[cart-count-pop_360ms_ease-out]" : ""
+          }`}
+          key={countPulseKey}
+        >
+          {itemCount}
+        </span>
       </SheetTrigger>
       <SheetContent className="w-full max-w-full overflow-x-hidden overflow-y-auto sm:max-w-md">
         <SheetHeader>
@@ -692,7 +791,11 @@ function CartSheet({
 
           <div className="grid gap-2">
             {cartItems.length > 0 ? (
-              cartItems.map(({ line, product, variant }) => (
+              cartItems.map(({ line, product, variant }) => {
+                const unitCents = effectivePrice(product, variant);
+                const max = stockLimit(product, variant);
+
+                return (
                 <div
                   className="grid min-w-0 gap-3 rounded-lg border border-[var(--border)] p-3"
                   key={line.key}
@@ -706,22 +809,31 @@ function CartSheet({
                         </small>
                       ) : null}
                       <small className="text-[var(--muted)]">
-                        {formatPrice(effectivePrice(product, variant), product.currency)}
+                        {formatPrice(unitCents, product.currency)} l’unité
                       </small>
                     </span>
                     <strong className="whitespace-nowrap text-[var(--primary)]">
-                      {formatPrice(
-                        effectivePrice(product, variant) * line.quantity,
-                        product.currency,
-                      )}
+                      {formatPrice(unitCents * line.quantity, product.currency)}
                     </strong>
                   </div>
+                  {product.variants.length > 0 ? (
+                    <CartLineVariantSelect
+                      line={line}
+                      onChange={(variantId) => onUpdateLineVariant(line.key, variantId)}
+                      product={product}
+                      variant={variant}
+                    />
+                  ) : null}
                   <div className="flex items-center justify-between gap-2">
                     <QuantityControl
+                      max={max}
                       min={1}
                       onChange={(quantity) => onUpdateLine(line.key, quantity)}
                       quantity={line.quantity}
                     />
+                    <span className="text-xs text-[var(--muted)]">
+                      {line.quantity} × {formatPrice(unitCents, product.currency)}
+                    </span>
                     <Button
                       aria-label="Retirer du panier"
                       onClick={() => onRemoveLine(line.key)}
@@ -733,7 +845,8 @@ function CartSheet({
                     </Button>
                   </div>
                 </div>
-              ))
+                );
+              })
             ) : (
               <p className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--muted)]">
                 Choisissez une variation puis cliquez sur Ajouter.
@@ -775,6 +888,64 @@ function CartSheet({
   );
 }
 
+function CartLineVariantSelect({
+  line,
+  onChange,
+  product,
+  variant,
+}: {
+  line: CartLine;
+  onChange: (variantId: string | null) => void;
+  product: ProductView;
+  variant: ProductVariantView | null;
+}) {
+  const productSizes = sizesFor(product);
+  const selectedVariant = variant ?? findDefaultVariant(product);
+  const selectedSize = selectedVariant?.size ?? productSizes[0] ?? "";
+  const cutOptions = selectedSize ? cutsFor(product, selectedSize) : [];
+  const hasCuts = cutOptions.some((item) => Boolean(item.cut));
+
+  function selectSize(size: string) {
+    const nextVariant = cutsFor(product, size)[0] ?? null;
+    onChange(nextVariant?.id ?? null);
+  }
+
+  return (
+    <div className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 sm:grid-cols-2">
+      <label className="grid gap-1 text-xs font-bold text-[var(--primary)]">
+        Taille
+        <NativeSelect
+          name={`cartSize-${line.key}`}
+          onChange={(event) => selectSize(event.target.value)}
+          value={selectedSize}
+        >
+          {productSizes.map((size) => (
+            <NativeSelectOption key={size} value={size}>
+              {size}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </label>
+      {hasCuts ? (
+        <label className="grid gap-1 text-xs font-bold text-[var(--primary)]">
+          Coupe
+          <NativeSelect
+            name={`cartCut-${line.key}`}
+            onChange={(event) => onChange(event.target.value)}
+            value={selectedVariant?.id ?? cutOptions[0]?.id ?? ""}
+          >
+            {cutOptions.map((item) => (
+              <NativeSelectOption key={item.id} value={item.id}>
+                {item.cut ?? "Standard"}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </label>
+      ) : null}
+    </div>
+  );
+}
+
 export function StoreProductDetailReservationClient({
   disabled,
   product,
@@ -787,6 +958,7 @@ export function StoreProductDetailReservationClient({
   initialUser?: StoreInitialUser | null;
 }) {
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [cartPulseKey, setCartPulseKey] = useState(0);
   const detailPriceSummary = priceSummary(product);
   const totalCents = cartLines.reduce((total, line) => {
     const variant = line.variantId
@@ -796,11 +968,12 @@ export function StoreProductDetailReservationClient({
   }, 0);
 
   function addToCart(variantId: string | null, quantity: number) {
-    const key = `${product.id}:${variantId ?? "base"}`;
+    const key = cartLineKey(product.id, variantId);
     const variant = variantId
       ? product.variants.find((item) => item.id === variantId) ?? null
       : null;
-    const max = Math.min(50, variant?.stockQuantity ?? product.stockQuantity ?? 50);
+    const max = stockLimit(product, variant);
+    if (max < 1) return;
 
     setCartLines((current) => {
       const existing = current.find((line) => line.key === key);
@@ -822,14 +995,59 @@ export function StoreProductDetailReservationClient({
         },
       ];
     });
+    setCartPulseKey((current) => current + 1);
   }
 
   function updateCartLine(key: string, quantity: number) {
     setCartLines((current) =>
-      current.map((line) =>
-        line.key === key ? { ...line, quantity: Math.max(1, quantity) } : line,
-      ),
+      current.map((line) => {
+        if (line.key !== key) return line;
+        const variant = line.variantId
+          ? product.variants.find((item) => item.id === line.variantId) ?? null
+          : null;
+        const max = stockLimit(product, variant);
+
+        return { ...line, quantity: Math.min(max, Math.max(1, quantity)) };
+      }),
     );
+    setCartPulseKey((current) => current + 1);
+  }
+
+  function updateCartLineVariant(key: string, variantId: string | null) {
+    setCartLines((current) => {
+      const line = current.find((item) => item.key === key);
+      if (!line) return current;
+
+      const variant = variantId
+        ? product.variants.find((item) => item.id === variantId) ?? null
+        : null;
+      const nextKey = cartLineKey(product.id, variant?.id ?? null);
+      const max = stockLimit(product, variant);
+      const nextQuantity = Math.min(max, line.quantity);
+      const duplicate = current.find((item) => item.key === nextKey);
+
+      if (duplicate && duplicate.key !== key) {
+        return current
+          .filter((item) => item.key !== key)
+          .map((item) =>
+            item.key === duplicate.key
+              ? { ...item, quantity: Math.min(max, item.quantity + nextQuantity) }
+              : item,
+          );
+      }
+
+      return current.map((item) =>
+        item.key === key
+          ? {
+              ...item,
+              key: nextKey,
+              variantId: variant?.id ?? null,
+              quantity: nextQuantity,
+            }
+          : item,
+      );
+    });
+    setCartPulseKey((current) => current + 1);
   }
 
   function removeCartLine(key: string) {
@@ -854,7 +1072,9 @@ export function StoreProductDetailReservationClient({
             initialUser={initialUser}
             onRemoveLine={removeCartLine}
             onUpdateLine={updateCartLine}
+            onUpdateLineVariant={updateCartLineVariant}
             products={[product]}
+            pulseKey={cartPulseKey}
             storefront={storefront}
             totalCents={totalCents}
           />
@@ -965,6 +1185,8 @@ export function StoreProductReservationPanel({
   const cutOptions = size ? cutsFor(product, size) : [];
   const selectedVariant = findVariant(product, size, variantId);
   const hasVariants = product.variants.length > 0;
+  const maxQuantity = stockLimit(product, hasVariants ? selectedVariant : null);
+  const safeQuantity = Math.min(maxQuantity || 1, quantity);
 
   function selectSize(nextSize: string) {
     const nextVariant = cutsFor(product, nextSize)[0] ?? null;
@@ -976,7 +1198,7 @@ export function StoreProductReservationPanel({
     <>
       <input name="cartProductId" type="hidden" value={product.id} />
       <input name="cartVariantId" type="hidden" value={selectedVariant?.id ?? ""} />
-      <input name="cartQuantity" type="hidden" value={quantity} />
+      <input name="cartQuantity" type="hidden" value={safeQuantity} />
       {hasVariants ? (
         <VariantSelector
           cutOptions={cutOptions}
@@ -991,9 +1213,10 @@ export function StoreProductReservationPanel({
         <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
         <QuantityControl
           disabled={disabled}
+          max={maxQuantity}
           min={1}
           onChange={setQuantity}
-          quantity={quantity}
+          quantity={safeQuantity}
         />
       </div>
     </>
@@ -1004,8 +1227,8 @@ export function StoreProductReservationPanel({
       <div className="grid gap-4">
         {controls}
         <Button
-          disabled={disabled || (hasVariants && !selectedVariant)}
-          onClick={() => onAddToCart?.(selectedVariant?.id ?? null, quantity)}
+          disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}
+          onClick={() => onAddToCart?.(selectedVariant?.id ?? null, safeQuantity)}
           type="button"
         >
           <ShoppingBag className="size-4" />
@@ -1024,7 +1247,7 @@ export function StoreProductReservationPanel({
         placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
         disabled={disabled}
       />
-      <Button disabled={disabled || (hasVariants && !selectedVariant)}>
+      <Button disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}>
         <ShoppingBag className="size-4" />
         {disabled ? "Réservations fermées" : "Envoyer la réservation"}
       </Button>
@@ -1035,21 +1258,24 @@ export function StoreProductReservationPanel({
 function QuantityControl({
   disabled,
   fullWidth = false,
+  max,
   min = 0,
   onChange,
   quantity,
 }: {
   disabled?: boolean;
   fullWidth?: boolean;
+  max?: number;
   min?: number;
   onChange: (quantity: number) => void;
   quantity: number;
 }) {
   const [animationKey, setAnimationKey] = useState(0);
   const canDecrease = quantity > min;
+  const canIncrease = max == null || quantity < max;
 
   function updateQuantity(nextQuantity: number) {
-    const next = Math.max(min, nextQuantity);
+    const next = Math.min(max ?? Number.MAX_SAFE_INTEGER, Math.max(min, nextQuantity));
 
     if (next > quantity) {
       setAnimationKey((current) => current + 1);
@@ -1086,6 +1312,7 @@ function QuantityControl({
       </Button>
       <Input
         className="h-9 w-full border-0 p-0 text-center text-sm font-bold tabular-nums"
+        max={max}
         min={min}
         onChange={(event) => updateQuantity(Number(event.target.value) || min)}
         disabled={disabled}
@@ -1095,7 +1322,7 @@ function QuantityControl({
       <Button
         aria-label="Ajouter"
         onClick={() => updateQuantity(quantity + 1)}
-        disabled={disabled}
+        disabled={disabled || !canIncrease}
         size="icon-sm"
         type="button"
         variant="ghost"
