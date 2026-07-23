@@ -14,6 +14,22 @@ function escapePdfText(value: string) {
   return value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
 }
 
+// Nom de fichier propre pour le téléchargement, à partir du titre du feuillet.
+function pdfFileName(base: string) {
+  const cleaned = base
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${cleaned || "dvar-torah"}.pdf`;
+}
+
+function contentDisposition(fileName: string, download: boolean) {
+  return `${download ? "attachment" : "inline"}; filename="${fileName}"`;
+}
+
 function createPdf(title: string) {
   const lines = [
     title,
@@ -52,10 +68,12 @@ function createPdf(title: string) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+  // ?download=1 force le téléchargement ; sinon le PDF s'ouvre dans le navigateur.
+  const download = new URL(request.url).searchParams.get("download") === "1";
   const dbFile = await prisma.dvarTorahFile.findUnique({
     where: { slug },
   });
@@ -69,12 +87,17 @@ export async function GET(
       return NextResponse.json({ message: "Fichier introuvable." }, { status: 404 });
     }
 
-    const file = await getFileFromS3(dbFile.fileKey);
+    let file;
+    try {
+      file = await getFileFromS3(dbFile.fileKey);
+    } catch {
+      return NextResponse.json({ message: "Fichier introuvable." }, { status: 404 });
+    }
 
     return new NextResponse(file.body, {
       headers: {
         "Content-Type": dbFile.mimeType || file.contentType || "application/pdf",
-        "Content-Disposition": `inline; filename="${slug}.pdf"`,
+        "Content-Disposition": contentDisposition(pdfFileName(dbFile.title), download),
         ...(file.contentLength
           ? { "Content-Length": String(file.contentLength) }
           : {}),
@@ -91,7 +114,7 @@ export async function GET(
   return new NextResponse(createPdf(title), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${slug}.pdf"`,
+      "Content-Disposition": contentDisposition(pdfFileName(title), download),
     },
   });
 }

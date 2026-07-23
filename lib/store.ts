@@ -20,6 +20,34 @@ export function readStorePrice(value: FormDataEntryValue | null) {
   return Math.round(amount * 100);
 }
 
+// Prix effectif d'une variation : son prix propre s'il est renseigné, sinon le
+// prix de base du produit (cas « prix identique pour toutes les variations »).
+export function variantEffectivePrice(
+  basePriceCents: number,
+  variantPriceCents: number | null | undefined,
+) {
+  return variantPriceCents ?? basePriceCents;
+}
+
+// Résume la plage de prix d'un produit selon ses variations, pour afficher
+// « à partir de » lorsque les variations n'ont pas toutes le même prix.
+export function productPriceSummary(product: {
+  priceCents: number;
+  variants: Array<{ priceCents: number | null }>;
+}) {
+  if (product.variants.length === 0) {
+    return { min: product.priceCents, max: product.priceCents, varies: false };
+  }
+
+  const prices = product.variants.map((variant) =>
+    variantEffectivePrice(product.priceCents, variant.priceCents),
+  );
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+
+  return { min, max, varies: min !== max };
+}
+
 export async function ensureDefaultStorefront() {
   const existing = await prisma.storefront.findUnique({
     where: { slug: "boutique" },

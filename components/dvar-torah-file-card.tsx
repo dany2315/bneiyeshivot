@@ -77,7 +77,7 @@ export function DvarTorahFileCard({
             </Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
-            <a href={href} download>
+            <a href={`${href}?download=1`} download>
               <Download className="size-4" />
               Télécharger
             </a>
