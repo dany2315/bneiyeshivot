@@ -816,7 +816,7 @@ function CartSheet({
             Aucun paiement en ligne. L’équipe confirme ensuite.
           </SheetDescription>
         </SheetHeader>
-        <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pb-4">
+        <form action={createStoreReservation} className="grid min-w-0 gap-4 px-4 pt-0 ">
           {cartItems.map(({ line }) => (
             <div key={`hidden-${line.key}`}>
               <input name="cartProductId" type="hidden" value={line.productId} />
@@ -825,7 +825,7 @@ function CartSheet({
             </div>
           ))}
 
-          <div className="grid gap-2">
+          <div className="grid gap-2 pt-0">
             {cartItems.length > 0 ? (
               cartItems.map(({ line, product, variant }) => {
                 const unitCents = effectivePrice(product, variant);
@@ -834,7 +834,7 @@ function CartSheet({
 
                 return (
                 <div
-                  className="relative grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 pr-12 shadow-sm"
+                  className="relative grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm"
                   key={line.key}
                 >
                   <Button
@@ -862,12 +862,12 @@ function CartSheet({
                         </span>
                       )}
                     </div>
-                    <span className="min-w-0 self-center">
+                    <span className="min-w-0 self-center pr-12">
                       <strong className="block truncate text-sm text-[var(--primary)] sm:text-base">
                         {product.title}
                       </strong>
                       {variant ? (
-                        <small className="block truncate text-[var(--muted)]">
+                        <small className="block truncate text-[var(--muted)] font-bold ">
                           {variantLabel(variant)}
                         </small>
                       ) : null}
@@ -875,9 +875,6 @@ function CartSheet({
                         {formatPrice(unitCents, product.currency)} l’unité
                       </small>
                     </span>
-                    <strong className="col-span-2 whitespace-nowrap text-right text-lg text-[var(--primary)] sm:col-span-1 sm:self-center sm:text-base">
-                      {formatPrice(unitCents * line.quantity, product.currency)}
-                    </strong>
                   </div>
                   {product.variants.length > 0 ? (
                     <CartLineVariantSelect
@@ -887,16 +884,16 @@ function CartSheet({
                       variant={variant}
                     />
                   ) : null}
-                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                  <div className="flex justify-between min-w-0 items-center gap-2">
                     <QuantityControl
                       max={max}
                       min={1}
                       onChange={(quantity) => onUpdateLine(line.key, quantity)}
                       quantity={line.quantity}
                     />
-                    <span className="min-w-0 truncate text-right text-xs text-[var(--muted)]">
-                      {line.quantity} x {formatPrice(unitCents, product.currency)}
-                    </span>
+                    <strong className="col-span-2 whitespace-nowrap text-right text-lg text-[var(--primary)] sm:col-span-1 sm:self-center sm:text-base">
+                      {formatPrice(unitCents * line.quantity, product.currency)}
+                    </strong>
                   </div>
                 </div>
                 );

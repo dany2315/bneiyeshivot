@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "../../components";
 import benHazmanimGallery from "@/public/programmes/ben-azmanim/gallery.json";
+import bethHamidrachGallery from "@/public/programmes/beth-hamidrach/gallery.json";
 import { getProgram, programmes } from "../programmes";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -94,9 +95,18 @@ type ProgramDetail = {
   };
 };
 
+type ProgramGallery = {
+  items: Array<{
+    key: string;
+  }>;
+};
+
 const benHazmanimShortUrl =
   "https://www.youtube-nocookie.com/embed/kuM2P0GIs8o?rel=0&modestbranding=1&playsinline=1";
-const benHazmanimPhotos = benHazmanimGallery.items
+const benHazmanimPhotos = (benHazmanimGallery as ProgramGallery).items
+  .map((item) => fileUrl(item.key))
+  .filter((src): src is string => Boolean(src));
+const bethHamidrachPhotos = (bethHamidrachGallery as ProgramGallery).items
   .map((item) => fileUrl(item.key))
   .filter((src): src is string => Boolean(src));
 
@@ -735,6 +745,110 @@ function ProgramVisualGallery() {
   );
 }
 
+function ProgramPhotoGallery({
+  description,
+  photos,
+  title,
+}: {
+  description: string;
+  photos: string[];
+  title: string;
+}) {
+  if (!photos.length) {
+    return null;
+  }
+
+  return (
+    <section className="section band">
+      <div className="container">
+        <div className="section-header">
+          <div>
+            <span className="eyebrow">Galerie</span>
+            <h2>{title}</h2>
+          </div>
+          <p>{description}</p>
+        </div>
+
+        <Dialog>
+          <DialogTrigger
+            render={<button className="gallery-card-trigger" type="button" />}
+          >
+            <Card className="gallery-card">
+              <div className="gallery-card-mosaic">
+                {photos.slice(0, 5).map((photo, photoIndex) => (
+                  <div
+                    className={
+                      photoIndex === 0
+                        ? "gallery-mosaic-cell gallery-mosaic-main"
+                        : "gallery-mosaic-cell"
+                    }
+                    key={photo}
+                  >
+                    <Image
+                      alt=""
+                      fill
+                      sizes="(max-width: 980px) 50vw, 20vw"
+                      src={photo}
+                    />
+                  </div>
+                ))}
+              </div>
+              <CardHeader>
+                <Badge variant="info">{photos.length} photos</Badge>
+                <CardTitle>Galerie photos</CardTitle>
+                <CardDescription>{description}</CardDescription>
+              </CardHeader>
+            </Card>
+          </DialogTrigger>
+          <DialogContent
+            className="gallery-dialog-content max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl"
+            showCloseButton={false}
+          >
+            <DialogHeader className="gallery-dialog-header">
+              <div>
+                <DialogTitle>Galerie photos</DialogTitle>
+                <DialogDescription>
+                  {photos.length === 1
+                    ? "1 photo du programme."
+                    : `${photos.length} photos du programme.`}
+                </DialogDescription>
+              </div>
+              <DialogClose
+                render={
+                  <Button aria-label="Fermer" variant="ghost" size="icon-sm" />
+                }
+              >
+                <XIcon className="size-4" />
+              </DialogClose>
+            </DialogHeader>
+            <div className="gallery-dialog-scroll">
+              <div className="gallery-dialog-grid">
+                {photos.map((photo, photoIndex) => (
+                  <div
+                    className={
+                      photoIndex === 0
+                        ? "gallery-dialog-photo gallery-dialog-photo-featured"
+                        : "gallery-dialog-photo"
+                    }
+                    key={photo}
+                  >
+                    <Image
+                      alt=""
+                      fill
+                      sizes="(max-width: 980px) 50vw, 25vw"
+                      src={photo}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </section>
+  );
+}
+
 export default async function ProgramDetailPage({
   params,
 }: ProgramDetailPageProps) {
@@ -966,6 +1080,14 @@ export default async function ProgramDetailPage({
 
         {slug === "ben-hazmanim" ? (
           <ProgramVisualGallery />
+        ) : null}
+
+        {slug === "beth-hamidrach" ? (
+          <ProgramPhotoGallery
+            description="Seder Limoud, Vaad, Kumzitz et moments de partage."
+            photos={bethHamidrachPhotos}
+            title="Photos du Beth Hamidrach"
+          />
         ) : null}
 
         {detail.flow?.length ? (
