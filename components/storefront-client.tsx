@@ -834,9 +834,19 @@ function CartSheet({
 
                 return (
                 <div
-                  className="grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm"
+                  className="relative grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 pr-12 shadow-sm"
                   key={line.key}
                 >
+                  <Button
+                    aria-label="Retirer du panier"
+                    className="absolute right-2 top-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
+                    onClick={() => onRemoveLine(line.key)}
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
                   <div className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] gap-3 sm:grid-cols-[64px_minmax(0,1fr)_auto]">
                     <div className="flex size-14 overflow-hidden rounded-lg bg-[var(--subtle)] sm:size-16">
                       {imageSrc ? (
@@ -887,16 +897,6 @@ function CartSheet({
                     <span className="min-w-0 truncate text-right text-xs text-[var(--muted)]">
                       {line.quantity} x {formatPrice(unitCents, product.currency)}
                     </span>
-                    <Button
-                      aria-label="Retirer du panier"
-                      className="col-start-2 justify-self-end"
-                      onClick={() => onRemoveLine(line.key)}
-                      size="icon-sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
                   </div>
                 </div>
                 );
@@ -965,10 +965,17 @@ function CartLineVariantSelect({
   }
 
   return (
-    <div className="grid gap-2 rounded-lg bg-[var(--subtle)] p-2 sm:grid-cols-2">
-      <label className="grid gap-1 text-xs font-bold text-[var(--primary)]">
-        Taille
+    <div
+      className={`grid gap-2 rounded-lg bg-[var(--subtle)] p-2 ${
+        hasCuts ? "grid-cols-2" : ""
+      }`}
+    >
+      <label className="grid min-w-0 gap-1 text-xs font-bold text-[var(--primary)]">
+        <span>
+          Taille : <strong>{selectedSize}</strong>
+        </span>
         <NativeSelect
+          className="font-bold"
           name={`cartSize-${line.key}`}
           onChange={(event) => selectSize(event.target.value)}
           value={selectedSize}
@@ -981,8 +988,10 @@ function CartLineVariantSelect({
         </NativeSelect>
       </label>
       {hasCuts ? (
-        <label className="grid gap-1 text-xs font-bold text-[var(--primary)]">
-          Coupe
+        <label className="grid min-w-0 gap-1 text-xs font-bold text-[var(--primary)]">
+          <span>
+            Coupe : <strong>{selectedVariant?.cut ?? "Standard"}</strong>
+          </span>
           <NativeSelect
             name={`cartCut-${line.key}`}
             onChange={(event) => onChange(event.target.value)}
