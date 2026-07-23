@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { type FormEvent, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Calendar,
@@ -415,6 +415,7 @@ export function RequestStepForm({
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const isFirstStepRender = useRef(true);
   const [step, setStep] = useState(0);
   const [personStatus, setPersonStatus] = useState("");
   const [koupatProgram, setKoupatProgram] = useState("");
@@ -431,6 +432,28 @@ export function RequestStepForm({
   >({});
   const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step]);
+
+  // À chaque changement d'étape (Continuer, Retour ou clic sur le stepper),
+  // on ramène l'utilisateur en haut du formulaire plutôt que de conserver la
+  // position de défilement, qui laissait souvent voir le bas de l'étape.
+  useEffect(() => {
+    if (isFirstStepRender.current) {
+      isFirstStepRender.current = false;
+      return;
+    }
+
+    const node = formRef.current;
+
+    if (!node || typeof window === "undefined") {
+      return;
+    }
+
+    const headerOffset = 90;
+    const top = window.scrollY + node.getBoundingClientRect().top - headerOffset;
+
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [step]);
+
   const isVisa = type === "visa";
   const isKoupat = type === "koupat";
   const title = type === "visa" ? "Visa étudiant" : "Koupat Holim";
