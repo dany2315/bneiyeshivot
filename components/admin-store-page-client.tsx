@@ -205,6 +205,10 @@ function errorMessage(error: unknown) {
     : "Une erreur est survenue. Réessayez.";
 }
 
+function normalizedVariantLabel(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLocaleLowerCase("fr-FR");
+}
+
 async function uploadProductImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("files", file);
@@ -947,7 +951,7 @@ function ProductVariantConfigurator({
   );
 
   function variantKey(size: string, cut: string) {
-    return `${size.toLowerCase()}::${cut.toLowerCase()}`;
+    return `${normalizedVariantLabel(size)}::${normalizedVariantLabel(cut)}`;
   }
 
   const variantByKey = useMemo(() => {
@@ -961,11 +965,11 @@ function ProductVariantConfigurator({
   const availableSizes = useMemo(() => {
     const map = new Map<string, VariantOptionView>();
     for (const option of variantOptions.sizes) {
-      if (option.active) map.set(option.label.toLowerCase(), option);
+      if (option.active) map.set(normalizedVariantLabel(option.label), option);
     }
     for (const variant of variants) {
       if (!variant.size) continue;
-      const key = variant.size.toLowerCase();
+      const key = normalizedVariantLabel(variant.size);
       if (!map.has(key)) {
         map.set(key, {
           id: `variant-size-${variant.size}`,
@@ -983,11 +987,11 @@ function ProductVariantConfigurator({
   const availableCuts = useMemo(() => {
     const map = new Map<string, VariantOptionView>();
     for (const option of variantOptions.cuts) {
-      if (option.active) map.set(option.label.toLowerCase(), option);
+      if (option.active) map.set(normalizedVariantLabel(option.label), option);
     }
     for (const variant of variants) {
       if (!variant.cut) continue;
-      const key = variant.cut.toLowerCase();
+      const key = normalizedVariantLabel(variant.cut);
       if (!map.has(key)) {
         map.set(key, {
           id: `variant-cut-${variant.cut}`,
@@ -1097,16 +1101,22 @@ function ProductVariantConfigurator({
   }
 
   function toggleCut(cut: string, active: boolean) {
+    const normalizedCut = normalizedVariantLabel(cut);
+
     setSelectedCuts((current) =>
       active
-        ? Array.from(new Set([...current, cut]))
-        : current.filter((item) => item !== cut),
+        ? current.some((item) => normalizedVariantLabel(item) === normalizedCut)
+          ? current
+          : [...current, cut]
+        : current.filter((item) => normalizedVariantLabel(item) !== normalizedCut),
     );
 
     if (!active) {
       onVariantsChange((current) =>
         current.map((variant) =>
-          variant.cut === cut ? { ...variant, active: false } : variant,
+          normalizedVariantLabel(variant.cut) === normalizedCut
+            ? { ...variant, active: false }
+            : variant,
         ),
       );
     }
@@ -1241,7 +1251,11 @@ function ProductVariantConfigurator({
           ) : (
             <div className="flex flex-wrap gap-2">
               {availableCuts.map((cut) => {
-                const checked = selectedCuts.includes(cut.label);
+                const checked = selectedCuts.some(
+                  (selectedCut) =>
+                    normalizedVariantLabel(selectedCut) ===
+                    normalizedVariantLabel(cut.label),
+                );
 
                 return (
                   <label

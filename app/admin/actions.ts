@@ -109,6 +109,17 @@ function splitLines(value: string) {
     .filter(Boolean);
 }
 
+function splitOptionLines(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
+
+function normalizedVariantLabel(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLocaleLowerCase("fr-FR");
+}
+
 function readVideoUrls(formData: FormData) {
   return formData
     .getAll("videoUrls")
@@ -127,8 +138,12 @@ function readGalleryKeys(formData: FormData) {
 
 function readStoreProductVariants(formData: FormData) {
   const ids = formData.getAll("variantId").map((value) => String(value).trim());
-  const sizes = formData.getAll("variantSize").map((value) => String(value).trim());
-  const cuts = formData.getAll("variantCut").map((value) => String(value).trim());
+  const sizes = formData
+    .getAll("variantSize")
+    .map((value) => String(value).replace(/\s+/g, " ").trim());
+  const cuts = formData
+    .getAll("variantCut")
+    .map((value) => String(value).replace(/\s+/g, " ").trim());
   const stocks = formData
     .getAll("variantStockQuantity")
     .map((value) => String(value).trim());
@@ -164,7 +179,7 @@ function validateStoreProductVariants(
   const keys = new Set<string>();
 
   for (const variant of variants) {
-    const key = `${variant.size.toLowerCase()}::${(variant.cut ?? "").toLowerCase()}`;
+    const key = `${normalizedVariantLabel(variant.size)}::${normalizedVariantLabel(variant.cut ?? "")}`;
     if (keys.has(key)) {
       throw new Error("Chaque variation taille/coupe doit être unique.");
     }
@@ -173,11 +188,11 @@ function validateStoreProductVariants(
 }
 
 function readStoreVariantOptionLabels(formData: FormData, key: string) {
-  const labels = splitLines(readString(formData, key));
+  const labels = splitOptionLines(readString(formData, key));
   const seen = new Set<string>();
 
   return labels.filter((label) => {
-    const normalized = label.toLowerCase();
+    const normalized = normalizedVariantLabel(label);
     if (seen.has(normalized)) return false;
     seen.add(normalized);
     return true;
@@ -194,11 +209,11 @@ async function syncStoreVariantOptions(
     where: { storefrontId, type },
   });
   const existingByLabel = new Map(
-    existingOptions.map((option) => [option.label.toLowerCase(), option]),
+    existingOptions.map((option) => [normalizedVariantLabel(option.label), option]),
   );
 
   for (const [sortOrder, label] of labels.entries()) {
-    const existing = existingByLabel.get(label.toLowerCase());
+    const existing = existingByLabel.get(normalizedVariantLabel(label));
 
     if (existing) {
       await tx.storeVariantOption.update({
