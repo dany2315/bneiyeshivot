@@ -74,8 +74,7 @@ export const programmes: Program[] = [
       "Un projet qui fédère des Kehilot, des Rabbanim et des centaines de Bahourim autour d’une même vision : offrir à chaque jeune un véritable Makom Torah pendant les vacances.",
     focusLabel: "Le réseau",
     ctaLabel: "Découvrir le réseau Ben Hazmanim",
-    image:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1100&q=82",
+    image: "/programmes/ben-hazmanim.jpeg",
     href: "/programme/ben-hazmanim",
     Icon: Sparkles,
     actions: [
@@ -112,8 +111,7 @@ export const programmes: Program[] = [
       "Talmoudo Beyado encourage l’étude régulière, la révision et la progression personnelle à travers des objectifs, des examens et un suivi sérieux.",
     focusLabel: "Le programme comprend",
     ctaLabel: "Découvrir Talmoudo Beyado",
-    image:
-      "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1100&q=82",
+    image: "/programmes/talmoudo-beyado.jpeg",
     href: "/programme/talmoudo-beyado",
     Icon: ClipboardCheck,
     actions: [
@@ -144,8 +142,7 @@ export const programmes: Program[] = [
       "Un Chabbat qui rassemble, une expérience qui marque, une communauté qui se construit.",
     focusLabel: "Au programme",
     ctaLabel: "Découvrir Chabbat Plein",
-    image:
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1100&q=82",
+    image: "/programmes/shabbat-plein.jpeg",
     href: "/programme/shabbatot",
     Icon: Users,
     actions: [
