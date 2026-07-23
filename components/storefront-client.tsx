@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { createStoreReservation } from "@/app/boutique/actions";
 import { PhoneInputGroup } from "@/components/phone-input-group";
@@ -79,6 +78,8 @@ type CartLine = {
   quantity: number;
 };
 
+const storeCartStorageKey = "bnei-store-cart";
+
 export type StoreInitialUser = {
   email?: string | null;
   firstName?: string | null;
@@ -147,6 +148,37 @@ function cartLineKey(productId: string, variantId: string | null) {
   return `${productId}:${variantId ?? "base"}`;
 }
 
+function readStoredCartLines() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(storeCartStorageKey) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(
+      (line): line is CartLine =>
+        typeof line?.key === "string" &&
+        typeof line.productId === "string" &&
+        (typeof line.variantId === "string" || line.variantId == null) &&
+        Number.isFinite(line.quantity) &&
+        line.quantity > 0,
+    );
+  } catch {
+    return [];
+  }
+}
+
+function storeCartLines(cartLines: CartLine[]) {
+  if (typeof window === "undefined") return;
+
+  if (cartLines.length === 0) {
+    window.sessionStorage.removeItem(storeCartStorageKey);
+    return;
+  }
+
+  window.sessionStorage.setItem(storeCartStorageKey, JSON.stringify(cartLines));
+}
+
 export function StorefrontClient({
   initialUser,
   products,
@@ -158,9 +190,12 @@ export function StorefrontClient({
   reservationOk: boolean;
   storefront: StorefrontView;
 }) {
-  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [cartLines, setCartLines] = useState<CartLine[]>(() =>
+    reservationOk ? [] : readStoredCartLines(),
+  );
   const [cartPulseKey, setCartPulseKey] = useState(0);
-  const totalCents = cartLines.reduce((total, line) => {
+  const visibleCartLines = reservationOk ? [] : cartLines;
+  const totalCents = visibleCartLines.reduce((total, line) => {
     const product = products.find((item) => item.id === line.productId);
     if (!product) return total;
     const variant = line.variantId
@@ -169,8 +204,20 @@ export function StorefrontClient({
     return total + effectivePrice(product, variant) * line.quantity;
   }, 0);
   const currency =
-    products.find((product) => product.id === cartLines[0]?.productId)?.currency ??
+    products.find((product) => product.id === visibleCartLines[0]?.productId)?.currency ??
     "ILS";
+
+  useEffect(() => {
+    if (reservationOk) {
+      storeCartLines([]);
+    }
+  }, [reservationOk]);
+
+  useEffect(() => {
+    if (!reservationOk) {
+      storeCartLines(cartLines);
+    }
+  }, [cartLines, reservationOk]);
 
   function addToCart(product: ProductView, variantId: string | null, quantity = 1) {
     const key = cartLineKey(product.id, variantId);
@@ -273,7 +320,7 @@ export function StorefrontClient({
             </small>
           </div>
           <CartSheet
-            cartLines={cartLines}
+            cartLines={visibleCartLines}
             currency={currency}
             initialUser={initialUser}
             onRemoveLine={removeCartLine}
@@ -354,20 +401,14 @@ function ProductCard({
   onAddToCart: (product: ProductView, variantId: string | null, quantity?: number) => void;
   product: ProductView;
 }) {
-  const router = useRouter();
   const productSizes = sizesFor(product);
   return (
-    <Card
-      className="cursor-pointer overflow-hidden py-0 transition hover:-translate-y-0.5 hover:shadow-lg"
-      onClick={() => router.push(`/boutique/${product.slug}`)}
-    >
-      <div onClick={(event) => event.stopPropagation()}>
-        <StoreProductImageDialog
-          imageUrl={product.imageUrl}
-          imageUrls={product.imageUrls}
-          title={product.title}
-        />
-      </div>
+    <Card className="overflow-hidden py-0 transition hover:-translate-y-0.5 hover:shadow-lg">
+      <StoreProductImageDialog
+        imageUrl={product.imageUrl}
+        imageUrls={product.imageUrls}
+        title={product.title}
+      />
       <CardHeader className="gap-2 px-3 py-2 md:px-4 md:py-3">
         {product.featured ? (
           <Badge className="w-fit" variant="success">
@@ -378,7 +419,6 @@ function ProductCard({
           <Link
             className="hover:text-[var(--accent)]"
             href={`/boutique/${product.slug}`}
-            onClick={(event) => event.stopPropagation()}
           >
             {product.title}
           </Link>
@@ -386,17 +426,13 @@ function ProductCard({
         {productSizes.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {productSizes.slice(0, 5).map((item) => (
-              <button
+              <Link
                 className="rounded-md border border-[var(--border)] px-2 py-1 text-xs font-bold text-[var(--primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                href={`/boutique/${product.slug}`}
                 key={item}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  router.push(`/boutique/${product.slug}`);
-                }}
-                type="button"
               >
                 {item}
-              </button>
+              </Link>
             ))}
           </div>
         ) : null}
@@ -543,7 +579,6 @@ function ProductAddButton({
       </DrawerTrigger>
       <DrawerContent className="max-h-[85vh] sm:max-w-md">
         <ProductOptionDrawerContent
-          ignoreSwipeOnOptions={!fixed}
           onAdd={(variantId, quantity) => {
             onAdd(variantId, quantity);
             window.setTimeout(() => setOpen(false), 520);
@@ -556,11 +591,9 @@ function ProductAddButton({
 }
 
 function ProductOptionDrawerContent({
-  ignoreSwipeOnOptions = false,
   onAdd,
   product,
 }: {
-  ignoreSwipeOnOptions?: boolean;
   onAdd: (variantId: string | null, quantity: number) => void;
   product: ProductView;
 }) {
@@ -598,9 +631,6 @@ function ProductOptionDrawerContent({
   const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
   const maxQuantity = stockLimit(product, selectedVariant);
   const safeQuantity = Math.min(maxQuantity || 1, quantity);
-  const swipeIgnoreProps = ignoreSwipeOnOptions
-    ? { "data-base-ui-swipe-ignore": "" }
-    : {};
 
   function selectCut(nextCut: string) {
     const nextVariant =
@@ -634,7 +664,7 @@ function ProductOptionDrawerContent({
         {cuts.length > 0 ? (
           <div className="grid gap-2">
             <span className="text-sm font-bold text-[var(--primary)]">Coupe</span>
-            <div className="flex flex-wrap gap-2" {...swipeIgnoreProps}>
+            <div className="flex flex-wrap gap-2">
               {cuts.map((item) => (
                 <button
                   className={`rounded-full border px-3 py-1.5 text-sm font-bold transition ${
@@ -654,10 +684,7 @@ function ProductOptionDrawerContent({
         ) : null}
         <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Taille</span>
-          <div
-            className="-mx-4 overflow-x-auto px-4 pb-1"
-            {...swipeIgnoreProps}
-          >
+          <div className="-mx-4 overflow-x-auto px-4 pb-1">
             <div className="flex w-max min-w-full gap-2">
               {availableVariants.map((variant) => (
                 <button
@@ -679,7 +706,7 @@ function ProductOptionDrawerContent({
       </div>
       <Separator className="mt-4" />
       <DrawerFooter className="bg-popover pt-4">
-        <div className="grid gap-2" {...swipeIgnoreProps}>
+        <div className="grid gap-2">
           <span className="text-sm font-bold text-[var(--primary)]">Quantité</span>
           <QuantityControl
             fullWidth
@@ -803,25 +830,42 @@ function CartSheet({
               cartItems.map(({ line, product, variant }) => {
                 const unitCents = effectivePrice(product, variant);
                 const max = stockLimit(product, variant);
+                const imageSrc = fileUrl(product.imageUrls[0] ?? product.imageUrl ?? "");
 
                 return (
                 <div
-                  className="grid min-w-0 gap-3 rounded-lg border border-[var(--border)] p-3"
+                  className="grid min-w-0 gap-3 rounded-lg border border-[var(--border)] bg-white p-3 shadow-sm"
                   key={line.key}
                 >
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
-                    <span className="min-w-0">
-                      <strong className="block truncate">{product.title}</strong>
+                  <div className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] gap-3 sm:grid-cols-[64px_minmax(0,1fr)_auto]">
+                    <div className="flex size-14 overflow-hidden rounded-lg bg-[var(--subtle)] sm:size-16">
+                      {imageSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          alt=""
+                          className="h-full w-full object-cover"
+                          src={imageSrc}
+                        />
+                      ) : (
+                        <span className="grid h-full w-full place-items-center">
+                          <ShoppingBag className="size-5 text-[var(--primary)]" />
+                        </span>
+                      )}
+                    </div>
+                    <span className="min-w-0 self-center">
+                      <strong className="block truncate text-sm text-[var(--primary)] sm:text-base">
+                        {product.title}
+                      </strong>
                       {variant ? (
-                        <small className="block text-[var(--muted)]">
+                        <small className="block truncate text-[var(--muted)]">
                           {variantLabel(variant)}
                         </small>
                       ) : null}
-                      <small className="text-[var(--muted)]">
+                      <small className="block text-[var(--muted)]">
                         {formatPrice(unitCents, product.currency)} l’unité
                       </small>
                     </span>
-                    <strong className="whitespace-nowrap text-[var(--primary)]">
+                    <strong className="col-span-2 whitespace-nowrap text-right text-lg text-[var(--primary)] sm:col-span-1 sm:self-center sm:text-base">
                       {formatPrice(unitCents * line.quantity, product.currency)}
                     </strong>
                   </div>
@@ -833,18 +877,19 @@ function CartSheet({
                       variant={variant}
                     />
                   ) : null}
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <QuantityControl
                       max={max}
                       min={1}
                       onChange={(quantity) => onUpdateLine(line.key, quantity)}
                       quantity={line.quantity}
                     />
-                    <span className="text-xs text-[var(--muted)]">
-                      {line.quantity} × {formatPrice(unitCents, product.currency)}
+                    <span className="min-w-0 truncate text-right text-xs text-[var(--muted)]">
+                      {line.quantity} x {formatPrice(unitCents, product.currency)}
                     </span>
                     <Button
                       aria-label="Retirer du panier"
+                      className="col-start-2 justify-self-end"
                       onClick={() => onRemoveLine(line.key)}
                       size="icon-sm"
                       type="button"
@@ -966,7 +1011,7 @@ export function StoreProductDetailReservationClient({
   storefront: StorefrontView;
   initialUser?: StoreInitialUser | null;
 }) {
-  const [cartLines, setCartLines] = useState<CartLine[]>([]);
+  const [cartLines, setCartLines] = useState<CartLine[]>(readStoredCartLines);
   const [cartPulseKey, setCartPulseKey] = useState(0);
   const detailPriceSummary = priceSummary(product);
   const totalCents = cartLines.reduce((total, line) => {
@@ -975,6 +1020,10 @@ export function StoreProductDetailReservationClient({
       : null;
     return total + effectivePrice(product, variant) * line.quantity;
   }, 0);
+
+  useEffect(() => {
+    storeCartLines(cartLines);
+  }, [cartLines]);
 
   function addToCart(variantId: string | null, quantity: number) {
     const key = cartLineKey(product.id, variantId);
