@@ -1048,11 +1048,13 @@ function CartLineVariantSelect({
 
 export function StoreProductDetailReservationClient({
   disabled,
+  products,
   product,
   storefront,
   initialUser,
 }: {
   disabled?: boolean;
+  products: ProductView[];
   product: ProductView;
   storefront: StorefrontView;
   initialUser?: StoreInitialUser | null;
@@ -1061,11 +1063,16 @@ export function StoreProductDetailReservationClient({
   const [cartPulseKey, setCartPulseKey] = useState(0);
   const detailPriceSummary = priceSummary(product);
   const totalCents = cartLines.reduce((total, line) => {
+    const lineProduct = products.find((item) => item.id === line.productId);
+    if (!lineProduct) return total;
     const variant = line.variantId
-      ? product.variants.find((item) => item.id === line.variantId) ?? null
+      ? lineProduct.variants.find((item) => item.id === line.variantId) ?? null
       : null;
-    return total + effectivePrice(product, variant) * line.quantity;
+    return total + effectivePrice(lineProduct, variant) * line.quantity;
   }, 0);
+  const cartCurrency =
+    products.find((item) => item.id === cartLines[0]?.productId)?.currency ??
+    product.currency;
 
   useEffect(() => {
     storeCartLines(cartLines);
@@ -1106,10 +1113,12 @@ export function StoreProductDetailReservationClient({
     setCartLines((current) =>
       current.map((line) => {
         if (line.key !== key) return line;
+        const lineProduct = products.find((item) => item.id === line.productId);
+        if (!lineProduct) return line;
         const variant = line.variantId
-          ? product.variants.find((item) => item.id === line.variantId) ?? null
+          ? lineProduct.variants.find((item) => item.id === line.variantId) ?? null
           : null;
-        const max = stockLimit(product, variant);
+        const max = stockLimit(lineProduct, variant);
 
         return { ...line, quantity: Math.min(max, Math.max(1, quantity)) };
       }),
@@ -1122,11 +1131,14 @@ export function StoreProductDetailReservationClient({
       const line = current.find((item) => item.key === key);
       if (!line) return current;
 
+      const lineProduct = products.find((item) => item.id === line.productId);
+      if (!lineProduct) return current;
+
       const variant = variantId
-        ? product.variants.find((item) => item.id === variantId) ?? null
+        ? lineProduct.variants.find((item) => item.id === variantId) ?? null
         : null;
-      const nextKey = cartLineKey(product.id, variant?.id ?? null);
-      const max = stockLimit(product, variant);
+      const nextKey = cartLineKey(lineProduct.id, variant?.id ?? null);
+      const max = stockLimit(lineProduct, variant);
       const nextQuantity = Math.min(max, line.quantity);
       const duplicate = current.find((item) => item.key === nextKey);
 
@@ -1172,12 +1184,12 @@ export function StoreProductDetailReservationClient({
           </div>
           <CartSheet
             cartLines={cartLines}
-            currency={product.currency}
+            currency={cartCurrency}
             initialUser={initialUser}
             onRemoveLine={removeCartLine}
             onUpdateLine={updateCartLine}
             onUpdateLineVariant={updateCartLineVariant}
-            products={[product]}
+            products={products}
             pulseKey={cartPulseKey}
             storefront={storefront}
             totalCents={totalCents}

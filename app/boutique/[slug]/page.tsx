@@ -56,6 +56,35 @@ export default async function StoreProductPage({
     notFound();
   }
 
+  const products = await prisma.storeProduct.findMany({
+    where: { storefrontId: storefront.id, active: true },
+    include: {
+      variants: {
+        where: { active: true },
+        orderBy: [{ size: "asc" }, { cut: "asc" }],
+      },
+    },
+    orderBy: [{ featured: "desc" }, { createdAt: "asc" }],
+  });
+  const productViews = products.map((item) => ({
+    id: item.id,
+    title: item.title,
+    slug: item.slug,
+    description: item.description,
+    priceCents: item.priceCents,
+    currency: item.currency,
+    imageUrl: item.imageUrl,
+    imageUrls: item.imageUrls,
+    stockQuantity: item.stockQuantity,
+    featured: item.featured,
+    variants: item.variants.map((variant) => ({
+      id: variant.id,
+      size: variant.size,
+      cut: variant.cut,
+      priceCents: variant.priceCents,
+      stockQuantity: variant.stockQuantity,
+    })),
+  }));
   const productView = {
     id: product.id,
     title: product.title,
@@ -97,6 +126,7 @@ export default async function StoreProductPage({
       <StoreProductDetailReservationClient
         disabled={!storefront.active}
         initialUser={initialUser}
+        products={productViews}
         product={productView}
         storefront={storefrontView}
       />
