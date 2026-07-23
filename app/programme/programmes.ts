@@ -173,8 +173,7 @@ export const programmes: Program[] = [
       "Binian Adei Ad accompagne les jeunes francophones dans leur parcours vers la construction d’un foyer solide, avec un accompagnement sérieux basé sur les valeurs de la Torah.",
     focusLabel: "Accompagnement",
     ctaLabel: "Découvrir Binian Adei Ad",
-    image:
-      "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1100&q=82",
+    image: "/programmes/binian-adei-ad.jpeg",
     href: "/programme/bayit-neeman",
     Icon: HomeIcon,
     actions: [
@@ -205,8 +204,7 @@ export const programmes: Program[] = [
       "Chidoukhim propose un accompagnement basé sur l’écoute, la discrétion et la confiance pour aider les jeunes à avancer dans leur recherche de leur futur conjoint.",
     focusLabel: "Objectif",
     ctaLabel: "Découvrir le programme",
-    image:
-      "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1100&q=82",
+    image: "/programmes/chidoukhim.jpeg",
     href: "/programme/chidoukhim",
     Icon: Heart,
     actions: [
