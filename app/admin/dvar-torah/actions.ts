@@ -6,6 +6,13 @@ import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { uploadFileToS3 } from "@/lib/uploads";
 
+type UploadedDvarTorahFile = {
+  key: string;
+  url: string;
+  mimeType: string;
+  size: number;
+};
+
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -28,6 +35,36 @@ async function uniqueSlug(title: string) {
   return slug;
 }
 
+function uploadedFileFromFormData(formData: FormData): UploadedDvarTorahFile | null {
+  const key = String(formData.get("fileKey") ?? "").trim();
+  const url = String(formData.get("fileUrl") ?? "").trim();
+  const mimeType = String(formData.get("mimeType") ?? "").trim();
+  const rawSize = Number(formData.get("size") ?? 0);
+
+  if (!key && !url && !mimeType && !rawSize) {
+    return null;
+  }
+
+  if (!key.startsWith("dvar-torah/")) {
+    throw new Error("Fichier uploadé invalide.");
+  }
+
+  if (mimeType !== "application/pdf") {
+    throw new Error("Seuls les fichiers PDF sont acceptés.");
+  }
+
+  if (!Number.isFinite(rawSize) || rawSize <= 0) {
+    throw new Error("Fichier uploadé invalide.");
+  }
+
+  return {
+    key,
+    url,
+    mimeType,
+    size: Math.round(rawSize),
+  };
+}
+
 export async function createDvarTorahFile(formData: FormData) {
   await requireAdminUser();
 
@@ -35,6 +72,7 @@ export async function createDvarTorahFile(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const category = String(formData.get("category") ?? "");
   const file = formData.get("file");
+  const uploadedFile = uploadedFileFromFormData(formData);
   const published = formData.get("published") === "on";
 
   if (!title) {
@@ -45,18 +83,20 @@ export async function createDvarTorahFile(formData: FormData) {
     throw new Error("Catégorie invalide.");
   }
 
-  if (!(file instanceof File) || file.size === 0) {
+  if (!uploadedFile && (!(file instanceof File) || file.size === 0)) {
     throw new Error("Le fichier PDF est obligatoire.");
   }
 
-  if (file.type && file.type !== "application/pdf") {
-    throw new Error("Seuls les fichiers PDF sont acceptes.");
+  if (!uploadedFile && file instanceof File && file.type && file.type !== "application/pdf") {
+    throw new Error("Seuls les fichiers PDF sont acceptés.");
   }
 
-  const uploaded = await uploadFileToS3(file, "dvar-torah");
+  const uploaded = uploadedFile ?? (file instanceof File
+    ? await uploadFileToS3(file, "dvar-torah")
+    : null);
 
   if (!uploaded) {
-    throw new Error("Upload impossible.");
+    throw new Error("L’upload est impossible.");
   }
 
   await prisma.dvarTorahFile.create({
