@@ -102,6 +102,13 @@ const editableServiceRequestFields = [
   "personStatus",
 ] as const;
 
+function readRequestDocumentIds(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+}
+
 function splitLines(value: string) {
   return value
     .split(/\r?\n|,/)
@@ -314,6 +321,10 @@ export async function updateServiceRequest(formData: FormData) {
         field as (typeof editableServiceRequestFields)[number],
       ),
     );
+  const requestedDocumentIds = readRequestDocumentIds(
+    formData,
+    "requestedDocumentIds",
+  );
 
   if (!id || !Object.values(ServiceRequestStatus).includes(status)) {
     throw new Error("Demande ou statut invalide.");
@@ -330,8 +341,10 @@ export async function updateServiceRequest(formData: FormData) {
 
   if (status === ServiceRequestStatus.MISSING_DOCUMENTS) {
     nextPayload.__requestedFields = requestedFields;
+    nextPayload.__requestedDocumentIds = requestedDocumentIds;
   } else {
     delete nextPayload.__requestedFields;
+    delete nextPayload.__requestedDocumentIds;
   }
 
   const request = await prisma.serviceRequest.update({
@@ -464,7 +477,7 @@ export async function updateServiceRequestData(formData: FormData) {
 
   const request = await prisma.serviceRequest.findUnique({
     where: { id: requestId },
-    include: { user: true },
+    include: { documents: true, user: true },
   });
 
   if (!request) {
@@ -501,6 +514,51 @@ export async function updateServiceRequestData(formData: FormData) {
     request.type === ServiceRequestType.VISA_STUDENT
       ? values.personStatus
       : values.school;
+  const documentIds = readRequestDocumentIds(formData, "documentId");
+  const documentLabels = formData
+    .getAll("documentLabel")
+    .map((value) => String(value).trim());
+  const replacementFiles = formData.getAll("documentFile");
+  const deleteDocumentIds = new Set(
+    readRequestDocumentIds(formData, "deleteDocumentId"),
+  );
+  const documentsById = new Map(
+    request.documents.map((document) => [document.id, document]),
+  );
+  const uploadedReplacements: Array<{
+    documentId: string;
+    fileKey: string;
+    mimeType: string;
+    oldFileKey: string;
+  }> = [];
+  const fileKeysToDelete: string[] = [];
+
+  for (const [index, documentId] of documentIds.entries()) {
+    const document = documentsById.get(documentId);
+    const file = replacementFiles[index];
+
+    if (
+      !document ||
+      deleteDocumentIds.has(documentId) ||
+      !(file instanceof File) ||
+      file.size === 0
+    ) {
+      continue;
+    }
+
+    const uploaded = await uploadFileToS3(file, `requests/${requestId}/admin`);
+
+    if (!uploaded) {
+      throw new Error("Upload impossible.");
+    }
+
+    uploadedReplacements.push({
+      documentId,
+      fileKey: uploaded.key,
+      mimeType: uploaded.mimeType,
+      oldFileKey: document.fileKey,
+    });
+  }
 
   await prisma.$transaction(async (tx) => {
     if (request.userId) {
@@ -524,6 +582,40 @@ export async function updateServiceRequestData(formData: FormData) {
       },
     });
 
+    for (const [index, documentId] of documentIds.entries()) {
+      const document = documentsById.get(documentId);
+      const label = documentLabels[index];
+
+      if (!document || !label) continue;
+
+      await tx.requestDocument.update({
+        where: { id: documentId },
+        data: { label },
+      });
+    }
+
+    for (const replacement of uploadedReplacements) {
+      await tx.requestDocument.update({
+        where: { id: replacement.documentId },
+        data: {
+          fileKey: replacement.fileKey,
+          mimeType: replacement.mimeType,
+          status: "RECEIVED",
+          rejectionReason: null,
+        },
+      });
+      fileKeysToDelete.push(replacement.oldFileKey);
+    }
+
+    for (const documentId of deleteDocumentIds) {
+      const document = documentsById.get(documentId);
+
+      if (!document) continue;
+
+      await tx.requestDocument.delete({ where: { id: documentId } });
+      fileKeysToDelete.push(document.fileKey);
+    }
+
     await tx.auditLog.create({
       data: {
         actorId: admin.id,
@@ -533,6 +625,8 @@ export async function updateServiceRequestData(formData: FormData) {
       },
     });
   });
+
+  await deleteFilesFromS3(fileKeysToDelete);
 
   revalidatePath(`/admin/${serviceRequestAdminPath(request.type)}`);
   revalidatePath("/client");

@@ -5,6 +5,7 @@ import { ServiceRequestStatus, ServiceRequestType, Prisma } from "@prisma/client
 import { serviceRequestClientUpdatedAdminEmail, sendEmail } from "@/lib/email";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { deleteFilesFromS3, uploadFileToS3 } from "@/lib/uploads";
 import { isMivhanRegistrationOpen } from "@/lib/talmoudo-beyado";
 import type { TalmoudoActionState } from "@/app/admin/talmoudo-beyado/actions";
 
@@ -38,7 +39,7 @@ export async function updateBahourServiceRequest(formData: FormData) {
 
   const request = await prisma.serviceRequest.findUnique({
     where: { id: requestId },
-    include: { user: true },
+    include: { documents: true, user: true },
   });
 
   if (!request || request.userId !== user.id) {
@@ -60,6 +61,13 @@ export async function updateBahourServiceRequest(formData: FormData) {
         ),
       )
     : null;
+  const requestedDocumentIds = Array.isArray(payload.__requestedDocumentIds)
+    ? new Set(
+        payload.__requestedDocumentIds.filter(
+          (documentId): documentId is string => typeof documentId === "string",
+        ),
+      )
+    : new Set<string>();
   const editableFields = [
     "firstName",
     "lastName",
@@ -84,6 +92,51 @@ export async function updateBahourServiceRequest(formData: FormData) {
   }
 
   delete payload.__requestedFields;
+  delete payload.__requestedDocumentIds;
+
+  const documentsById = new Map(
+    request.documents.map((document) => [document.id, document]),
+  );
+  const uploadedReplacements: Array<{
+    documentId: string;
+    fileKey: string;
+    mimeType: string;
+    oldFileKey: string;
+  }> = [];
+
+  for (const documentId of requestedDocumentIds) {
+    const document = documentsById.get(documentId);
+    const file = formData.get(`documentFile:${documentId}`);
+
+    if (!document || !(file instanceof File) || file.size === 0) {
+      continue;
+    }
+
+    const uploaded = await uploadFileToS3(file, `requests/${requestId}/corrections`);
+
+    if (!uploaded) {
+      throw new Error("Upload impossible.");
+    }
+
+    uploadedReplacements.push({
+      documentId,
+      fileKey: uploaded.key,
+      mimeType: uploaded.mimeType,
+      oldFileKey: document.fileKey,
+    });
+  }
+
+  for (const replacement of uploadedReplacements) {
+    await prisma.requestDocument.update({
+      where: { id: replacement.documentId },
+      data: {
+        fileKey: replacement.fileKey,
+        mimeType: replacement.mimeType,
+        status: "RECEIVED",
+        rejectionReason: null,
+      },
+    });
+  }
 
   await prisma.serviceRequest.update({
     where: { id: requestId },
@@ -101,6 +154,10 @@ export async function updateBahourServiceRequest(formData: FormData) {
       },
     },
   });
+
+  await deleteFilesFromS3(
+    uploadedReplacements.map((replacement) => replacement.oldFileKey),
+  );
 
   const adminEmail =
     process.env.ADMIN_NOTIFICATION_EMAIL || "contact@bneiyeshivot.com";

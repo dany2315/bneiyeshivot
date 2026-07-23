@@ -146,11 +146,31 @@ function requestedFieldsFromPayload(payload: unknown, type: ServiceRequestType) 
     ([field]) => type === ServiceRequestType.VISA_STUDENT || field !== "personStatus",
   );
 
-  if (!requested || requested.size === 0) {
+  if (!requested) {
     return available;
   }
 
   return available.filter(([field]) => requested.has(field));
+}
+
+function requestedDocumentsFromPayload(
+  payload: unknown,
+  documents: Array<{ id: string; label: string }>,
+) {
+  if (typeof payload !== "object" || payload === null) {
+    return [];
+  }
+
+  const documentIds = (payload as Record<string, unknown>).__requestedDocumentIds;
+  const requested = Array.isArray(documentIds)
+    ? new Set(
+        documentIds.filter(
+          (documentId): documentId is string => typeof documentId === "string",
+        ),
+      )
+    : new Set<string>();
+
+  return documents.filter((document) => requested.has(document.id));
 }
 
 function finalDocuments(
@@ -379,6 +399,14 @@ export default async function ClientPage({
                   <div className="grid gap-2">
                     {requests.map((request) => {
                       const documents = finalDocuments(request.documents, request.type);
+                      const requestedFields = requestedFieldsFromPayload(
+                        request.payload,
+                        request.type,
+                      );
+                      const requestedDocuments = requestedDocumentsFromPayload(
+                        request.payload,
+                        request.documents,
+                      );
                       const subjectName = requestSubjectName(request.payload, user);
 
                       return (
@@ -452,18 +480,16 @@ export default async function ClientPage({
                               />
                               <div className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--primary)]">
                                 À modifier :{" "}
-                                {requestedFieldsFromPayload(
-                                  request.payload,
-                                  request.type,
-                                )
-                                  .map(([, label]) => label)
-                                  .join(", ")}
+                                {[
+                                  ...requestedFields.map(([, label]) => label),
+                                  ...requestedDocuments.map(
+                                    (document) => document.label,
+                                  ),
+                                ].join(", ")}
                               </div>
-                              <div className="grid gap-3 md:grid-cols-2">
-                                {requestedFieldsFromPayload(
-                                  request.payload,
-                                  request.type,
-                                ).map(([field, label, inputType]) => (
+                              {requestedFields.length > 0 ? (
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  {requestedFields.map(([field, label, inputType]) => (
                                   <Input
                                     defaultValue={payloadValue(request.payload, field)}
                                     key={field}
@@ -471,8 +497,27 @@ export default async function ClientPage({
                                     placeholder={label}
                                     type={inputType}
                                   />
-                                ))}
-                              </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                              {requestedDocuments.length > 0 ? (
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  {requestedDocuments.map((document) => (
+                                    <label
+                                      className="grid gap-1 text-sm font-semibold text-[var(--primary)]"
+                                      key={document.id}
+                                    >
+                                      {document.label}
+                                      <Input
+                                        accept="application/pdf,image/*"
+                                        name={`documentFile:${document.id}`}
+                                        required
+                                        type="file"
+                                      />
+                                    </label>
+                                  ))}
+                                </div>
+                              ) : null}
                               <Textarea
                                 disabled
                                 value={

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ServiceRequestStatus,
   ServiceRequestType,
@@ -48,7 +50,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Download,
   Eye,
+  ExternalLink,
   FileCheck2,
+  Loader2,
   MoreHorizontal,
   Pencil,
   Send,
@@ -57,7 +61,7 @@ import {
 } from "lucide-react";
 
 const statusLabels: Record<ServiceRequestStatus, string> = {
-  SUBMITTED: "Deposee",
+  SUBMITTED: "Déposée",
   IN_REVIEW: "En traitement",
   MISSING_DOCUMENTS: "Éléments à modifier",
   APPROVED: "Approuvée",
@@ -135,14 +139,21 @@ export type AdminServiceRequestActionView = {
   }>;
 };
 
-type OpenDialog = "detail" | "files" | "status" | "data" | "final" | "delete" | null;
+type OpenDialog = "detail" | "status" | "data" | "final" | "delete" | null;
+
+function actionErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export function AdminServiceRequestActionsClient({
   request,
 }: {
   request: AdminServiceRequestActionView;
 }) {
+  const router = useRouter();
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isUpdatingData, setIsUpdatingData] = useState(false);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
   const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
   const requestedFields = new Set(
@@ -152,9 +163,54 @@ export function AdminServiceRequestActionsClient({
         )
       : [],
   );
+  const requestedDocumentIds = new Set(
+    Array.isArray(request.payload.__requestedDocumentIds)
+      ? request.payload.__requestedDocumentIds.filter(
+          (documentId): documentId is string => typeof documentId === "string",
+        )
+      : [],
+  );
   const visibleEditableFields = editableFieldLabels.filter(
     ([field]) => isVisa || field !== "personStatus",
   );
+
+  async function handleStatusSubmit(formData: FormData) {
+    setIsUpdatingStatus(true);
+    const toastId = toast.loading("Envoi de la notification au Bahour...");
+
+    try {
+      await updateServiceRequest(formData);
+      toast.success("Notification envoyée au Bahour.", { id: toastId });
+      setOpenDialog(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible d’envoyer la notification."),
+        { id: toastId },
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
+
+  async function handleDataSubmit(formData: FormData) {
+    setIsUpdatingData(true);
+    const toastId = toast.loading("Mise à jour du dossier...");
+
+    try {
+      await updateServiceRequestData(formData);
+      toast.success("Dossier mis à jour.", { id: toastId });
+      setOpenDialog(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible de mettre à jour le dossier."),
+        { id: toastId },
+      );
+    } finally {
+      setIsUpdatingData(false);
+    }
+  }
 
   return (
     <>
@@ -167,11 +223,7 @@ export function AdminServiceRequestActionsClient({
           <DropdownMenuLabel>Actions demande</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => setOpenDialog("detail")}>
             <Eye className="size-4" />
-            Voir le detail
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenDialog("files")}>
-            <Download className="size-4" />
-            Voir les fichiers
+            Voir le détail
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setOpenDialog("status")}>
@@ -223,7 +275,7 @@ export function AdminServiceRequestActionsClient({
                 </div>
               </div>
               <InfoBlock
-                label="Depot"
+                label="Dépôt"
                 value={new Date(request.createdAt).toLocaleDateString("fr-FR")}
               />
             </div>
@@ -254,43 +306,58 @@ export function AdminServiceRequestActionsClient({
                 ))}
               </div>
             ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={openDialog === "files"} onOpenChange={(open) => !open && setOpenDialog(null)}>
-        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Fichiers de la demande</DialogTitle>
-            <DialogDescription>
-              Consultez et telechargez les documents envoyes.
-            </DialogDescription>
-          </DialogHeader>
-          {request.documents.length > 0 ? (
-            <div className="grid gap-2 md:grid-cols-2">
-              {request.documents.map((document) => (
-                <a
-                  className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] bg-white p-3 text-sm transition hover:border-[var(--accent)]"
-                  href={`/api/requests/documents/${document.id}/download`}
-                  key={document.id}
-                >
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-2 font-semibold text-[var(--primary)]">
-                      <Download className="size-4" />
-                      {document.label}
-                    </span>
-                    <span className="mt-1 block truncate text-[var(--muted)]">
-                      {originalNameFromKey(document.fileKey)}
-                    </span>
-                  </span>
-                </a>
-              ))}
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-bold text-[var(--primary)]">
+                  Documents du Bahour
+                </h3>
+                <span className="text-sm text-[var(--muted)]">
+                  {request.documents.length} fichier(s)
+                </span>
+              </div>
+              {request.documents.length > 0 ? (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {request.documents.map((document) => (
+                    <div
+                      className="grid gap-3 rounded-lg border border-[var(--border)] bg-white p-3 text-sm"
+                      key={document.id}
+                    >
+                      <span className="min-w-0">
+                        <span className="font-semibold text-[var(--primary)]">
+                          {document.label}
+                        </span>
+                        <span className="mt-1 block truncate text-[var(--muted)]">
+                          {originalNameFromKey(document.fileKey)}
+                        </span>
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        <Button asChild size="sm" variant="secondary">
+                          <a
+                            href={`/api/requests/documents/${document.id}/download?disposition=inline`}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            <ExternalLink className="size-4" />
+                            Ouvrir
+                          </a>
+                        </Button>
+                        <Button asChild size="sm" variant="secondary">
+                          <a href={`/api/requests/documents/${document.id}/download`}>
+                            <Download className="size-4" />
+                            Télécharger
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
+                  Aucun document attaché à cette demande.
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
-              Aucun document attaché à cette demande.
-            </p>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -302,7 +369,7 @@ export function AdminServiceRequestActionsClient({
               Envoyez une mise à jour ou demandez des corrections précises au Bahour.
             </DialogDescription>
           </DialogHeader>
-          <form action={updateServiceRequest} className="grid gap-4">
+          <form action={handleStatusSubmit} className="grid gap-4">
             <input name="requestId" type="hidden" value={request.id} />
             <div className="grid gap-3 md:grid-cols-[220px_1fr]">
               <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
@@ -353,9 +420,40 @@ export function AdminServiceRequestActionsClient({
                 ))}
               </div>
             </div>
-            <Button type="submit" className="w-fit">
-              <Send className="size-4" />
-              Enregistrer et notifier
+            <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+              <strong className="text-sm text-[var(--primary)]">
+                Fichiers à modifier dans son espace
+              </strong>
+              {request.documents.length > 0 ? (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {request.documents.map((document) => (
+                    <label
+                      className="flex items-center gap-2 text-sm text-[var(--primary)]"
+                      key={document.id}
+                    >
+                      <input
+                        defaultChecked={requestedDocumentIds.has(document.id)}
+                        name="requestedDocumentIds"
+                        type="checkbox"
+                        value={document.id}
+                      />
+                      <span className="min-w-0 truncate">{document.label}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--muted)]">
+                  Aucun fichier reçu pour cette demande.
+                </p>
+              )}
+            </div>
+            <Button disabled={isUpdatingStatus} type="submit" className="w-fit">
+              {isUpdatingStatus ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Send className="size-4" />
+              )}
+              {isUpdatingStatus ? "Envoi..." : "Enregistrer et notifier"}
             </Button>
           </form>
         </DialogContent>
@@ -369,7 +467,7 @@ export function AdminServiceRequestActionsClient({
               Correction manuelle par l’admin, sans email automatique.
             </DialogDescription>
           </DialogHeader>
-          <form action={updateServiceRequestData} className="grid gap-4">
+          <form action={handleDataSubmit} className="grid gap-4">
             <input name="requestId" type="hidden" value={request.id} />
             <div className="grid gap-3 md:grid-cols-2">
               {visibleEditableFields.map(([field, label]) => (
@@ -391,9 +489,60 @@ export function AdminServiceRequestActionsClient({
                 </label>
               ))}
             </div>
-            <Button type="submit" className="w-fit">
-              <Pencil className="size-4" />
-              Enregistrer
+            <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+              <strong className="text-sm text-[var(--primary)]">
+                Fichiers du dossier
+              </strong>
+              {request.documents.length > 0 ? (
+                <div className="grid gap-3">
+                  {request.documents.map((document) => (
+                    <div
+                      className="grid gap-3 rounded-lg border border-[var(--border)] bg-white p-3"
+                      key={document.id}
+                    >
+                      <input name="documentId" type="hidden" value={document.id} />
+                      <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
+                        Nom du fichier
+                        <Input
+                          defaultValue={document.label}
+                          name="documentLabel"
+                        />
+                      </label>
+                      <p className="truncate text-xs text-[var(--muted)]">
+                        Fichier actuel : {originalNameFromKey(document.fileKey)}
+                      </p>
+                      <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
+                        Remplacer le fichier
+                        <Input
+                          accept="application/pdf,image/*"
+                          name="documentFile"
+                          type="file"
+                        />
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-red-700">
+                        <input
+                          name="deleteDocumentId"
+                          type="checkbox"
+                          value={document.id}
+                        />
+                        Supprimer ce fichier du dossier et de S3
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--muted)]">
+                  Aucun fichier reçu pour cette demande.
+                </p>
+              )}
+            </div>
+            <Button disabled={isUpdatingData} type="submit" className="w-fit">
+              {isUpdatingData ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Pencil className="size-4" />
+              )}
+              {isUpdatingData ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </form>
         </DialogContent>
@@ -404,7 +553,7 @@ export function AdminServiceRequestActionsClient({
           <DialogHeader>
             <DialogTitle>Uploader le document final</DialogTitle>
             <DialogDescription>
-              Le fichier sera ajouté au dossier, le Bahour sera notifié et la demande passera en terminée.
+              Le fichier sera ajouté au dossier, le Bahour sera notifié et la demande passera au statut Terminée.
             </DialogDescription>
           </DialogHeader>
           <form action={uploadServiceRequestFinalDocument} className="grid gap-4">
@@ -443,7 +592,7 @@ export function AdminServiceRequestActionsClient({
             <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
             <AlertDialogDescription>
               La demande de {userName(request.user)} sera supprimée avec ses messages,
-              ses documents et les fichiers S3 attaches.
+              ses documents et les fichiers S3 attachés.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -451,7 +600,7 @@ export function AdminServiceRequestActionsClient({
             <form action={deleteServiceRequest}>
               <input name="requestId" type="hidden" value={request.id} />
               <AlertDialogAction type="submit" variant="destructive">
-                Supprimer definitivement
+                Supprimer définitivement
               </AlertDialogAction>
             </form>
           </AlertDialogFooter>
