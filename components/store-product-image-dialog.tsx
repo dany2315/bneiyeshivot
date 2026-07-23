@@ -74,12 +74,12 @@ export function StoreProductImageDialog({
           <Maximize2 className="size-4" />
         </span>
       </DialogTrigger>
-      <DialogContent className="max-h-[92vh] w-[min(96vw,1100px)] gap-0 overflow-hidden p-0 sm:max-w-none">
+      <DialogContent className="max-h-[80vh] w-[min(96vw,1000px)] gap-0 overflow-hidden p-0 sm:max-w-none">
         <DialogHeader className="border-b border-[var(--border)] p-3 pr-12 sm:p-4">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Aperçu du produit</DialogDescription>
         </DialogHeader>
-        <div className="grid h-[calc(92vh-73px)] min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-[#061e35] p-2 sm:p-3">
+        <div className="grid h-[calc(80vh-73px)] min-h-0 grid-rows-[minmax(0,1fr)_auto] bg-[#061e35] p-2 sm:p-3">
           <div className="grid min-h-0 place-items-center rounded-lg bg-[#061e35]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
