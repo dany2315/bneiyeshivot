@@ -179,6 +179,70 @@ function storeCartLines(cartLines: CartLine[]) {
   window.sessionStorage.setItem(storeCartStorageKey, JSON.stringify(cartLines));
 }
 
+function StoreReservationReceptionFields({
+  disabled,
+  pickupDetails,
+}: {
+  disabled?: boolean;
+  pickupDetails?: string | null;
+}) {
+  const [mode, setMode] = useState<"PICKUP" | "DELIVERY">("PICKUP");
+
+  return (
+    <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+      <strong className="text-sm text-[var(--primary)]">Mode de réception</strong>
+      <label className="flex gap-2 rounded-lg bg-white p-3 text-sm">
+        <input
+          checked={mode === "PICKUP"}
+          disabled={disabled}
+          name="receptionMode"
+          onChange={() => setMode("PICKUP")}
+          type="radio"
+          value="PICKUP"
+        />
+        <span>
+          <span className="block font-bold text-[var(--primary)]">
+            Retrait dans nos locaux
+          </span>
+          <span className="block text-[var(--muted)]">
+            Gratuit
+            {pickupDetails ? `, à l’adresse suivante : ${pickupDetails}` : "."}
+          </span>
+        </span>
+      </label>
+      <label className="flex gap-2 rounded-lg bg-white p-3 text-sm">
+        <input
+          checked={mode === "DELIVERY"}
+          disabled={disabled}
+          name="receptionMode"
+          onChange={() => setMode("DELIVERY")}
+          type="radio"
+          value="DELIVERY"
+        />
+        <span>
+          <span className="block font-bold text-[var(--primary)]">
+            Livraison à domicile
+          </span>
+          <span className="block text-[var(--muted)]">
+            Tarif calculé selon la destination. Le tarif vous sera donné après
+            validation de votre réservation.
+          </span>
+        </span>
+      </label>
+      {mode === "DELIVERY" ? (
+        <Textarea
+          disabled={disabled}
+          name="deliveryAddress"
+          placeholder="Adresse complète de livraison"
+          required
+        />
+      ) : (
+        <input name="deliveryAddress" type="hidden" value="" />
+      )}
+    </div>
+  );
+}
+
 export function StorefrontClient({
   initialUser,
   products,
@@ -927,6 +991,10 @@ function CartSheet({
                   disabled={!storefront.active}
                   initialUser={initialUser}
                 />
+                <StoreReservationReceptionFields
+                  disabled={!storefront.active}
+                  pickupDetails={storefront.pickupDetails}
+                />
                 <Textarea
                   name="note"
                   placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
@@ -1358,6 +1426,7 @@ export function StoreProductReservationPanel({
     <form action={createStoreReservation} className="grid gap-4">
       {controls}
       <StoreReservationCustomerFields disabled={disabled} initialUser={initialUser} />
+      <StoreReservationReceptionFields disabled={disabled} />
       <Textarea
         name="note"
         placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."

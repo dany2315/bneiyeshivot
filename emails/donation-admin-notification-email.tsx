@@ -1,15 +1,5 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Button, Section, Text } from "@react-email/components";
+import { BaseEmail, InfoLine } from "./transactional-email";
 
 type DonationAdminNotificationEmailProps = {
   adminLink: string;
@@ -43,139 +33,63 @@ export function DonationAdminNotificationEmail({
   stripeReceiptUrl,
 }: DonationAdminNotificationEmailProps) {
   return (
-    <Html lang="fr">
-      <Head />
-      <Preview>
-        {heading} - {amount} - {donorName}
-      </Preview>
-      <Body style={body}>
-        <Container style={container}>
-          <Section style={header}>
-            <Text style={eyebrow}>Notification admin</Text>
-            <Heading style={headingStyle}>{heading}</Heading>
-            <Text style={headerText}>
-              Un paiement vient d’être synchronisé sur la page dons.
-            </Text>
-          </Section>
+    <BaseEmail
+      actionHref={adminLink}
+      actionLabel="Ouvrir le don dans l’admin"
+      preview={`${heading} - ${amount} - ${donorName}`}
+      title={heading}
+    >
+      <Text style={paragraph}>
+        Un paiement vient d’être synchronisé sur la page dons.
+      </Text>
 
-          <Section style={content}>
-            <Section style={amountBox}>
-              <Text style={amountLabel}>Montant</Text>
-              <Text style={amountValue}>{amount}</Text>
-              <Text style={frequencyText}>{frequency}</Text>
-              {paymentLabel ? (
-                <Text style={frequencyText}>Paiement {paymentLabel}</Text>
-              ) : null}
-              {paymentStatusLabel ? (
-                <Text style={frequencyText}>Statut : {paymentStatusLabel}</Text>
-              ) : null}
-            </Section>
+      <Section style={amountBox}>
+        <Text style={amountLabel}>Montant</Text>
+        <Text style={amountValue}>{amount}</Text>
+        <Text style={frequencyText}>{frequency}</Text>
+        {paymentLabel ? (
+          <Text style={frequencyText}>Paiement {paymentLabel}</Text>
+        ) : null}
+        {paymentStatusLabel ? (
+          <Text style={frequencyText}>Statut : {paymentStatusLabel}</Text>
+        ) : null}
+      </Section>
 
-            <Section style={infoBox}>
-              <Text style={boxTitle}>Donateur</Text>
-              <Text style={line}>
-                <strong>Nom :</strong> {donorName}
-              </Text>
-              <Text style={line}>
-                <strong>Email :</strong> {donorEmail}
-              </Text>
-              {donorPhone ? (
-                <Text style={line}>
-                  <strong>Téléphone :</strong> {donorPhone}
-                </Text>
-              ) : null}
-            </Section>
+      <Section style={infoBox}>
+        <Text style={boxTitle}>Donateur</Text>
+        <InfoLine label="Nom" value={donorName} />
+        <InfoLine label="Email" value={donorEmail} />
+        {donorPhone ? <InfoLine label="Téléphone" value={donorPhone} /> : null}
+      </Section>
 
-            <Section style={infoBox}>
-              <Text style={boxTitle}>Paiement et reçu</Text>
-              <Text style={line}>
-                <strong>Reçu Cerfa :</strong> {receiptNumber || "À générer"}
-              </Text>
-              <Text style={line}>
-                <strong>Stripe payment intent :</strong>{" "}
-                {stripePaymentIntentId || "-"}
-              </Text>
-              {failureReason ? (
-                <Text style={line}>
-                  <strong>Raison échec :</strong> {failureReason}
-                </Text>
-              ) : null}
-            </Section>
+      <Section style={infoBox}>
+        <Text style={boxTitle}>Paiement et reçu</Text>
+        <InfoLine label="Reçu Cerfa" value={receiptNumber || "À générer"} />
+        <InfoLine
+          label="Stripe payment intent"
+          value={stripePaymentIntentId || "-"}
+        />
+        {failureReason ? (
+          <InfoLine label="Raison échec" value={failureReason} />
+        ) : null}
+      </Section>
 
-            <Section style={actions}>
-              <Button href={adminLink} style={primaryButton}>
-                Ouvrir le don dans l’admin
-              </Button>
-              {stripeReceiptUrl ? (
-                <Button href={stripeReceiptUrl} style={secondaryButton}>
-                  Voir le reçu Stripe
-                </Button>
-              ) : null}
-            </Section>
-          </Section>
-
-          <Hr style={divider} />
-          <Text style={footer}>
-            Email automatique envoyé par Resend depuis la plateforme Bnei
-            Yeshivot.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+      {stripeReceiptUrl ? (
+        <Button href={stripeReceiptUrl} style={secondaryButton}>
+          Voir le reçu Stripe
+        </Button>
+      ) : null}
+    </BaseEmail>
   );
 }
 
 export default DonationAdminNotificationEmail;
 
-const body = {
-  margin: "0",
-  backgroundColor: "#f4f7fb",
-  color: "#061e39",
-  fontFamily: "Arial, Helvetica, sans-serif",
-};
-
-const container = {
-  width: "100%",
-  maxWidth: "680px",
-  margin: "0 auto",
-  padding: "28px 14px",
-};
-
-const header = {
-  borderRadius: "22px 22px 0 0",
-  backgroundColor: "#062846",
-  padding: "28px 30px",
-};
-
-const eyebrow = {
-  margin: "0 0 8px",
-  color: "#ffb35c",
-  fontSize: "13px",
-  fontWeight: "800",
-  letterSpacing: "0.04em",
-  textTransform: "uppercase" as const,
-};
-
-const headingStyle = {
-  margin: "0",
-  color: "#ffffff",
-  fontSize: "28px",
-  lineHeight: "32px",
-  fontWeight: "800",
-};
-
-const headerText = {
-  margin: "12px 0 0",
-  color: "#d8e8f8",
+const paragraph = {
+  margin: "0 0 14px",
+  color: "#43556a",
   fontSize: "15px",
-  lineHeight: "23px",
-};
-
-const content = {
-  backgroundColor: "#ffffff",
-  borderRight: "1px solid #dfe7f0",
-  borderLeft: "1px solid #dfe7f0",
-  padding: "28px 30px",
+  lineHeight: "24px",
 };
 
 const amountBox = {
@@ -222,30 +136,9 @@ const boxTitle = {
   fontWeight: "800",
 };
 
-const line = {
-  margin: "0 0 8px",
-  color: "#061e39",
-  fontSize: "14px",
-  lineHeight: "22px",
-};
-
-const actions = {
-  margin: "24px 0 0",
-};
-
-const primaryButton = {
-  display: "inline-block",
-  marginRight: "10px",
-  borderRadius: "999px",
-  backgroundColor: "#062846",
-  color: "#ffffff",
-  padding: "13px 20px",
-  fontWeight: "800",
-  textDecoration: "none",
-};
-
 const secondaryButton = {
   display: "inline-block",
+  marginTop: "18px",
   border: "1px solid #d8e1ec",
   borderRadius: "999px",
   backgroundColor: "#ffffff",
@@ -253,22 +146,4 @@ const secondaryButton = {
   padding: "12px 18px",
   fontWeight: "800",
   textDecoration: "none",
-};
-
-const divider = {
-  margin: "0",
-  borderColor: "#dfe7f0",
-};
-
-const footer = {
-  margin: "0",
-  borderRight: "1px solid #dfe7f0",
-  borderBottom: "1px solid #dfe7f0",
-  borderLeft: "1px solid #dfe7f0",
-  borderRadius: "0 0 22px 22px",
-  backgroundColor: "#fbfcfe",
-  color: "#637186",
-  padding: "16px 30px",
-  fontSize: "12px",
-  lineHeight: "18px",
 };

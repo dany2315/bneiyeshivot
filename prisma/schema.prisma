@@ -13,6 +13,11 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum UserAccountType {
+  BAHOUR
+  YESHIVA
+}
+
 enum ServiceRequestType {
   VISA_STUDENT
   KOUPAT_HOLIM
@@ -95,6 +100,11 @@ enum StoreReservationStatus {
   CANCELED
 }
 
+enum StoreReservationReceptionMode {
+  PICKUP
+  DELIVERY
+}
+
 enum StoreVariantOptionType {
   SIZE
   CUT
@@ -138,6 +148,7 @@ model User {
   parentPhone         String?
   yeshiva             String?
   programType         String?
+  accountType         UserAccountType       @default(BAHOUR)
   role                UserRole             @default(CLIENT)
   sessions            Session[]
   accounts            Account[]
@@ -239,6 +250,9 @@ model StoreReservation {
   arrivalDate   DateTime?
   pickupDate    DateTime?
   pickupLocation String?
+  receptionMode StoreReservationReceptionMode @default(PICKUP)
+  deliveryAddress String?
+  paid          Boolean                @default(false)
   unavailableItems String?
   note          String?
   adminNote     String?

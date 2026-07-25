@@ -242,6 +242,7 @@ export async function createAdminTalmoudoRegistration(formData: FormData) {
   await createTalmoudoRegistration(
     {
       sessionId: readString(formData, "sessionId"),
+      userId: readString(formData, "userId"),
       firstName: readString(formData, "firstName"),
       lastName: readString(formData, "lastName"),
       email: readString(formData, "email"),
@@ -394,6 +395,7 @@ export async function updateMivhanRegistrationResult(formData: FormData) {
     firstName: registration.firstName ?? undefined,
     sessionTitle: registration.session.title,
     grade,
+    adminMessage: note || null,
     rewardAmount: formatReward(rewardAmountCents, rewardCurrency),
     rewardPaid,
   });

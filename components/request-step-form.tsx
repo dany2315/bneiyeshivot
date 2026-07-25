@@ -676,7 +676,7 @@ export function RequestStepForm({
         status: "success",
         message: adminMode
           ? `Demande créée avec succès (référence ${result.requestId}). Le dossier apparaît dans la liste admin et l’utilisateur a été notifié par email.`
-          : `Votre demande a bien été envoyée (référence ${result.requestId}). Un email de confirmation vient de vous être envoyé. Notre équipe va étudier votre dossier et reviendra vers vous pour la suite.`,
+          : `Votre demande a bien été envoyée (référence ${result.requestId}). Un email de confirmation vient de vous être envoyé. Le statut de votre demande est déposé.`,
       });
       router.refresh();
     } catch (error) {

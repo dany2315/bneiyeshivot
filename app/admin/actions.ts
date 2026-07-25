@@ -13,6 +13,7 @@ import {
   ServiceRequestStatus,
   ServiceRequestType,
   StoreReservationStatus,
+  StoreReservationReceptionMode,
   StoreVariantOptionType,
   UserRole,
 } from "@prisma/client";
@@ -66,7 +67,7 @@ const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
 };
 
 const serviceRequestStatusLabels: Record<ServiceRequestStatus, string> = {
-  SUBMITTED: "Deposee",
+  SUBMITTED: "Déposée",
   IN_REVIEW: "En traitement",
   MISSING_DOCUMENTS: "Éléments à modifier",
   APPROVED: "Approuvée",
@@ -101,6 +102,21 @@ const editableServiceRequestFields = [
   "school",
   "personStatus",
 ] as const;
+
+const serviceRequestFieldLabels: Record<
+  (typeof editableServiceRequestFields)[number],
+  string
+> = {
+  firstName: "Prénom",
+  lastName: "Nom",
+  phone: "Téléphone",
+  parentPhone: "Téléphone des parents",
+  birthDate: "Date de naissance",
+  nationality: "Nationalité",
+  passportNumber: "Numéro de passeport",
+  school: "Yeshiva / programme",
+  personStatus: "Statut visa",
+};
 
 function readRequestDocumentIds(formData: FormData, key: string) {
   return formData
@@ -332,7 +348,15 @@ export async function updateServiceRequest(formData: FormData) {
 
   const existingRequest = await prisma.serviceRequest.findUnique({
     where: { id },
-    select: { payload: true },
+    select: {
+      payload: true,
+      documents: {
+        select: {
+          id: true,
+          label: true,
+        },
+      },
+    },
   });
   const nextPayload =
     typeof existingRequest?.payload === "object" && existingRequest.payload !== null
@@ -368,10 +392,23 @@ export async function updateServiceRequest(formData: FormData) {
   });
 
   if (request.user?.email) {
-    const email = serviceRequestStatusEmail({
+    const requestedDocumentLabels =
+      status === ServiceRequestStatus.MISSING_DOCUMENTS
+        ? (existingRequest?.documents ?? [])
+            .filter((document) => requestedDocumentIds.includes(document.id))
+            .map((document) => document.label)
+        : [];
+    const email = await serviceRequestStatusEmail({
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
       firstName: request.user.firstName,
       note: publicNote || null,
+      requestedChanges:
+        status === ServiceRequestStatus.MISSING_DOCUMENTS
+          ? [
+              ...requestedFields.map((field) => serviceRequestFieldLabels[field]),
+              ...requestedDocumentLabels,
+            ]
+          : undefined,
       statusLabel: serviceRequestStatusLabels[request.status],
       typeLabel: serviceRequestTypeLabel(request.type),
     });
@@ -432,14 +469,14 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
     data: {
       status: ServiceRequestStatus.COMPLETED,
       publicNote:
-        label === "Visa reçu"
+        label.toLocaleLowerCase("fr-FR").includes("visa")
           ? "Votre visa reçu est disponible dans votre espace."
           : "Un document final est disponible dans votre espace.",
       messages: {
         create: {
           authorId: admin.id,
           body:
-            label === "Visa reçu"
+            label.toLocaleLowerCase("fr-FR").includes("visa")
               ? "Votre visa reçu est disponible en téléchargement."
               : "Un document final est disponible en téléchargement.",
           isInternal: false,
@@ -449,11 +486,11 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
   });
 
   if (request.user?.email) {
-    const email = serviceRequestStatusEmail({
+    const email = await serviceRequestStatusEmail({
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
       firstName: request.user.firstName,
       note:
-        label === "Visa reçu"
+        label.toLocaleLowerCase("fr-FR").includes("visa")
           ? "Votre visa reçu est disponible en téléchargement dans votre espace Bahour."
           : "Un document final est disponible dans votre espace Bahour.",
       statusLabel: serviceRequestStatusLabels.COMPLETED,
@@ -509,11 +546,6 @@ export async function updateServiceRequestData(formData: FormData) {
     delete nextPayload.personStatus;
   }
 
-  const fullName = [values.firstName, values.lastName].filter(Boolean).join(" ");
-  const programType =
-    request.type === ServiceRequestType.VISA_STUDENT
-      ? values.personStatus
-      : values.school;
   const documentIds = readRequestDocumentIds(formData, "documentId");
   const documentLabels = formData
     .getAll("documentLabel")
@@ -561,20 +593,6 @@ export async function updateServiceRequestData(formData: FormData) {
   }
 
   await prisma.$transaction(async (tx) => {
-    if (request.userId) {
-      await tx.user.update({
-        where: { id: request.userId },
-        data: {
-          name: fullName || request.user?.name || "",
-          firstName: values.firstName || null,
-          lastName: values.lastName || null,
-          phone: values.phone || null,
-          parentPhone: values.parentPhone || null,
-          programType: programType || null,
-        },
-      });
-    }
-
     await tx.serviceRequest.update({
       where: { id: requestId },
       data: {
@@ -1482,9 +1500,16 @@ export async function updateStoreReservation(formData: FormData) {
   const status = readString(formData, "status") as StoreReservationStatus;
   const pickupDate = readString(formData, "pickupDate");
   const pickupLocation = readString(formData, "pickupLocation");
+  const receptionModeInput = readString(formData, "receptionMode");
+  const receptionMode =
+    receptionModeInput === StoreReservationReceptionMode.DELIVERY
+      ? StoreReservationReceptionMode.DELIVERY
+      : StoreReservationReceptionMode.PICKUP;
+  const deliveryAddress = readString(formData, "deliveryAddress");
   const unavailableItems = readString(formData, "unavailableItems");
   const customerMessage = readString(formData, "customerMessage");
   const notifyCustomer = formData.get("notifyCustomer") === "on";
+  const paid = formData.get("paid") === "on";
 
   if (
     !reservationId ||
@@ -1499,6 +1524,12 @@ export async function updateStoreReservation(formData: FormData) {
       status,
       pickupDate: pickupDate ? new Date(pickupDate) : null,
       pickupLocation: pickupLocation || null,
+      receptionMode,
+      deliveryAddress:
+        receptionMode === StoreReservationReceptionMode.DELIVERY
+          ? deliveryAddress || null
+          : null,
+      paid,
       unavailableItems: unavailableItems || null,
       adminNote: readString(formData, "adminNote") || null,
     },
@@ -1549,11 +1580,12 @@ export async function updateStoreReservation(formData: FormData) {
       action: "store_reservation.updated",
       entity: "StoreReservation",
       entityId: reservationId,
-      metadata: { status, notifyCustomer },
+      metadata: { status, notifyCustomer, paid, receptionMode },
     },
   });
 
   revalidatePath("/admin/boutique");
+  revalidatePath("/client");
 }
 
 export async function createManualDonation(formData: FormData) {

@@ -6,6 +6,8 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
+  Link,
   Preview,
   Section,
   Text,
@@ -19,7 +21,7 @@ type BaseEmailProps = {
   title: string;
 };
 
-function BaseEmail({
+export function BaseEmail({
   actionHref,
   actionLabel,
   children,
@@ -33,7 +35,12 @@ function BaseEmail({
       <Body style={body}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={brand}>Bnei Yeshivot</Text>
+            <Img
+              alt="Bnei Yeshivot"
+              src={emailLogoSrc}
+              style={logo}
+              width="160"
+            />
             <Heading style={heading}>{title}</Heading>
           </Section>
           <Section style={content}>{children}</Section>
@@ -45,7 +52,24 @@ function BaseEmail({
             </Section>
           ) : null}
           <Hr style={divider} />
-          <Text style={footer}>L’équipe Bnei Yeshivot</Text>
+          <Section style={footer}>
+            <Text style={footerTitle}>Bnei Yeshivot</Text>
+            <Text style={footerLine}>
+              Téléphone Israël :{" "}
+              <Link href="tel:+972534727103" style={footerLink}>
+                +972 53 472 7103
+              </Link>
+            </Text>
+            <Text style={footerLine}>
+              Adresse : 17 Rehov HaPisga, Beit Vagan, Jérusalem
+            </Text>
+            <Text style={footerLine}>
+              Email :{" "}
+              <Link href="mailto:contact@bneiyeshivot.com" style={footerLink}>
+                contact@bneiyeshivot.com
+              </Link>
+            </Text>
+          </Section>
         </Container>
       </Body>
     </Html>
@@ -88,7 +112,7 @@ export function RequestConfirmationEmail(props: {
       <Text style={paragraph}>{greeting}</Text>
       <Text style={paragraph}>
         Nous avons bien reçu votre demande de <strong>{props.typeLabel}</strong>.
-        Notre équipe va l’étudier avec attention.
+        Le statut de votre demande est déposé.
       </Text>
       <Text style={paragraphStrong}>Nous reviendrons vers vous pour la suite.</Text>
     </BaseEmail>
@@ -265,6 +289,7 @@ export function TalmoudoResultEmail(props: {
   firstName?: string;
   sessionTitle: string;
   grade: number;
+  adminMessage?: string | null;
   rewardAmount?: string;
   rewardPaid: boolean;
 }) {
@@ -287,6 +312,11 @@ export function TalmoudoResultEmail(props: {
       </Text>
       <InfoLine label="Note" value={`${props.grade} / 100`} />
       <Text style={paragraph}>{rewardLine}</Text>
+      {props.adminMessage ? (
+        <>
+          <InfoLine label="Message de l’admin" value={props.adminMessage} />
+        </>
+      ) : null}
     </BaseEmail>
   );
 }
@@ -319,7 +349,32 @@ export function TalmoudoRegistrationAdminEmail(props: {
   );
 }
 
-function InfoLine({ label, value }: { label: string; value: string }) {
+export function ServiceRequestEmail(props: {
+  actionHref?: string;
+  actionLabel?: string;
+  body: string[];
+  preview: string;
+  title: string;
+}) {
+  return (
+    <BaseEmail
+      actionHref={props.actionHref}
+      actionLabel={props.actionLabel}
+      preview={props.preview}
+      title={props.title}
+    >
+      {props.body.map((text) => (
+        <Text
+          dangerouslySetInnerHTML={{ __html: text }}
+          key={text}
+          style={paragraph}
+        />
+      ))}
+    </BaseEmail>
+  );
+}
+
+export function InfoLine({ label, value }: { label: string; value: string }) {
   return (
     <Text style={line}>
       <strong>{label} :</strong> {value}
@@ -352,19 +407,19 @@ const container = {
   padding: "28px 14px",
 };
 
+const emailLogoSrc = "https://www.bneiyeshivot.com/logo-bnei.png";
+
 const header = {
   borderRadius: "18px 18px 0 0",
   backgroundColor: "#062846",
   padding: "26px 28px",
 };
 
-const brand = {
-  margin: "0 0 8px",
-  color: "#ffb35c",
-  fontSize: "13px",
-  fontWeight: "800",
-  letterSpacing: "1px",
-  textTransform: "uppercase" as const,
+const logo = {
+  display: "block",
+  margin: "0 0 18px",
+  maxWidth: "160px",
+  height: "auto",
 };
 
 const heading = {
@@ -454,8 +509,25 @@ const footer = {
   borderLeft: "1px solid #dfe7f0",
   borderRadius: "0 0 18px 18px",
   backgroundColor: "#ffffff",
-  color: "#738092",
   padding: "18px 28px 28px",
+};
+
+const footerTitle = {
+  margin: "0 0 8px",
+  color: "#062846",
+  fontSize: "14px",
+  fontWeight: "800",
+  lineHeight: "20px",
+};
+
+const footerLine = {
+  margin: "0 0 4px",
+  color: "#738092",
   fontSize: "13px",
   lineHeight: "20px",
+};
+
+const footerLink = {
+  color: "#062846",
+  textDecoration: "none",
 };

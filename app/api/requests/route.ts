@@ -8,6 +8,7 @@ import {
   requestConfirmationEmail,
   sendEmail,
 } from "@/lib/email";
+import { getCurrentUser } from "@/lib/session";
 
 type UploadedDocumentPayload = {
   label: string;
@@ -53,7 +54,10 @@ export async function POST(request: Request) {
             mimeType: document.mimeType,
           }))
       : [];
-    const serviceRequest = await createServiceRequest(body, uploadedDocuments);
+    const currentUser = await getCurrentUser();
+    const serviceRequest = await createServiceRequest(body, uploadedDocuments, {
+      actorUserId: currentUser?.id,
+    });
 
     const email = typeof body.email === "string" ? body.email : "";
     const firstName = typeof body.firstName === "string" ? body.firstName : "";

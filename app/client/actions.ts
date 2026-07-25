@@ -142,9 +142,8 @@ export async function updateBahourServiceRequest(formData: FormData) {
     where: { id: requestId },
     data: {
       payload: payload as Prisma.JsonObject,
-      status: ServiceRequestStatus.IN_REVIEW,
-      publicNote:
-        "Informations modifiées par l’utilisateur. L’équipe va vérifier la demande.",
+      status: ServiceRequestStatus.SUBMITTED,
+      publicNote: "Modifications envoyées. Le statut de votre demande est déposé.",
       messages: {
         create: {
           authorId: user.id,
@@ -161,10 +160,14 @@ export async function updateBahourServiceRequest(formData: FormData) {
 
   const adminEmail =
     process.env.ADMIN_NOTIFICATION_EMAIL || "contact@bneiyeshivot.com";
-  const email = serviceRequestClientUpdatedAdminEmail({
+  const email = await serviceRequestClientUpdatedAdminEmail({
     adminHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/admin/${requestAdminPath(request.type)}#request-${request.id}`,
     fullName:
-      [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email,
+      [payload.firstName, payload.lastName]
+        .filter((value): value is string => typeof value === "string" && value.length > 0)
+        .join(" ") ||
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.email,
     typeLabel: requestTypeLabel(request.type),
   });
 

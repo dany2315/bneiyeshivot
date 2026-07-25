@@ -21,11 +21,11 @@ export default async function RegisterPage({
       <main>
         <section className="page-hero !py-10 md:!py-[82px]">
           <div className="container">
-            <span className="eyebrow">Espace Bahour</span>
+            <span className="eyebrow">Mon espace</span>
             <h1>Inscription</h1>
             <p>
-              Crée ton accès personnel pour suivre tes demandes, documents,
-              inscriptions, dons et mivhanim.
+              Crée ton accès pour suivre tes demandes, documents, inscriptions,
+              dons et mivhanim.
             </p>
           </div>
         </section>
@@ -33,12 +33,12 @@ export default async function RegisterPage({
           <div className="container grid max-w-3xl gap-5">
             <OtpLoginCard
               audience="bahour"
-              description="Renseigne tes informations, puis valide le code envoyé par email."
+              description="Choisis ton type de compte, renseigne tes informations, puis valide le code envoyé par email."
               initialEmail={params.email ?? ""}
               initialMessage={params.error ?? ""}
               mode="register"
               redirectTo="/client"
-              title="Créer mon accès Bahour"
+              title="Créer mon accès"
             />
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white/90 p-5">
               <p className="text-base text-[var(--muted)]">

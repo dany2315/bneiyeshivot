@@ -92,6 +92,16 @@ function payloadText(payload: Record<string, unknown>, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function payloadDisplayText(payload: Record<string, unknown>, key: string) {
+  const value = payloadText(payload, key);
+
+  if (key === "birthDate" && value) {
+    return formatDateFr(value);
+  }
+
+  return value;
+}
+
 const editableFieldLabels = [
   ["firstName", "Prénom"],
   ["lastName", "Nom"],
@@ -132,6 +142,7 @@ export type AdminServiceRequestActionView = {
     lastName: string | null;
     phone: string | null;
     parentPhone: string | null;
+    accountType?: string | null;
   } | null;
   messages: Array<{ body: string; createdAt: string }>;
   documents: Array<{
@@ -148,6 +159,33 @@ function actionErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+function payloadName(payload: Record<string, unknown>) {
+  return [payloadText(payload, "firstName"), payloadText(payload, "lastName")]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
+function requestSubjectName(request: AdminServiceRequestActionView) {
+  return payloadName(request.payload) || userName(request.user);
+}
+
+function requestSourceLabel(request: AdminServiceRequestActionView) {
+  if (payloadText(request.payload, "source") === "YESHIVA") {
+    return `Compte yeshiva : ${userName(request.user)}`;
+  }
+
+  if (payloadText(request.payload, "source") === "BAHOUR") {
+    return "Compte bahour";
+  }
+
+  if (request.user?.accountType === "YESHIVA") {
+    return `Compte yeshiva : ${userName(request.user)}`;
+  }
+
+  return "Demande du site";
+}
+
 export function AdminServiceRequestActionsClient({
   request,
 }: {
@@ -160,6 +198,7 @@ export function AdminServiceRequestActionsClient({
   >(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingData, setIsUpdatingData] = useState(false);
+  const [isUploadingFinal, setIsUploadingFinal] = useState(false);
   const [isDeletingDocument, setIsDeletingDocument] = useState(false);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
   const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
@@ -180,14 +219,15 @@ export function AdminServiceRequestActionsClient({
   const visibleEditableFields = editableFieldLabels.filter(
     ([field]) => isVisa || field !== "personStatus",
   );
+  const subjectName = requestSubjectName(request);
 
   async function handleStatusSubmit(formData: FormData) {
     setIsUpdatingStatus(true);
-    const toastId = toast.loading("Envoi de la notification au Bahour...");
+    const toastId = toast.loading("Envoi de la notification...");
 
     try {
       await updateServiceRequest(formData);
-      toast.success("Notification envoyée au Bahour.", { id: toastId });
+      toast.success("Notification envoyée.", { id: toastId });
       setOpenDialog(null);
       router.refresh();
     } catch (error) {
@@ -216,6 +256,27 @@ export function AdminServiceRequestActionsClient({
       );
     } finally {
       setIsUpdatingData(false);
+    }
+  }
+
+  async function handleFinalSubmit(formData: FormData) {
+    setIsUploadingFinal(true);
+    const toastId = toast.loading("Téléversement du document final...");
+
+    try {
+      await uploadServiceRequestFinalDocument(formData);
+      toast.success("Document final téléversé et notification envoyée.", {
+        id: toastId,
+      });
+      setOpenDialog(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible d’uploader le document final."),
+        { id: toastId },
+      );
+    } finally {
+      setIsUploadingFinal(false);
     }
   }
 
@@ -288,11 +349,11 @@ export function AdminServiceRequestActionsClient({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
-            <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-4 md:grid-cols-4">
-              <InfoBlock label="Bahour" value={userName(request.user)} />
+            <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-4 md:grid-cols-5">
+              <InfoBlock label="Dossier" value={subjectName} />
               <InfoBlock
                 label="Email"
-                value={request.user?.email || payloadText(request.payload, "email") || "-"}
+                value={payloadText(request.payload, "email") || request.user?.email || "-"}
               />
               <div>
                 <span className="text-xs font-semibold uppercase text-[var(--muted)]">
@@ -306,8 +367,9 @@ export function AdminServiceRequestActionsClient({
               </div>
               <InfoBlock
                 label="Dépôt"
-                value={new Date(request.createdAt).toLocaleDateString("fr-FR")}
+                value={formatDateFr(request.createdAt)}
               />
+              <InfoBlock label="Source" value={requestSourceLabel(request)} />
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               {mainDataLabels
@@ -317,7 +379,7 @@ export function AdminServiceRequestActionsClient({
                     boxed
                     key={field}
                     label={label}
-                    value={payloadText(request.payload, field) || "-"}
+                    value={payloadDisplayText(request.payload, field) || "-"}
                   />
                 ))}
             </div>
@@ -339,7 +401,7 @@ export function AdminServiceRequestActionsClient({
             <div className="grid gap-3">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-sm font-bold text-[var(--primary)]">
-                  Documents du Bahour
+                  Documents du dossier
                 </h3>
                 <span className="text-sm text-[var(--muted)]">
                   {request.documents.length} fichier(s)
@@ -396,7 +458,7 @@ export function AdminServiceRequestActionsClient({
           <DialogHeader>
             <DialogTitle>Modifier le statut et notifier</DialogTitle>
             <DialogDescription>
-              Envoyez une mise à jour ou demandez des corrections précises au Bahour.
+              Envoyez une mise à jour ou demandez des corrections précises.
             </DialogDescription>
           </DialogHeader>
           <form action={handleStatusSubmit} className="grid gap-4">
@@ -422,7 +484,7 @@ export function AdminServiceRequestActionsClient({
               </label>
             </div>
             <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
-              Message visible par le Bahour
+              Message visible dans l’espace du compte lié
               <Textarea
                 defaultValue={request.publicNote ?? ""}
                 name="publicNote"
@@ -605,10 +667,10 @@ export function AdminServiceRequestActionsClient({
           <DialogHeader>
             <DialogTitle>Uploader le document final</DialogTitle>
             <DialogDescription>
-              Le fichier sera ajouté au dossier, le Bahour sera notifié et la demande passera au statut Terminée.
+              Le fichier sera ajouté au dossier, une notification sera envoyée et la demande passera au statut Terminée.
             </DialogDescription>
           </DialogHeader>
-          <form action={uploadServiceRequestFinalDocument} className="grid gap-4">
+          <form action={handleFinalSubmit} className="grid gap-4">
             <input name="requestId" type="hidden" value={request.id} />
             <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
               Nom du document
@@ -627,9 +689,13 @@ export function AdminServiceRequestActionsClient({
                 type="file"
               />
             </label>
-            <Button type="submit" className="w-fit">
-              <FileCheck2 className="size-4" />
-              Uploader et notifier
+            <Button disabled={isUploadingFinal} type="submit" className="w-fit">
+              {isUploadingFinal ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileCheck2 className="size-4" />
+              )}
+              {isUploadingFinal ? "Téléversement..." : "Uploader et notifier"}
             </Button>
           </form>
         </DialogContent>
@@ -679,7 +745,7 @@ export function AdminServiceRequestActionsClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
             <AlertDialogDescription>
-              La demande de {userName(request.user)} sera supprimée avec ses messages,
+              La demande de {subjectName} sera supprimée avec ses messages,
               ses documents et les fichiers S3 attachés.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -717,4 +783,18 @@ function InfoBlock({
       </p>
     </div>
   );
+}
+
+function formatDateFr(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }

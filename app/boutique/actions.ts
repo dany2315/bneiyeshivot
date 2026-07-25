@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { StoreReservationReceptionMode } from "@prisma/client";
 import {
   sendEmail,
   storeReservationAdminEmail,
@@ -47,6 +48,12 @@ export async function createStoreReservation(formData: FormData) {
     (readString(formData, "customerEmail") || user?.email || "").toLowerCase();
   const customerPhone = readString(formData, "customerPhone") || user?.phone || null;
   const yeshiva = readString(formData, "yeshiva") || user?.yeshiva || null;
+  const receptionModeInput = readString(formData, "receptionMode");
+  const receptionMode =
+    receptionModeInput === StoreReservationReceptionMode.DELIVERY
+      ? StoreReservationReceptionMode.DELIVERY
+      : StoreReservationReceptionMode.PICKUP;
+  const deliveryAddress = readString(formData, "deliveryAddress");
 
   if (!storefront.active) {
     throw new Error("La boutique n’est pas ouverte aux réservations.");
@@ -54,6 +61,10 @@ export async function createStoreReservation(formData: FormData) {
 
   if (!customerName || !customerEmail) {
     throw new Error("Nom et email obligatoires.");
+  }
+
+  if (receptionMode === StoreReservationReceptionMode.DELIVERY && !deliveryAddress) {
+    throw new Error("L’adresse de livraison est obligatoire.");
   }
 
   const products = await prisma.storeProduct.findMany({
@@ -134,6 +145,11 @@ export async function createStoreReservation(formData: FormData) {
       customerEmail,
       customerPhone,
       yeshiva,
+      receptionMode,
+      deliveryAddress:
+        receptionMode === StoreReservationReceptionMode.DELIVERY
+          ? deliveryAddress
+          : null,
       note: readString(formData, "note") || null,
       totalCents,
       currency,

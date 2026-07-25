@@ -1,6 +1,7 @@
 import {
   Prisma,
   ServiceRequestType,
+  UserAccountType,
   type ServiceRequest,
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -13,6 +14,10 @@ export type ServiceRequestDocumentInput = {
   label: string;
   fileKey: string;
   mimeType: string;
+};
+
+export type CreateServiceRequestOptions = {
+  actorUserId?: string | null;
 };
 
 const requiredDocumentsByKind = {
@@ -35,13 +40,18 @@ function toRequestType(kind: ServiceRequestInput["kind"]) {
     : ServiceRequestType.KOUPAT_HOLIM;
 }
 
-function toPayload(input: ServiceRequestInput): Prisma.JsonObject {
+function toPayload(
+  input: ServiceRequestInput,
+  source: "BAHOUR" | "YESHIVA" | "WEBSITE",
+): Prisma.JsonObject {
   return {
     kind: input.kind,
+    source,
     firstName: input.firstName,
     lastName: input.lastName,
     email: input.email,
     phone: input.phone,
+    parentPhone: input.parentPhone,
     birthDate: input.birthDate,
     nationality: input.nationality,
     passportNumber: input.passportNumber,
@@ -56,6 +66,7 @@ function toPayload(input: ServiceRequestInput): Prisma.JsonObject {
 export async function createServiceRequest(
   rawInput: unknown,
   documents: ServiceRequestDocumentInput[] = [],
+  options: CreateServiceRequestOptions = {},
 ): Promise<ServiceRequest> {
   const input = normalizeRequestInput(rawInput);
   const fullName = `${input.firstName} ${input.lastName}`.trim();
@@ -63,34 +74,48 @@ export async function createServiceRequest(
     input.kind === "visa" ? input.personStatus : input.school;
 
   return prisma.$transaction(async (tx) => {
-    const user = await tx.user.upsert({
-      where: { email: input.email },
-      create: {
-        email: input.email,
-        name: fullName,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone,
-        parentPhone: input.parentPhone,
-        programType,
-      },
-      update: {
-        name: fullName,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone,
-        parentPhone: input.parentPhone,
-        programType,
-      },
-    });
+    const actor = options.actorUserId
+      ? await tx.user.findUnique({
+          where: { id: options.actorUserId },
+          select: { id: true, accountType: true },
+        })
+      : null;
+    const isYeshivaActor = actor?.accountType === UserAccountType.YESHIVA;
+    const source = isYeshivaActor
+      ? "YESHIVA"
+      : actor
+        ? "BAHOUR"
+        : "WEBSITE";
+    const user = isYeshivaActor
+      ? actor
+      : await tx.user.upsert({
+          where: { email: input.email },
+          create: {
+            email: input.email,
+            name: fullName,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+            parentPhone: input.parentPhone,
+            programType,
+            accountType: UserAccountType.BAHOUR,
+          },
+          update: {
+            name: fullName,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+            parentPhone: input.parentPhone,
+            programType,
+          },
+        });
 
     const request = await tx.serviceRequest.create({
       data: {
         type: toRequestType(input.kind),
         userId: user.id,
-        payload: toPayload(input),
-        publicNote:
-          "Demande reçue. L’équipe Bnei Yeshivot va vérifier le dossier.",
+        payload: toPayload(input, source),
+        publicNote: "Demande reçue. Le statut de votre demande est déposé.",
         documents:
           documents.length > 0
             ? {
@@ -103,7 +128,7 @@ export async function createServiceRequest(
             : undefined,
         messages: {
           create: {
-            body: "Dossier créé. Les documents seront vérifiés par l’équipe.",
+            body: "Dossier créé. Le statut de votre demande est déposé.",
           },
         },
       },
@@ -117,7 +142,7 @@ export async function createServiceRequest(
         entityId: request.id,
         metadata: {
           type: request.type,
-          source: "website",
+          source,
         },
       },
     });
