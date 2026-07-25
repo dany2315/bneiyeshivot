@@ -500,32 +500,42 @@ export default async function Home() {
               </p>
             </div>
             <div className="service-showcase">
-              {homeServices.map(({ title, subtitle, description, action, href, learnMoreHref, image }) => (
-                <Card className="service-card" key={title}>
-                  <div className="service-card-image">
-                    <Image src={image} alt="" fill sizes="(max-width: 980px) 100vw, 33vw" />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>
-                      <strong>{subtitle}</strong>
-                      <span>{description}</span>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap justify-end gap-2">
-                    {learnMoreHref ? (
-                      <Button asChild variant="default">
-                        <Link href={learnMoreHref}>
-                          En savoir plus
+              {homeServices.map(({ title, subtitle, description, action, href, learnMoreHref, image }) => {
+                const isExternal = href.startsWith("http");
+
+                return (
+                  <Card className="service-card" key={title}>
+                    <div className="service-card-image">
+                      <Image src={image} alt="" fill sizes="(max-width: 980px) 100vw, 33vw" />
+                    </div>
+                    <CardHeader>
+                      <CardTitle>{title}</CardTitle>
+                      <CardDescription>
+                        <strong>{subtitle}</strong>
+                        <span>{description}</span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap justify-end gap-2">
+                      {learnMoreHref ? (
+                        <Button asChild variant="default">
+                          <Link href={learnMoreHref}>
+                            En savoir plus
+                          </Link>
+                        </Button>
+                      ) : null}
+                      <Button asChild variant="secondary">
+                        <Link
+                          href={href}
+                          target={isExternal ? "_blank" : undefined}
+                          rel={isExternal ? "noreferrer" : undefined}
+                        >
+                          {action}
                         </Link>
                       </Button>
-                    ) : null}
-                    <Button asChild variant="secondary">
-                      <Link href={href}>{action}</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </section>

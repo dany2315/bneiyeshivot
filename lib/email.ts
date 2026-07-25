@@ -28,6 +28,13 @@ type SendEmailInput = {
   }>;
 };
 
+type ServiceRequestBahourContext = {
+  email?: string | null;
+  fullName?: string | null;
+  phone?: string | null;
+  school?: string | null;
+};
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -142,13 +149,17 @@ export async function newRequestAdminEmail(params: {
 }
 
 export async function requestConfirmationEmail(params: {
+  bahourContext?: ServiceRequestBahourContext;
   firstName?: string;
   typeLabel: string;
 }) {
   const html = await render(RequestConfirmationEmail(params));
+  const bahourName = params.bahourContext?.fullName?.trim();
 
   return {
-    subject: "Bnei Yeshivot - Votre demande a bien été reçue",
+    subject: bahourName
+      ? `Bnei Yeshivot - Demande reçue - ${bahourName}`
+      : "Bnei Yeshivot - Votre demande a bien été reçue",
     html,
   };
 }
@@ -179,6 +190,7 @@ async function serviceRequestEmailHtml({
 
 export async function serviceRequestStatusEmail(params: {
   actionHref: string;
+  bahourContext?: ServiceRequestBahourContext;
   firstName?: string | null;
   note?: string | null;
   requestedChanges?: string[];
@@ -195,6 +207,7 @@ export async function serviceRequestStatusEmail(params: {
     title,
     body: [
       greeting,
+      ...serviceRequestBahourContextLines(params.bahourContext),
       `Le statut de votre demande ${params.typeLabel} est maintenant : <strong>${params.statusLabel}</strong>.`,
       ...(isMissingDocuments
         ? [`À modifier : <strong>${params.requestedChanges!.join(", ")}</strong>.`]
@@ -204,9 +217,30 @@ export async function serviceRequestStatusEmail(params: {
   });
 
   return {
-    subject: `Bnei Yeshivot - Mise à jour de votre demande ${params.typeLabel}`,
+    subject: params.bahourContext?.fullName
+      ? `Bnei Yeshivot - Mise à jour ${params.typeLabel} - ${params.bahourContext.fullName}`
+      : `Bnei Yeshivot - Mise à jour de votre demande ${params.typeLabel}`,
     html,
   };
+}
+
+function serviceRequestBahourContextLines(
+  context?: ServiceRequestBahourContext,
+) {
+  if (!context?.fullName && !context?.email && !context?.phone && !context?.school) {
+    return [];
+  }
+
+  return [
+    [
+      context.fullName ? `Bahour concerné : <strong>${context.fullName}</strong>` : "",
+      context.email ? `email : ${context.email}` : "",
+      context.phone ? `téléphone : ${context.phone}` : "",
+      context.school ? `yeshiva : ${context.school}` : "",
+    ]
+      .filter(Boolean)
+      .join(" - ") + ".",
+  ];
 }
 
 export async function serviceRequestClientUpdatedAdminEmail(params: {

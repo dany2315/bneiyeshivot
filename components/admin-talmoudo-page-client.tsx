@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { type ReactElement, useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { StatusBadge } from "@/app/components";
@@ -218,19 +218,34 @@ function masechtotStats(registrations: AdminRegistration[]) {
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
-function EditMivhanDialog({ session }: { session: AdminSession }) {
+function EditMivhanDialog({
+  onOpenChange,
+  open,
+  session,
+  trigger,
+}: {
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
+  session: AdminSession;
+  trigger?: ReactElement;
+}) {
   return (
     <TalmoudoDialogActionForm
       action={updateMivhanSessionSettingsState}
       className="sm:max-w-2xl"
       description="Modifiez la date, le lieu, le délai de fermeture et le statut des inscriptions."
+      onOpenChange={onOpenChange}
+      open={open}
       submitLabel="Enregistrer les réglages"
       title="Modifier le mivhan"
       trigger={
-        <Button className="w-full justify-start" size="sm" variant="secondary">
-          <Edit3 />
-          Modifier
-        </Button>
+        trigger ??
+        (open === undefined ? (
+          <Button className="w-full justify-start" size="sm" variant="secondary">
+            <Edit3 />
+            Modifier
+          </Button>
+        ) : undefined)
       }
     >
       <input name="sessionId" type="hidden" value={session.id} />
@@ -330,10 +345,16 @@ function RegistrationIdentityFields({
 
 function AddRegistrationDialog({
   bahourim,
+  onOpenChange,
+  open,
   sessionId,
+  trigger,
 }: {
   bahourim: AdminBahour[];
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
   sessionId: string;
+  trigger?: ReactElement;
 }) {
   const [selectedBahourId, setSelectedBahourId] = useState("");
   const selectedBahour =
@@ -344,13 +365,18 @@ function AddRegistrationDialog({
       action={createAdminTalmoudoRegistrationState}
       className="sm:max-w-3xl"
       description="Vous pouvez inscrire un utilisateur existant ou créer un nouveau compte à partir de son email."
+      onOpenChange={onOpenChange}
+      open={open}
       submitLabel="Inscrire"
       title="Inscription admin"
       trigger={
-        <Button className="w-full justify-start" size="sm" variant="secondary">
-          <Plus />
-          Inscrire un Bahour
-        </Button>
+        trigger ??
+        (open === undefined ? (
+          <Button className="w-full justify-start" size="sm" variant="secondary">
+            <Plus />
+            Inscrire un Bahour
+          </Button>
+        ) : undefined)
       }
     >
       <input name="sessionId" type="hidden" value={sessionId} />
@@ -554,62 +580,103 @@ function SessionActionsMenu({
   bahourim: AdminBahour[];
   session: AdminSession;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState<"edit" | "registration" | null>(
+    null,
+  );
+
+  function openDialog(dialog: "edit" | "registration") {
+    setMenuOpen(false);
+    window.setTimeout(() => setDialogOpen(dialog), 0);
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            aria-label="Actions du mivhan"
-            size="icon-sm"
-            type="button"
-            variant="secondary"
-          />
-        }
-      >
-        <MoreHorizontal />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
-        <div className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
-          Actions du mivhan
-        </div>
-        <div>
-          <EditMivhanDialog session={session} />
-        </div>
-        <div className="mt-1">
-          <AddRegistrationDialog bahourim={bahourim} sessionId={session.id} />
-        </div>
-        <div className="mt-1">
-          <TalmoudoActionButton
-            action={setMivhanSessionClosedState}
-            fields={{
-              sessionId: session.id,
-              registrationsClosed: session.registrationsClosed
-                ? "false"
-                : "true",
-            }}
-          >
-            {session.registrationsClosed ? (
-              <>
-                <Unlock />
-                Ouvrir les inscriptions
-              </>
-            ) : (
-              <>
-                <Lock />
-                Fermer les inscriptions
-              </>
-            )}
-          </TalmoudoActionButton>
-        </div>
-        <DropdownMenuSeparator className="my-2" />
-        <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
-          Zone sensible
-        </div>
-        <div>
-          <DeleteMivhanDialog session={session} />
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label="Actions du mivhan"
+              size="icon-sm"
+              type="button"
+              variant="secondary"
+            />
+          }
+        >
+          <MoreHorizontal />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64 rounded-xl p-2">
+          <div className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
+            Actions du mivhan
+          </div>
+          <div>
+            <Button
+              className="w-full justify-start"
+              onClick={() => openDialog("edit")}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              <Edit3 />
+              Modifier
+            </Button>
+          </div>
+          <div className="mt-1">
+            <Button
+              className="w-full justify-start"
+              onClick={() => openDialog("registration")}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              <Plus />
+              Inscrire un Bahour
+            </Button>
+          </div>
+          <div className="mt-1">
+            <TalmoudoActionButton
+              action={setMivhanSessionClosedState}
+              fields={{
+                sessionId: session.id,
+                registrationsClosed: session.registrationsClosed
+                  ? "false"
+                  : "true",
+              }}
+            >
+              {session.registrationsClosed ? (
+                <>
+                  <Unlock />
+                  Ouvrir les inscriptions
+                </>
+              ) : (
+                <>
+                  <Lock />
+                  Fermer les inscriptions
+                </>
+              )}
+            </TalmoudoActionButton>
+          </div>
+          <DropdownMenuSeparator className="my-2" />
+          <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-destructive">
+            Zone sensible
+          </div>
+          <div>
+            <DeleteMivhanDialog session={session} />
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <EditMivhanDialog
+        onOpenChange={(open) => setDialogOpen(open ? "edit" : null)}
+        open={dialogOpen === "edit"}
+        session={session}
+      />
+      <AddRegistrationDialog
+        bahourim={bahourim}
+        onOpenChange={(open) => setDialogOpen(open ? "registration" : null)}
+        open={dialogOpen === "registration"}
+        sessionId={session.id}
+      />
+    </>
   );
 }
 

@@ -1883,7 +1883,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
         <Bell className="size-4" />
         Suivre
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Suivi réservation</DialogTitle>
           <DialogDescription>

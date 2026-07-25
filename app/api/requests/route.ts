@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { UserAccountType } from "@prisma/client";
 import { ZodError } from "zod";
 import { createServiceRequest } from "@/lib/service-requests";
 import { normalizeRequestInput } from "@/lib/request-validation";
@@ -31,6 +32,23 @@ function isUploadedDocumentPayload(
   );
 }
 
+function readText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function requestBahourContext(body: Record<string, unknown>) {
+  const fullName = [readText(body.firstName), readText(body.lastName)]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    fullName,
+    email: readText(body.email),
+    phone: readText(body.phone),
+    school: readText(body.school),
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const contentType = request.headers.get("content-type") ?? "";
@@ -59,11 +77,15 @@ export async function POST(request: Request) {
       actorUserId: currentUser?.id,
     });
 
-    const email = typeof body.email === "string" ? body.email : "";
-    const firstName = typeof body.firstName === "string" ? body.firstName : "";
-    const lastName = typeof body.lastName === "string" ? body.lastName : "";
-    const phone = typeof body.phone === "string" ? body.phone : undefined;
+    const email = readText(body.email);
+    const firstName = readText(body.firstName);
+    const lastName = readText(body.lastName);
+    const phone = readText(body.phone) || undefined;
     const fullName = `${firstName} ${lastName}`.trim() || email || "Sans nom";
+    const bahourContext =
+      currentUser?.accountType === UserAccountType.YESHIVA
+        ? requestBahourContext(body)
+        : undefined;
     const typeLabel =
       kind === "visa"
         ? "visa étudiant"
@@ -74,6 +96,7 @@ export async function POST(request: Request) {
     // Confirmation au demandeur (on n'echoue pas la demande si l'email ne part pas).
     if (email) {
       const confirmationEmail = await requestConfirmationEmail({
+        bahourContext,
         firstName: firstName || undefined,
         typeLabel,
       });

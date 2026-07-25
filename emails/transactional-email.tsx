@@ -35,13 +35,29 @@ export function BaseEmail({
       <Body style={body}>
         <Container style={container}>
           <Section style={header}>
-            <Img
-              alt="Bnei Yeshivot"
-              src={emailLogoSrc}
-              style={logo}
-              width="160"
-            />
-            <Heading style={heading}>{title}</Heading>
+            <table
+              role="presentation"
+              style={headerTable}
+              width="100%"
+              cellPadding="0"
+              cellSpacing="0"
+            >
+              <tbody>
+                <tr>
+                  <td style={logoCell} width="64">
+                    <Img
+                      alt="Bnei Yeshivot"
+                      src={emailLogoSrc}
+                      style={logo}
+                      width="52"
+                    />
+                  </td>
+                  <td style={titleCell}>
+                    <Heading style={heading}>{title}</Heading>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </Section>
           <Section style={content}>{children}</Section>
           {actionHref && actionLabel ? (
@@ -99,6 +115,12 @@ export function NewRequestAdminEmail(props: {
 }
 
 export function RequestConfirmationEmail(props: {
+  bahourContext?: {
+    email?: string | null;
+    fullName?: string | null;
+    phone?: string | null;
+    school?: string | null;
+  };
   firstName?: string;
   typeLabel: string;
 }) {
@@ -114,6 +136,28 @@ export function RequestConfirmationEmail(props: {
         Nous avons bien reçu votre demande de <strong>{props.typeLabel}</strong>.
         Le statut de votre demande est déposé.
       </Text>
+      {props.bahourContext ? (
+        <Section style={list}>
+          {props.bahourContext.fullName ? (
+            <InfoLine
+              label="Bahour concerné"
+              value={props.bahourContext.fullName}
+            />
+          ) : null}
+          {props.bahourContext.email ? (
+            <InfoLine label="Email du Bahour" value={props.bahourContext.email} />
+          ) : null}
+          {props.bahourContext.phone ? (
+            <InfoLine
+              label="Téléphone du Bahour"
+              value={props.bahourContext.phone}
+            />
+          ) : null}
+          {props.bahourContext.school ? (
+            <InfoLine label="Yeshiva" value={props.bahourContext.school} />
+          ) : null}
+        </Section>
+      ) : null}
       <Text style={paragraphStrong}>Nous reviendrons vers vous pour la suite.</Text>
     </BaseEmail>
   );
@@ -427,21 +471,34 @@ function getPublicAssetBaseUrl() {
 const header = {
   borderRadius: "18px 18px 0 0",
   backgroundColor: "#062846",
-  padding: "26px 28px",
+  padding: "24px 28px",
+};
+
+const headerTable = {
+  borderCollapse: "collapse" as const,
+};
+
+const logoCell = {
+  padding: "0 12px 0 0",
+  verticalAlign: "middle" as const,
 };
 
 const logo = {
   display: "block",
-  margin: "0 0 18px",
-  maxWidth: "160px",
+  margin: "0",
+  maxWidth: "52px",
   height: "auto",
+};
+
+const titleCell = {
+  verticalAlign: "middle" as const,
 };
 
 const heading = {
   margin: "0",
   color: "#ffffff",
-  fontSize: "26px",
-  lineHeight: "32px",
+  fontSize: "24px",
+  lineHeight: "30px",
   fontWeight: "800",
 };
 

@@ -67,7 +67,7 @@ export async function ensureDefaultStorefront() {
       description:
         "Produits utiles pour l’installation des bahourim en Israël, disponibles uniquement sur réservation.",
       pickupDetails:
-        "Retrait ou livraison à coordonner avec l’équipe après validation de la réservation.",
+        "Retrait dans nos locaux à coordonner avec l’équipe après validation de la réservation.",
       contactEmail: "contact@bneiyeshivot.com",
       contactPhone: "+972 53 472 7103",
     },

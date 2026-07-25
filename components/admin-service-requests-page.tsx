@@ -659,7 +659,7 @@ function ServiceRequestActionsDropdown({
             <Upload className="size-4" />
             Uploader final
           </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Uploader le document final</DialogTitle>
               <DialogDescription>

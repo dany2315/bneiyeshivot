@@ -48,6 +48,26 @@ function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function payloadString(payload: Record<string, unknown>, key: string) {
+  const value = payload[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function serviceRequestBahourEmailContext(payload: Record<string, unknown>) {
+  if (payloadString(payload, "source") !== "YESHIVA") {
+    return undefined;
+  }
+
+  return {
+    fullName: [payloadString(payload, "firstName"), payloadString(payload, "lastName")]
+      .filter(Boolean)
+      .join(" "),
+    email: payloadString(payload, "email"),
+    phone: payloadString(payload, "phone"),
+    school: payloadString(payload, "school"),
+  };
+}
+
 function storeReservationItemLabel(item: {
   productTitle: string;
   variantLabel: string | null;
@@ -400,6 +420,7 @@ export async function updateServiceRequest(formData: FormData) {
         : [];
     const email = await serviceRequestStatusEmail({
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
+      bahourContext: serviceRequestBahourEmailContext(nextPayload),
       firstName: request.user.firstName,
       note: publicNote || null,
       requestedChanges:
@@ -486,8 +507,13 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
   });
 
   if (request.user?.email) {
+    const payload =
+      request.payload && typeof request.payload === "object" && !Array.isArray(request.payload)
+        ? (request.payload as Record<string, unknown>)
+        : {};
     const email = await serviceRequestStatusEmail({
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
+      bahourContext: serviceRequestBahourEmailContext(payload),
       firstName: request.user.firstName,
       note:
         label.toLocaleLowerCase("fr-FR").includes("visa")

@@ -107,39 +107,49 @@ export default function ServicesPage() {
               </p>
             </div>
             <div className="service-showcase">
-              {pageServices.map(({ title, subtitle, description, action, href, learnMoreHref, image }) => (
-                <Card className="service-card" key={title}>
-                  <div className="service-card-image">
-                    <Image
-                      src={image}
-                      alt=""
-                      fill
-                      sizes="(max-width: 980px) 100vw, 50vw"
-                    />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>
-                      <strong>{subtitle}</strong>
-                      <span>{description}</span>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap justify-end gap-2">
-                    {learnMoreHref ? (
-                      <Button asChild variant="ghost">
-                        <Link href={learnMoreHref}>
-                          <Info className="size-4 sm:hidden" />
-                          <span className="hidden sm:inline">En savoir plus</span>
-                          <span className="sr-only sm:hidden">En savoir plus</span>
+              {pageServices.map(({ title, subtitle, description, action, href, learnMoreHref, image }) => {
+                const isExternal = href.startsWith("http");
+
+                return (
+                  <Card className="service-card" key={title}>
+                    <div className="service-card-image">
+                      <Image
+                        src={image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 980px) 100vw, 50vw"
+                      />
+                    </div>
+                    <CardHeader>
+                      <CardTitle>{title}</CardTitle>
+                      <CardDescription>
+                        <strong>{subtitle}</strong>
+                        <span>{description}</span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap justify-end gap-2">
+                      {learnMoreHref ? (
+                        <Button asChild variant="ghost">
+                          <Link href={learnMoreHref}>
+                            <Info className="size-4 sm:hidden" />
+                            <span className="hidden sm:inline">En savoir plus</span>
+                            <span className="sr-only sm:hidden">En savoir plus</span>
+                          </Link>
+                        </Button>
+                      ) : null}
+                      <Button asChild variant="secondary">
+                        <Link
+                          href={href}
+                          target={isExternal ? "_blank" : undefined}
+                          rel={isExternal ? "noreferrer" : undefined}
+                        >
+                          {action}
                         </Link>
                       </Button>
-                    ) : null}
-                    <Button asChild variant="secondary">
-                      <Link href={href}>{action}</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </section>

@@ -20,7 +20,7 @@ const s3Client =
       })
     : null;
 
-function publicUrlForKey(key: string) {
+export function publicUrlForKey(key: string) {
   if (process.env.AWS_PUBLIC_BASE_URL) {
     return `${process.env.AWS_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`;
   }

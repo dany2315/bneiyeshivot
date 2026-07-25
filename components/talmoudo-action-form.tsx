@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,8 @@ export function TalmoudoDialogActionForm({
   children,
   className,
   description,
+  onOpenChange,
+  open,
   submitLabel,
   title,
   trigger,
@@ -42,14 +45,18 @@ export function TalmoudoDialogActionForm({
   children: ReactNode;
   className?: string;
   description?: string;
+  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
   submitLabel: string;
   title: string;
-  trigger: ReactElement;
+  trigger?: ReactElement;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [state, formAction, pending] = useActionState(action, initialState);
+  const dialogOpen = open ?? internalOpen;
+  const setDialogOpen = onOpenChange ?? setInternalOpen;
 
   useEffect(() => {
     if (!state.message) return;
@@ -57,18 +64,18 @@ export function TalmoudoDialogActionForm({
     if (state.ok) {
       toast.success(state.message);
       formRef.current?.reset();
-      window.setTimeout(() => setOpen(false), 0);
+      window.setTimeout(() => setDialogOpen(false), 0);
       router.refresh();
       return;
     }
 
     toast.error(state.message);
-  }, [router, state]);
+  }, [router, setDialogOpen, state]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
-      <DialogContent className={className}>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {trigger ? <DialogTrigger render={trigger} /> : null}
+      <DialogContent className={cn("max-h-[calc(100dvh-2rem)] overflow-y-auto", className)}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? (

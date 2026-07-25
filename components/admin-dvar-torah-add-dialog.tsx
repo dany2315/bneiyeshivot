@@ -41,6 +41,10 @@ type UploadedFile = {
   name: string;
 };
 
+type PresignedDvarTorahFile = UploadedFile & {
+  uploadUrl: string;
+};
+
 function errorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
@@ -48,33 +52,53 @@ function errorMessage(error: unknown) {
 }
 
 async function uploadDvarTorahPdf(file: File): Promise<UploadedFile> {
-  const formData = new FormData();
-  formData.append("files", file);
-  formData.append("prefix", "dvar-torah");
-
-  const response = await fetch("/api/uploads", {
+  const presignResponse = await fetch("/api/dvar-torah/upload-url", {
     method: "POST",
-    body: formData,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      mimeType: file.type || "application/pdf",
+      size: file.size,
+    }),
   });
-  const data = (await response.json().catch(() => null)) as {
+  const data = (await presignResponse.json().catch(() => null)) as {
     ok?: boolean;
-    files?: Array<{
+    file?: {
       key: string;
       url: string;
       mimeType: string;
       size: number;
-    }>;
+      uploadUrl: string;
+    };
     message?: string;
   } | null;
-  const uploaded = data?.files?.[0];
+  const upload = data?.file;
 
-  if (!response.ok || !data?.ok || !uploaded) {
-    throw new Error(data?.message ?? "Upload échoué.");
+  if (!presignResponse.ok || !data?.ok || !upload) {
+    throw new Error(data?.message ?? "Impossible de préparer l’upload.");
+  }
+
+  const uploaded: PresignedDvarTorahFile = {
+    ...upload,
+    name: file.name,
+  };
+
+  const s3Response = await fetch(uploaded.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": uploaded.mimeType },
+    body: file,
+  });
+
+  if (!s3Response.ok) {
+    throw new Error("L’upload du PDF a échoué.");
   }
 
   return {
-    ...uploaded,
-    name: file.name,
+    key: uploaded.key,
+    url: uploaded.url,
+    mimeType: uploaded.mimeType,
+    size: uploaded.size,
+    name: uploaded.name,
   };
 }
 

@@ -181,10 +181,8 @@ function storeCartLines(cartLines: CartLine[]) {
 
 function StoreReservationReceptionFields({
   disabled,
-  pickupDetails,
 }: {
   disabled?: boolean;
-  pickupDetails?: string | null;
 }) {
   const [mode, setMode] = useState<"PICKUP" | "DELIVERY">("PICKUP");
 
@@ -205,8 +203,8 @@ function StoreReservationReceptionFields({
             Retrait dans nos locaux
           </span>
           <span className="block text-[var(--muted)]">
-            Gratuit
-            {pickupDetails ? `, à l’adresse suivante : ${pickupDetails}` : "."}
+            Gratuit. Retirez votre commande dans nos locaux, à coordonner avec
+            l’équipe, après validation de votre réservation.
           </span>
         </span>
       </label>
@@ -993,7 +991,6 @@ function CartSheet({
                 />
                 <StoreReservationReceptionFields
                   disabled={!storefront.active}
-                  pickupDetails={storefront.pickupDetails}
                 />
                 <Textarea
                   name="note"
