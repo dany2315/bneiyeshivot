@@ -106,7 +106,9 @@ export default async function DonationThanksPage({
                     <Link href="/">Retour à l’accueil</Link>
                   </Button>
                   <Button asChild variant="secondary">
-                    <Link href="/dons">Faire un autre don</Link>
+                    <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
+                      Faire un autre don
+                    </a>
                   </Button>
                 </div>
               </CardContent>

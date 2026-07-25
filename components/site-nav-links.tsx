@@ -13,11 +13,15 @@ const navLinks = [
   ["Programme", "/programme"],
   ["Dvar Torah", "/dvar-torah"],
   ["Boutique", "/boutique"],
-  ["Faire un don", "/dons"],
+  ["Faire un don", "https://toratyaacov.fr/"],
   ["Contact", "/contact"],
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
+  if (href.startsWith("http")) {
+    return false;
+  }
+
   if (href === "/") {
     return pathname === "/";
   }
@@ -35,11 +39,14 @@ export function SiteNavLinks() {
     >
       {navLinks.map(([label, href]) => {
         const active = isActivePath(pathname, href);
+        const isExternal = href.startsWith("http");
 
         return (
           <Link
             key={href}
             href={href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noreferrer" : undefined}
             aria-current={active ? "page" : undefined}
             className={cn(
               "rounded-full",

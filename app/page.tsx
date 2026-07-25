@@ -388,7 +388,9 @@ export default async function Home() {
                   <Link href="/venir-etudier">Je viens étudier en Israël</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
-                  <Link href="/dons">Faire un don</Link>
+                  <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
+                    Faire un don
+                  </a>
                 </Button>
                 <Button asChild size="lg">
                   <Link href="/inscription">M’inscrire</Link>
@@ -878,10 +880,10 @@ export default async function Home() {
                 ))}
               </ul>
               <Button asChild variant="accent" size="lg">
-                <Link href="/dons">
+                <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
                   <Heart className="size-5" />
                   Je fais un don
-                </Link>
+                </a>
               </Button>
             </div>
           </div>

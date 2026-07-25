@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PaymentStatus } from "@prisma/client";
 import { PageShell } from "@/app/components";
@@ -90,7 +89,9 @@ export default async function DonorPage({
                 </p>
               </div>
               <Button asChild>
-                <Link href="/dons">Faire un don</Link>
+                <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
+                  Faire un don
+                </a>
               </Button>
             </div>
 
