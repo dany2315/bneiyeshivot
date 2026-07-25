@@ -13,7 +13,7 @@ function downloadBlob(blob: Blob) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "guide-bnei-yeshivot.pdf";
+  link.download = "guide-yeshiva-2026.pdf";
   document.body.appendChild(link);
   link.click();
   link.remove();
