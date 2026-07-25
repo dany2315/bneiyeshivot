@@ -15,7 +15,7 @@ type GuideDownloadResponse = {
 };
 
 function openDownloadUrl(downloadUrl: string) {
-  window.location.assign(downloadUrl);
+  window.open(downloadUrl, "_blank", "noopener,noreferrer");
 }
 
 export function GuideDownloadForm() {
@@ -71,8 +71,8 @@ export function GuideDownloadForm() {
             Téléchargement en cours
           </h2>
           <p className="mt-2 text-base leading-7 text-[var(--muted)]">
-            Vous êtes connecté avec {user.email}. Le guide se télécharge
-            automatiquement.
+            Vous êtes connecté avec {user.email}. Le guide s’ouvre
+            automatiquement dans un nouvel onglet.
           </p>
         </div>
         <Button
@@ -99,9 +99,9 @@ export function GuideDownloadForm() {
           Recevoir le guide
         </h2>
         <p className="mt-2 text-base leading-7 text-[var(--muted)]">
-          Renseignez vos informations. Si votre email existe déjà, le guide se
-          télécharge directement. Sinon, un accès Bahour sera préparé avec ces
-          informations.
+          Renseignez vos informations. Si votre email existe déjà, le guide
+          s’ouvre directement dans un nouvel onglet. Sinon, un accès Bahour sera
+          préparé avec ces informations.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
