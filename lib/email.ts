@@ -21,6 +21,7 @@ type SendEmailInput = {
   bcc?: string | string[];
   subject: string;
   html: string;
+  text?: string;
   attachments?: Array<{
     filename: string;
     content: string;
@@ -42,11 +43,34 @@ function retryDelayMs(response: Response, attempt: number) {
   return Math.min(12000, 1500 * 2 ** attempt);
 }
 
-export async function sendEmail({ to, bcc, subject, html, attachments }: SendEmailInput) {
+function htmlToPlainText(html: string) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h[1-6]|li|tr|table|section)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export async function sendEmail({ to, bcc, subject, html, text, attachments }: SendEmailInput) {
   if (!RESEND_API_KEY || !EMAIL_FROM) {
     console.warn("[email] RESEND_API_KEY ou EMAIL_FROM manquant : email non envoye.");
     return { ok: false as const };
   }
+
+  const plainText = text ?? htmlToPlainText(html);
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     let response: Response;
@@ -58,7 +82,7 @@ export async function sendEmail({ to, bcc, subject, html, attachments }: SendEma
           Authorization: `Bearer ${RESEND_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ from: EMAIL_FROM, to, bcc, subject, html, attachments }),
+        body: JSON.stringify({ from: EMAIL_FROM, to, bcc, subject, html, text: plainText, attachments }),
       });
     } catch (error) {
       if (attempt < 2) {

@@ -407,7 +407,22 @@ const container = {
   padding: "28px 14px",
 };
 
-const emailLogoSrc = "https://www.bneiyeshivot.com/logo-bnei.png";
+const emailAssetBaseUrl =
+  process.env.EMAIL_ASSET_BASE_URL?.replace(/\/$/, "") ||
+  getPublicAssetBaseUrl() ||
+  "https://bneiyeshivot.vercel.app";
+
+const emailLogoSrc = `${emailAssetBaseUrl}/logo-bnei.png`;
+
+function getPublicAssetBaseUrl() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+
+  if (!appUrl || appUrl.includes("localhost")) {
+    return "";
+  }
+
+  return appUrl;
+}
 
 const header = {
   borderRadius: "18px 18px 0 0",

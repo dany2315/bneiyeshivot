@@ -1,4 +1,4 @@
-import { Section, Text } from "@react-email/components";
+import { Text } from "@react-email/components";
 import { BaseEmail } from "./transactional-email";
 
 type OtpEmailProps = {
@@ -6,6 +6,8 @@ type OtpEmailProps = {
 };
 
 export function OtpEmail({ otp }: OtpEmailProps) {
+  const formattedOtp = otp.trim().split("").join(" ");
+
   return (
     <BaseEmail
       preview={`Votre code de connexion Bnei Yeshivot : ${otp}`}
@@ -15,9 +17,21 @@ export function OtpEmail({ otp }: OtpEmailProps) {
         Voici votre code temporaire pour accéder à votre Espace Bahour.
       </Text>
 
-      <Section style={codeBox}>
-        <Text style={code}>{otp}</Text>
-      </Section>
+      <table
+        role="presentation"
+        style={codeTable}
+        width="100%"
+        cellPadding="0"
+        cellSpacing="0"
+      >
+        <tbody>
+          <tr>
+            <td align="center" style={codeCell}>
+              <span style={code}>{formattedOtp}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <Text style={paragraph}>
         Ce code expire dans quelques minutes. Si vous n’êtes pas à l’origine de
@@ -36,18 +50,25 @@ const paragraph = {
   lineHeight: "26px",
 };
 
-const codeBox = {
+const codeTable = {
   margin: "16px 0 18px",
+  borderCollapse: "separate" as const,
+};
+
+const codeCell = {
+  borderRadius: "16px",
+  backgroundColor: "#fff4e8",
+  padding: "18px 20px",
+  textAlign: "center" as const,
 };
 
 const code = {
   margin: "0",
-  borderRadius: "16px",
-  backgroundColor: "#fff4e8",
   color: "#062644",
-  padding: "18px 20px",
-  textAlign: "center" as const,
+  WebkitTextFillColor: "#062644",
+  fontFamily: "Courier New, Courier, monospace",
   fontSize: "34px",
   fontWeight: "800",
-  letterSpacing: "8px",
+  lineHeight: "40px",
+  whiteSpace: "nowrap" as const,
 };
