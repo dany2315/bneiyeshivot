@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthSession } from "@/components/auth-session";
@@ -9,42 +9,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function downloadBlob(blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "guide-yeshiva-2026.pdf";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+type GuideDownloadResponse = {
+  downloadUrl?: string;
+  message?: string;
+};
+
+function openDownloadUrl(downloadUrl: string) {
+  window.location.assign(downloadUrl);
 }
 
 export function GuideDownloadForm() {
   const { user, loading } = useAuthSession();
   const [submitting, setSubmitting] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
+  const downloadedRef = useRef(false);
 
   useEffect(() => {
-    async function downloadForConnectedUser() {
-      if (loading || !user || downloaded) {
-        return;
-      }
-
-      setDownloaded(true);
-      const response = await fetch("/api/guide/download");
-
-      if (!response.ok) {
-        toast.error("Impossible de télécharger le guide pour le moment.");
-        return;
-      }
-
-      downloadBlob(await response.blob());
-      toast.success("Guide téléchargé.");
+    if (loading || !user || downloadedRef.current) {
+      return;
     }
 
-    downloadForConnectedUser();
-  }, [downloaded, loading, user]);
+    downloadedRef.current = true;
+    openDownloadUrl("/api/guide/download");
+  }, [loading, user]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,16 +43,16 @@ export function GuideDownloadForm() {
 
     setSubmitting(false);
 
-    if (!response.ok) {
-      const result = (await response.json().catch(() => null)) as {
-        message?: string;
-      } | null;
+    const result = (await response.json().catch(() => null)) as
+      | GuideDownloadResponse
+      | null;
+
+    if (!response.ok || !result?.downloadUrl) {
       toast.error(result?.message ?? "Impossible de télécharger le guide.");
       return;
     }
 
-    downloadBlob(await response.blob());
-    toast.success("Guide téléchargé.");
+    openDownloadUrl(result.downloadUrl);
   }
 
   if (loading) {
@@ -93,7 +79,7 @@ export function GuideDownloadForm() {
           type="button"
           variant="secondary"
           onClick={() => {
-            setDownloaded(false);
+            openDownloadUrl("/api/guide/download");
           }}
         >
           <Download className="size-4" />

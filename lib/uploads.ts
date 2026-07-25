@@ -191,3 +191,26 @@ export async function createPresignedUploadUrl({
     { expiresIn: 60 * 10 },
   );
 }
+
+export async function createPresignedDownloadUrl({
+  key,
+  contentType,
+  fileName,
+}: {
+  key: string;
+  contentType: string;
+  fileName: string;
+}) {
+  const config = requireS3Config();
+
+  return getSignedUrl(
+    config.s3Client,
+    new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${fileName}"`,
+      ResponseContentType: contentType,
+    }),
+    { expiresIn: 60 * 5 },
+  );
+}

@@ -2,21 +2,24 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getFileFromS3 } from "@/lib/uploads";
+import { createPresignedDownloadUrl } from "@/lib/uploads";
 
 const guideS3Key = process.env.GUIDE_PDF_S3_KEY || "guides/guide-yeshiva-2026.pdf";
+const guideFileName = "guide-yeshiva-2026.pdf";
 
-async function pdfResponse() {
+async function guideDownloadUrl() {
+  return createPresignedDownloadUrl({
+    key: guideS3Key,
+    contentType: "application/pdf",
+    fileName: guideFileName,
+  });
+}
+
+async function guideUrlResponse() {
   try {
-    const guide = await getFileFromS3(guideS3Key);
-
-    return new NextResponse(guide.body, {
-      headers: {
-        "Content-Type": guide.contentType || "application/pdf",
-        "Content-Disposition": 'attachment; filename="guide-yeshiva-2026.pdf"',
-      },
-    });
-  } catch {
+    return NextResponse.json({ downloadUrl: await guideDownloadUrl() });
+  } catch (error) {
+    console.error("[guide] URL de téléchargement indisponible", error);
     return NextResponse.json(
       { message: "Le guide est momentanément indisponible." },
       { status: 500 }
@@ -24,7 +27,7 @@ async function pdfResponse() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -33,7 +36,22 @@ export async function GET() {
     return NextResponse.json({ message: "Connexion requise." }, { status: 401 });
   }
 
-  return pdfResponse();
+  try {
+    const downloadUrl = await guideDownloadUrl();
+    const { searchParams } = new URL(request.url);
+
+    if (searchParams.get("format") === "json") {
+      return NextResponse.json({ downloadUrl });
+    }
+
+    return NextResponse.redirect(downloadUrl);
+  } catch (error) {
+    console.error("[guide] redirection de téléchargement indisponible", error);
+    return NextResponse.json(
+      { message: "Le guide est momentanément indisponible." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -66,5 +84,5 @@ export async function POST(request: Request) {
     });
   }
 
-  return pdfResponse();
+  return guideUrlResponse();
 }
