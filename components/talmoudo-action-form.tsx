@@ -53,6 +53,7 @@ export function TalmoudoDialogActionForm({
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const handledStateRef = useRef<TalmoudoActionState | null>(null);
   const [internalOpen, setInternalOpen] = useState(false);
   const [state, formAction, pending] = useActionState(action, initialState);
   const dialogOpen = open ?? internalOpen;
@@ -60,6 +61,8 @@ export function TalmoudoDialogActionForm({
 
   useEffect(() => {
     if (!state.message) return;
+    if (handledStateRef.current === state) return;
+    handledStateRef.current = state;
 
     if (state.ok) {
       toast.success(state.message);
@@ -109,10 +112,13 @@ export function TalmoudoInlineActionForm({
 }) {
   const router = useRouter();
   const [isRefreshing, startTransition] = useTransition();
+  const handledStateRef = useRef<TalmoudoActionState | null>(null);
   const [state, formAction, pending] = useActionState(action, initialState);
 
   useEffect(() => {
     if (!state.message) return;
+    if (handledStateRef.current === state) return;
+    handledStateRef.current = state;
 
     if (state.ok) {
       toast.success(state.message);
@@ -155,10 +161,13 @@ export function TalmoudoActionButton({
   variant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const router = useRouter();
+  const handledStateRef = useRef<TalmoudoActionState | null>(null);
   const [state, formAction, pending] = useActionState(action, initialState);
 
   useEffect(() => {
     if (!state.message) return;
+    if (handledStateRef.current === state) return;
+    handledStateRef.current = state;
 
     if (state.ok) {
       toast.success(state.message);
