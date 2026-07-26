@@ -35,6 +35,13 @@ async function sendOtpEmail(email: string, otp: string) {
   }
 
   const html = await render(OtpEmail({ otp }));
+  const text = [
+    "Bnei Yeshivot - Code de connexion",
+    "",
+    `Votre code temporaire pour accéder à votre Espace Bahour : ${otp}`,
+    "",
+    "Ce code expire dans quelques minutes. Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet email.",
+  ].join("\n");
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -47,6 +54,7 @@ async function sendOtpEmail(email: string, otp: string) {
       to: email,
       subject: "Votre code de connexion Bnei Yeshivot",
       html,
+      text,
     }),
   });
 
@@ -80,6 +88,11 @@ export const auth = betterAuth({
         input: true,
       },
       phone: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      accountType: {
         type: "string",
         required: false,
         input: true,

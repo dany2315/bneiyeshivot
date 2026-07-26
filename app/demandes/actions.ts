@@ -6,6 +6,7 @@ import {
   requestConfirmationEmail,
   sendEmail,
 } from "@/lib/email";
+import { getCurrentUser } from "@/lib/session";
 
 function formDataToObject(formData: FormData, kind: "visa" | "koupat") {
   return {
@@ -14,6 +15,7 @@ function formDataToObject(formData: FormData, kind: "visa" | "koupat") {
     lastName: formData.get("lastName"),
     email: formData.get("email"),
     phone: formData.get("phone"),
+    parentPhone: formData.get("parentPhone"),
     birthDate: formData.get("birthDate"),
     nationality: formData.get("nationality"),
     passportNumber: formData.get("passportNumber"),
@@ -26,7 +28,10 @@ function formDataToObject(formData: FormData, kind: "visa" | "koupat") {
 
 export async function createVisaRequest(formData: FormData) {
   const payload = formDataToObject(formData, "visa");
-  const request = await createServiceRequest(payload);
+  const currentUser = await getCurrentUser();
+  const request = await createServiceRequest(payload, [], {
+    actorUserId: currentUser?.id,
+  });
   await sendRequestEmails({
     adminPath: "visa",
     payload,
@@ -42,7 +47,10 @@ export async function createVisaRequest(formData: FormData) {
 
 export async function createKoupatHolimRequest(formData: FormData) {
   const payload = formDataToObject(formData, "koupat");
-  const request = await createServiceRequest(payload);
+  const currentUser = await getCurrentUser();
+  const request = await createServiceRequest(payload, [], {
+    actorUserId: currentUser?.id,
+  });
   await sendRequestEmails({
     adminPath: "koupat-holim",
     payload,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UserAccountType } from "@prisma/client";
 import { PageShell } from "../../components";
 import { RequestStepForm } from "@/components/request-step-form";
 import { getCurrentUser } from "@/lib/session";
@@ -16,6 +17,8 @@ export const metadata = {
 
 export default async function KoupatHolimRequestPage() {
   const user = await getCurrentUser();
+  const initialUser =
+    user?.accountType === UserAccountType.YESHIVA ? null : user;
 
   return (
     <PageShell>
@@ -34,7 +37,7 @@ export default async function KoupatHolimRequestPage() {
 
         <section className="section">
           <div className="container request-layout">
-            <RequestStepForm initialUser={user} type="koupat" />
+            <RequestStepForm initialUser={initialUser} type="koupat" />
             <div>
               <Card>
                 <CardHeader>

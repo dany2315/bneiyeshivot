@@ -5,6 +5,7 @@ import {
   DonationThankYouEmail,
   NewRequestAdminEmail,
   RequestConfirmationEmail,
+  ServiceRequestEmail,
   StoreReservationAdminEmail,
   StoreReservationConfirmationEmail,
   StoreReservationStatusEmail,
@@ -20,10 +21,18 @@ type SendEmailInput = {
   bcc?: string | string[];
   subject: string;
   html: string;
+  text?: string;
   attachments?: Array<{
     filename: string;
     content: string;
   }>;
+};
+
+type ServiceRequestBahourContext = {
+  email?: string | null;
+  fullName?: string | null;
+  phone?: string | null;
+  school?: string | null;
 };
 
 function sleep(ms: number) {
@@ -41,11 +50,34 @@ function retryDelayMs(response: Response, attempt: number) {
   return Math.min(12000, 1500 * 2 ** attempt);
 }
 
-export async function sendEmail({ to, bcc, subject, html, attachments }: SendEmailInput) {
+function htmlToPlainText(html: string) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h[1-6]|li|tr|table|section)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export async function sendEmail({ to, bcc, subject, html, text, attachments }: SendEmailInput) {
   if (!RESEND_API_KEY || !EMAIL_FROM) {
     console.warn("[email] RESEND_API_KEY ou EMAIL_FROM manquant : email non envoye.");
     return { ok: false as const };
   }
+
+  const plainText = text ?? htmlToPlainText(html);
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     let response: Response;
@@ -57,7 +89,7 @@ export async function sendEmail({ to, bcc, subject, html, attachments }: SendEma
           Authorization: `Bearer ${RESEND_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ from: EMAIL_FROM, to, bcc, subject, html, attachments }),
+        body: JSON.stringify({ from: EMAIL_FROM, to, bcc, subject, html, text: plainText, attachments }),
       });
     } catch (error) {
       if (attempt < 2) {
@@ -117,88 +149,119 @@ export async function newRequestAdminEmail(params: {
 }
 
 export async function requestConfirmationEmail(params: {
+  bahourContext?: ServiceRequestBahourContext;
   firstName?: string;
   typeLabel: string;
 }) {
   const html = await render(RequestConfirmationEmail(params));
+  const bahourName = params.bahourContext?.fullName?.trim();
 
   return {
-    subject: "Bnei Yeshivot - Votre demande a bien été reçue",
+    subject: bahourName
+      ? `Bnei Yeshivot - Demande reçue - ${bahourName}`
+      : "Bnei Yeshivot - Votre demande a bien été reçue",
     html,
   };
 }
 
-function paragraph(text: string) {
-  return `<p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#17324d">${text}</p>`;
-}
-
-function serviceRequestEmailHtml({
+async function serviceRequestEmailHtml({
   actionHref,
   actionLabel,
   body,
+  preview,
   title,
 }: {
   actionHref?: string;
   actionLabel?: string;
   body: string[];
+  preview: string;
   title: string;
 }) {
-  return `
-    <div style="font-family:Arial,sans-serif;background:#f6f8fb;padding:24px">
-      <div style="max-width:620px;margin:0 auto;background:white;border-radius:16px;padding:24px;border:1px solid #e6edf4">
-        <p style="margin:0 0 8px;color:#f26300;font-weight:700">Bnei Yeshivot</p>
-        <h1 style="margin:0 0 18px;color:#062846;font-size:24px">${title}</h1>
-        ${body.map(paragraph).join("")}
-        ${
-          actionHref && actionLabel
-            ? `<p style="margin:22px 0"><a href="${actionHref}" style="display:inline-block;background:#062846;color:#fff;text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700">${actionLabel}</a></p>`
-            : ""
-        }
-        <p style="margin:24px 0 0;color:#6b7b8f;font-size:13px">L’équipe Bnei Yeshivot</p>
-      </div>
-    </div>
-  `;
+  return render(
+    ServiceRequestEmail({
+      actionHref,
+      actionLabel,
+      body,
+      preview,
+      title,
+    }),
+  );
 }
 
-export function serviceRequestStatusEmail(params: {
+export async function serviceRequestStatusEmail(params: {
   actionHref: string;
+  bahourContext?: ServiceRequestBahourContext;
   firstName?: string | null;
   note?: string | null;
+  requestedChanges?: string[];
   statusLabel: string;
   typeLabel: string;
 }) {
   const greeting = params.firstName ? `Bonjour ${params.firstName},` : "Bonjour,";
+  const title = "Mise à jour de votre demande";
+  const isMissingDocuments = params.requestedChanges && params.requestedChanges.length > 0;
+  const html = await serviceRequestEmailHtml({
+    actionHref: params.actionHref,
+    actionLabel: isMissingDocuments ? "Modifier dans mon espace" : "Voir ma demande",
+    preview: `${title} - ${params.typeLabel}`,
+    title,
+    body: [
+      greeting,
+      ...serviceRequestBahourContextLines(params.bahourContext),
+      `Le statut de votre demande ${params.typeLabel} est maintenant : <strong>${params.statusLabel}</strong>.`,
+      ...(isMissingDocuments
+        ? [`À modifier : <strong>${params.requestedChanges!.join(", ")}</strong>.`]
+        : []),
+      ...(params.note ? [params.note] : []),
+    ],
+  });
 
   return {
-    subject: `Bnei Yeshivot - Mise à jour de votre demande ${params.typeLabel}`,
-    html: serviceRequestEmailHtml({
-      actionHref: params.actionHref,
-      actionLabel: "Voir ma demande",
-      title: "Mise à jour de votre demande",
-      body: [
-        greeting,
-        `Votre demande ${params.typeLabel} est maintenant indiquée comme <strong>${params.statusLabel}</strong>.`,
-        ...(params.note ? [params.note] : []),
-      ],
-    }),
+    subject: params.bahourContext?.fullName
+      ? `Bnei Yeshivot - Mise à jour ${params.typeLabel} - ${params.bahourContext.fullName}`
+      : `Bnei Yeshivot - Mise à jour de votre demande ${params.typeLabel}`,
+    html,
   };
 }
 
-export function serviceRequestClientUpdatedAdminEmail(params: {
+function serviceRequestBahourContextLines(
+  context?: ServiceRequestBahourContext,
+) {
+  if (!context?.fullName && !context?.email && !context?.phone && !context?.school) {
+    return [];
+  }
+
+  return [
+    [
+      context.fullName ? `Bahour concerné : <strong>${context.fullName}</strong>` : "",
+      context.email ? `email : ${context.email}` : "",
+      context.phone ? `téléphone : ${context.phone}` : "",
+      context.school ? `yeshiva : ${context.school}` : "",
+    ]
+      .filter(Boolean)
+      .join(" - ") + ".",
+  ];
+}
+
+export async function serviceRequestClientUpdatedAdminEmail(params: {
   adminHref: string;
   fullName: string;
   typeLabel: string;
 }) {
+  const title = "Demande mise à jour par l’utilisateur";
+  const html = await serviceRequestEmailHtml({
+    actionHref: params.adminHref,
+    actionLabel: "Voir la demande",
+    preview: `${title} - ${params.fullName}`,
+    title,
+    body: [
+      `${params.fullName} a complété les informations demandées pour sa demande ${params.typeLabel}.`,
+    ],
+  });
+
   return {
     subject: `Demande mise à jour - ${params.typeLabel} - ${params.fullName}`,
-    html: serviceRequestEmailHtml({
-      actionHref: params.adminHref,
-      actionLabel: "Voir la demande",
-      title: "Demande mise à jour par l’utilisateur",
-      body: [
-        `${params.fullName} a complété les informations demandées pour sa demande ${params.typeLabel}.`,
-      ],
-    }),
+    html,
   };
 }
 
@@ -332,6 +395,7 @@ export async function talmoudoResultEmail(params: {
   firstName?: string;
   sessionTitle: string;
   grade: number;
+  adminMessage?: string | null;
   rewardAmount?: string;
   rewardPaid: boolean;
 }) {

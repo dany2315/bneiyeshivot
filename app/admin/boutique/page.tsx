@@ -45,47 +45,65 @@ export default async function AdminStorePage() {
     string,
     {
       productId: string;
-      productVariantId: string | null;
       title: string;
-      variantLabel: string | null;
-      orderedQuantity: number;
-      stockQuantity: number | null;
       active: boolean;
+      variants: Map<
+        string,
+        {
+          productVariantId: string | null;
+          variantLabel: string | null;
+          orderedQuantity: number;
+          stockQuantity: number | null;
+          active: boolean;
+        }
+      >;
     }
   >();
 
   for (const product of products) {
+    const variants = new Map<
+      string,
+      {
+        productVariantId: string | null;
+        variantLabel: string | null;
+        orderedQuantity: number;
+        stockQuantity: number | null;
+        active: boolean;
+      }
+    >();
+
     if (product.variants.length === 0) {
-      supplyByProduct.set(`${product.id}:base`, {
-        productId: product.id,
+      variants.set("base", {
         productVariantId: null,
-        title: product.title,
-        variantLabel: null,
+        variantLabel: "Produit",
         orderedQuantity: 0,
         stockQuantity: product.stockQuantity,
         active: product.active,
       });
-      continue;
+    } else {
+      for (const variant of product.variants) {
+        variants.set(variant.id, {
+          productVariantId: variant.id,
+          variantLabel: [variant.size, variant.cut].filter(Boolean).join(" / "),
+          orderedQuantity: 0,
+          stockQuantity: variant.stockQuantity,
+          active: product.active && variant.active,
+        });
+      }
     }
 
-    for (const variant of product.variants) {
-      supplyByProduct.set(`${product.id}:${variant.id}`, {
-        productId: product.id,
-        productVariantId: variant.id,
-        title: product.title,
-        variantLabel: [variant.size, variant.cut].filter(Boolean).join(" / "),
-        orderedQuantity: 0,
-        stockQuantity: variant.stockQuantity,
-        active: product.active && variant.active,
-      });
-    }
+    supplyByProduct.set(product.id, {
+      productId: product.id,
+      title: product.title,
+      active: product.active,
+      variants,
+    });
   }
 
   function supplyKey(item: {
-    productId: string;
     productVariantId?: string | null;
   }) {
-    return `${item.productId}:${item.productVariantId ?? "base"}`;
+    return item.productVariantId ?? "base";
   }
 
   for (const reservation of reservations) {
@@ -95,20 +113,27 @@ export default async function AdminStorePage() {
 
     for (const item of reservation.items) {
       const key = supplyKey(item);
-      const current =
-        supplyByProduct.get(key) ??
+      const currentProduct =
+        supplyByProduct.get(item.productId) ??
         {
           productId: item.productId,
-          productVariantId: item.productVariantId,
           title: item.productTitle,
+          active: false,
+          variants: new Map(),
+        };
+      const currentVariant =
+        currentProduct.variants.get(key) ??
+        {
+          productVariantId: item.productVariantId,
           variantLabel: item.variantLabel,
           orderedQuantity: 0,
           stockQuantity: null,
           active: false,
         };
 
-      current.orderedQuantity += item.quantity;
-      supplyByProduct.set(key, current);
+      currentVariant.orderedQuantity += item.quantity;
+      currentProduct.variants.set(key, currentVariant);
+      supplyByProduct.set(item.productId, currentProduct);
     }
   }
 
@@ -175,6 +200,9 @@ export default async function AdminStorePage() {
           arrivalDate: reservation.arrivalDate?.toISOString() ?? null,
           pickupDate: reservation.pickupDate?.toISOString() ?? null,
           pickupLocation: reservation.pickupLocation,
+          receptionMode: reservation.receptionMode,
+          deliveryAddress: reservation.deliveryAddress,
+          paid: reservation.paid,
           unavailableItems: reservation.unavailableItems,
           note: reservation.note,
           adminNote: reservation.adminNote,
@@ -191,14 +219,49 @@ export default async function AdminStorePage() {
           })),
         }))}
         supplyOverview={Array.from(supplyByProduct.values())
-          .map((item) => ({
-            ...item,
-            missingQuantity:
-              item.stockQuantity == null
+          .map((product) => {
+            const variants = Array.from(product.variants.values())
+              .map((variant) => ({
+                ...variant,
+                missingQuantity:
+                  variant.stockQuantity == null
+                    ? null
+                    : Math.max(0, variant.orderedQuantity - variant.stockQuantity),
+              }))
+              .filter(
+                (variant) =>
+                  variant.orderedQuantity > 0 &&
+                  (variant.missingQuantity == null || variant.missingQuantity > 0),
+              )
+              .sort((a, b) => {
+                if (a.missingQuantity == null && b.missingQuantity != null) return -1;
+                if (a.missingQuantity != null && b.missingQuantity == null) return 1;
+                return b.orderedQuantity - a.orderedQuantity;
+              });
+
+            return {
+              productId: product.productId,
+              title: product.title,
+              active: product.active,
+              variants,
+              orderedQuantity: variants.reduce(
+                (total, variant) => total + variant.orderedQuantity,
+                0,
+              ),
+              missingQuantity: variants.some((variant) => variant.missingQuantity == null)
                 ? null
-                : Math.max(0, item.orderedQuantity - item.stockQuantity),
-          }))
-          .sort((a, b) => b.orderedQuantity - a.orderedQuantity)}
+                : variants.reduce(
+                    (total, variant) => total + (variant.missingQuantity ?? 0),
+                    0,
+                  ),
+            };
+          })
+          .filter((product) => product.variants.length > 0)
+          .sort((a, b) => {
+            if (a.missingQuantity == null && b.missingQuantity != null) return -1;
+            if (a.missingQuantity != null && b.missingQuantity == null) return 1;
+            return (b.missingQuantity ?? 0) - (a.missingQuantity ?? 0);
+          })}
       />
     </AdminShell>
   );

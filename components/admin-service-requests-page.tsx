@@ -1,6 +1,7 @@
 import {
   ServiceRequestStatus,
   ServiceRequestType,
+  UserAccountType,
   type User,
 } from "@prisma/client";
 import Link from "next/link";
@@ -50,6 +51,39 @@ function userName(user: User | null) {
   return [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Bahour";
 }
 
+function payloadName(payload: Record<string, unknown>) {
+  return [payloadText(payload, "firstName"), payloadText(payload, "lastName")]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
+function requestSubjectName(
+  payload: Record<string, unknown>,
+  user: User | null,
+) {
+  return payloadName(payload) || userName(user);
+}
+
+function requestSourceLabel(
+  payload: Record<string, unknown>,
+  user: User | null,
+) {
+  if (payloadText(payload, "source") === "YESHIVA") {
+    return `Compte yeshiva : ${userName(user)}`;
+  }
+
+  if (payloadText(payload, "source") === "BAHOUR") {
+    return "Compte bahour";
+  }
+
+  if (user?.accountType === UserAccountType.YESHIVA) {
+    return `Compte yeshiva : ${userName(user)}`;
+  }
+
+  return "Demande du site";
+}
+
 function requestDialogType(type: ServiceRequestType) {
   if (type === ServiceRequestType.VISA_STUDENT) return "visa";
   if (type === ServiceRequestType.KOUPAT_HOLIM) return "koupat";
@@ -65,6 +99,14 @@ function payloadObject(payload: unknown) {
 function payloadText(payload: Record<string, unknown>, key: string) {
   const value = payload[key];
   return typeof value === "string" ? value : "";
+}
+
+function formatDateFr(date: Date) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }
 
 /*
@@ -617,7 +659,7 @@ function ServiceRequestActionsDropdown({
             <Upload className="size-4" />
             Uploader final
           </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>Uploader le document final</DialogTitle>
               <DialogDescription>
@@ -729,6 +771,10 @@ export async function AdminServiceRequestsPage({
             { user: { firstName: { contains: q, mode: "insensitive" } } },
             { user: { lastName: { contains: q, mode: "insensitive" } } },
             { user: { phone: { contains: q, mode: "insensitive" } } },
+            { payload: { path: ["firstName"], string_contains: q } },
+            { payload: { path: ["lastName"], string_contains: q } },
+            { payload: { path: ["email"], string_contains: q } },
+            { payload: { path: ["phone"], string_contains: q } },
           ]
         : undefined,
     },
@@ -808,9 +854,9 @@ export async function AdminServiceRequestsPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Bahour</TableHead>
-                <TableHead>Contact</TableHead>
                 <TableHead>Dossier</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Source</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -819,12 +865,17 @@ export async function AdminServiceRequestsPage({
             <TableBody>
               {requests.map((request) => {
                 const payload = payloadObject(request.payload);
+                const subjectName = requestSubjectName(payload, request.user);
+                const contactEmail =
+                  payloadText(payload, "email") || request.user?.email || "-";
+                const contactPhone =
+                  payloadText(payload, "phone") || request.user?.phone || "-";
 
                 return (
                   <TableRow key={request.id}>
                     <TableCell>
                       <div className="grid gap-1">
-                        <strong>{userName(request.user)}</strong>
+                        <strong>{subjectName}</strong>
                         <span className="text-xs text-[var(--muted)]">
                           {payloadText(payload, "passportNumber") || "Passeport non renseigné"}
                         </span>
@@ -832,17 +883,17 @@ export async function AdminServiceRequestsPage({
                     </TableCell>
                     <TableCell>
                       <div className="grid gap-1 text-sm">
-                        <span>{request.user?.email || payloadText(payload, "email") || "-"}</span>
+                        <span>{contactEmail}</span>
                         <span className="text-[var(--muted)]">
-                          {request.user?.phone || payloadText(payload, "phone") || "-"}
+                          {contactPhone}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="grid gap-1 text-sm">
-                        <span>{payloadText(payload, "school") || "-"}</span>
+                        <span>{requestSourceLabel(payload, request.user)}</span>
                         <span className="text-[var(--muted)]">
-                          {request.documents.length} document(s)
+                          {payloadText(payload, "school") || "-"}
                         </span>
                       </div>
                     </TableCell>
@@ -851,7 +902,7 @@ export async function AdminServiceRequestsPage({
                         {statusLabels[request.status]}
                       </StatusBadge>
                     </TableCell>
-                    <TableCell>{request.createdAt.toLocaleDateString("fr-FR")}</TableCell>
+                    <TableCell>{formatDateFr(request.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       <AdminServiceRequestActionsClient
                         request={{
@@ -869,6 +920,7 @@ export async function AdminServiceRequestsPage({
                                 lastName: request.user.lastName,
                                 phone: request.user.phone,
                                 parentPhone: request.user.parentPhone,
+                                accountType: request.user.accountType,
                               }
                             : null,
                           messages: request.messages.map((message) => ({

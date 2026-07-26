@@ -15,10 +15,10 @@ export function SiteHeader() {
       <div className="container nav !w-[min(1440px,calc(100%-32px))] gap-3 xl:gap-5">
         <Link className="brand" href="/">
           <Image
-            src="/logo-bnei-mark.png"
+            src="/logo-bnei.png"
             alt="Bnei Yeshivot"
-            width={370}
-            height={335}
+            width={628}
+            height={527}
             className="brand-logo"
             priority
           />
@@ -57,7 +57,13 @@ export function SiteFooter() {
           <Link href="/demandes/visa">Visa étudiant</Link>
           <Link href="/demandes/koupat-holim">Koupat Holim</Link>
           <Link href="/dvar-torah">Dvar Torah</Link>
-          <a href="https://israel-entry.piba.gov.il/apply-for-an-eta-il-1">ETA-IL officiel</a>
+          <a
+            href="https://israel-entry.piba.gov.il/apply-for-an-eta-il-1"
+            target="_blank"
+            rel="noreferrer"
+          >
+            ETA-IL officiel
+          </a>
         </div>
         <div>
           <h4>Plateforme</h4>

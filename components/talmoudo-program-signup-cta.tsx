@@ -91,7 +91,7 @@ export function TalmoudoProgramSignupCta({
             </DialogTrigger>
             <DialogContent
               showCloseButton={false}
-              className="flex max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
+              className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
             >
               <DialogHeader className="shrink-0 grid grid-cols-[1fr_auto] items-start gap-3 border-b border-[var(--border)] bg-popover p-4">
                 <div className="grid gap-2">
@@ -109,7 +109,7 @@ export function TalmoudoProgramSignupCta({
                   <XIcon className="size-4" />
                 </DialogClose>
               </DialogHeader>
-              <div className="min-h-0 max-h-[calc(92dvh-96px)] flex-1 overflow-y-auto overscroll-contain p-4">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
                 <TalmoudoRegistrationForm
                   compact
                   initialUser={initialUser}

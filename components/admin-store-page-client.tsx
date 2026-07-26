@@ -3,7 +3,7 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { useId, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { StoreReservationStatus } from "@prisma/client";
+import { StoreReservationReceptionMode, StoreReservationStatus } from "@prisma/client";
 import {
   Bell,
   CheckCircle2,
@@ -118,6 +118,9 @@ type ReservationView = {
   arrivalDate: string | null;
   pickupDate: string | null;
   pickupLocation: string | null;
+  receptionMode: StoreReservationReceptionMode;
+  deliveryAddress: string | null;
+  paid: boolean;
   unavailableItems: string | null;
   note: string | null;
   adminNote: string | null;
@@ -136,13 +139,18 @@ type ReservationView = {
 
 type SupplyView = {
   productId: string;
-  productVariantId: string | null;
   title: string;
-  variantLabel: string | null;
   orderedQuantity: number;
-  stockQuantity: number | null;
   missingQuantity: number | null;
   active: boolean;
+  variants: Array<{
+    productVariantId: string | null;
+    variantLabel: string | null;
+    orderedQuantity: number;
+    stockQuantity: number | null;
+    missingQuantity: number | null;
+    active: boolean;
+  }>;
 };
 
 type VariantOptionView = {
@@ -164,6 +172,11 @@ const statusLabels: Record<StoreReservationStatus, string> = {
   READY: "Prête",
   COLLECTED: "Récupérée",
   CANCELED: "Annulée",
+};
+
+const receptionModeLabels: Record<StoreReservationReceptionMode, string> = {
+  PICKUP: "Retrait dans nos locaux",
+  DELIVERY: "Livraison à domicile",
 };
 
 function statusTone(status: StoreReservationStatus) {
@@ -1728,15 +1741,42 @@ function ProductDeleteDialog({ product }: { product: ProductView }) {
 }
 
 function ReservationsTab({ reservations }: { reservations: ReservationView[] }) {
+  const [statusFilter, setStatusFilter] = useState<StoreReservationStatus | "ALL">("ALL");
+  const filteredReservations =
+    statusFilter === "ALL"
+      ? reservations
+      : reservations.filter((reservation) => reservation.status === statusFilter);
+  const statusTabs = (
+    <Tabs
+      className="mb-4"
+      onValueChange={(value) =>
+        setStatusFilter(
+          value === "ALL" ? "ALL" : (value as StoreReservationStatus),
+        )
+      }
+      value={statusFilter}
+    >
+      <TabsList className="flex w-full flex-wrap justify-start">
+        <TabsTrigger value="ALL">Toutes</TabsTrigger>
+        {Object.values(StoreReservationStatus).map((status) => (
+          <TabsTrigger key={status} value={status}>
+            {statusLabels[status]}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  );
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Réservations reçues</CardTitle>
         <CardDescription>
-          Les 100 dernières réservations sans paiement.
+          Les 100 dernières réservations avec suivi du paiement.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {statusTabs}
         <Table>
           <TableHeader>
             <TableRow>
@@ -1744,12 +1784,14 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
               <TableHead>Produits</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Statut</TableHead>
+              <TableHead>Paiement</TableHead>
+              <TableHead>Réception</TableHead>
               <TableHead>Retrait</TableHead>
               <TableHead className="text-right">Suivi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {reservations.map((reservation) => (
+            {filteredReservations.map((reservation) => (
               <TableRow key={reservation.id}>
                 <TableCell className="align-top">
                   <strong>{reservation.customerName}</strong>
@@ -1789,6 +1831,22 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
                   </StatusBadge>
                 </TableCell>
                 <TableCell className="align-top">
+                  <Badge variant={reservation.paid ? "success" : "warning"}>
+                    {reservation.paid ? "Payée" : "Non payée"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="align-top">
+                  <span className="block">
+                    {receptionModeLabels[reservation.receptionMode]}
+                  </span>
+                  {reservation.receptionMode === "DELIVERY" &&
+                  reservation.deliveryAddress ? (
+                    <small className="block max-w-48 text-[var(--muted)]">
+                      {reservation.deliveryAddress}
+                    </small>
+                  ) : null}
+                </TableCell>
+                <TableCell className="align-top">
                   <span className="block">{formatDateTime(reservation.pickupDate)}</span>
                   {reservation.pickupLocation ? (
                     <small className="block text-[var(--muted)]">
@@ -1805,7 +1863,7 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
             ))}
           </TableBody>
         </Table>
-        {reservations.length === 0 ? (
+        {filteredReservations.length === 0 ? (
           <p className="py-6 text-center text-base text-[var(--muted)]">
             Aucune réservation reçue pour le moment.
           </p>
@@ -1816,13 +1874,16 @@ function ReservationsTab({ reservations }: { reservations: ReservationView[] }) 
 }
 
 function ReservationDialog({ reservation }: { reservation: ReservationView }) {
+  const [open, setOpen] = useState(false);
+  const [receptionMode, setReceptionMode] = useState(reservation.receptionMode);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" variant="secondary" />}>
         <Bell className="size-4" />
         Suivre
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Suivi réservation</DialogTitle>
           <DialogDescription>
@@ -1832,6 +1893,7 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
         <InteractiveForm
           action={updateStoreReservation}
           className="grid gap-4"
+          onSuccess={() => setOpen(false)}
           successMessage="Réservation mise à jour."
         >
           <input name="reservationId" type="hidden" value={reservation.id} />
@@ -1874,6 +1936,37 @@ function ReservationDialog({ reservation }: { reservation: ReservationView }) {
             placeholder="Lieu de récupération"
             defaultValue={reservation.pickupLocation ?? ""}
           />
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="grid gap-1 text-sm font-medium">
+              Mode de réception
+              <NativeSelect
+                name="receptionMode"
+                onChange={(event) =>
+                  setReceptionMode(event.target.value as StoreReservationReceptionMode)
+                }
+                value={receptionMode}
+              >
+                {Object.values(StoreReservationReceptionMode).map((mode) => (
+                  <NativeSelectOption key={mode} value={mode}>
+                    {receptionModeLabels[mode]}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </label>
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input name="paid" type="checkbox" defaultChecked={reservation.paid} />
+              Réservation payée
+            </label>
+          </div>
+          {receptionMode === "DELIVERY" ? (
+            <Textarea
+              name="deliveryAddress"
+              placeholder="Adresse de livraison"
+              defaultValue={reservation.deliveryAddress ?? ""}
+            />
+          ) : (
+            <input name="deliveryAddress" type="hidden" value="" />
+          )}
           <Textarea
             name="unavailableItems"
             placeholder="Produits indisponibles ou ajustements proposés"
@@ -1918,41 +2011,66 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>Produit</TableHead>
-              <TableHead>Quantité réservée</TableHead>
-              <TableHead>Stock saisi</TableHead>
-              <TableHead>À ravitailler</TableHead>
+              <TableHead>Variations à approvisionner</TableHead>
+              <TableHead>Besoin total</TableHead>
               <TableHead>Statut produit</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {supplyOverview.map((item) => (
-              <TableRow key={`${item.productId}-${item.productVariantId ?? "base"}`}>
+            {supplyOverview.map((product) => (
+              <TableRow key={product.productId}>
                 <TableCell>
-                  <strong>{item.title}</strong>
-                  {item.variantLabel ? (
-                    <small className="block text-[var(--muted)]">
-                      {item.variantLabel}
-                    </small>
-                  ) : null}
-                </TableCell>
-                <TableCell>{item.orderedQuantity}</TableCell>
-                <TableCell>
-                  {item.stockQuantity == null ? "Non renseigné" : item.stockQuantity}
+                  <strong>{product.title}</strong>
                 </TableCell>
                 <TableCell>
-                  {item.missingQuantity == null ? (
+                  <div className="grid gap-2">
+                    {product.variants.map((variant) => (
+                      <div
+                        className="grid gap-1 rounded-lg bg-[var(--subtle)] p-2 text-sm md:grid-cols-[minmax(0,1fr)_auto]"
+                        key={variant.productVariantId ?? "base"}
+                      >
+                        <span className="font-medium text-[var(--primary)]">
+                          {variant.variantLabel ?? "Produit"}
+                        </span>
+                        <span className="flex flex-wrap gap-2 md:justify-end">
+                          <Badge variant="outline">
+                            Réservé : {variant.orderedQuantity}
+                          </Badge>
+                          <Badge variant="outline">
+                            Stock :{" "}
+                            {variant.stockQuantity == null
+                              ? "non renseigné"
+                              : variant.stockQuantity}
+                          </Badge>
+                          {variant.missingQuantity == null ? (
+                            <Badge variant="warning">Stock à saisir</Badge>
+                          ) : (
+                            <Badge variant="destructive">
+                              À commander : {variant.missingQuantity}
+                            </Badge>
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {product.missingQuantity == null ? (
                     <Badge variant="warning">Stock à saisir</Badge>
-                  ) : item.missingQuantity > 0 ? (
-                    <Badge variant="destructive">{item.missingQuantity}</Badge>
                   ) : (
-                    <Badge variant="success">OK</Badge>
+                    <Badge variant="destructive">{product.missingQuantity}</Badge>
                   )}
                 </TableCell>
-                <TableCell>{item.active ? "Visible" : "Masqué"}</TableCell>
+                <TableCell>{product.active ? "Visible" : "Masqué"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        {supplyOverview.length === 0 ? (
+          <p className="py-6 text-center text-base text-[var(--muted)]">
+            Aucun produit à approvisionner pour le moment.
+          </p>
+        ) : null}
         <p className="mt-4 text-sm text-[var(--muted)]">
           Quand une réservation passe en Récupérée ou Annulée, ses articles ne
           comptent plus dans les besoins de ravitaillement.
@@ -1961,7 +2079,6 @@ function SupplyTab({ supplyOverview }: { supplyOverview: SupplyView[] }) {
     </Card>
   );
 }
-
 function SettingsTab({
   storefront,
   variantOptions,

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { PageShell } from "../components";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,10 +73,14 @@ export default function KesherNitsriPage() {
             </p>
             <div className="hero-actions">
               <Button asChild variant="accent" size="lg">
-                <Link href="/dons">Rejoindre Kesher Nitsri</Link>
+                <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
+                  Rejoindre Kesher Nitsri
+                </a>
               </Button>
               <Button asChild variant="secondary" size="lg">
-                <Link href="/dons">Mettre en place mon soutien mensuel</Link>
+                <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
+                  Mettre en place mon soutien mensuel
+                </a>
               </Button>
             </div>
           </div>
@@ -169,7 +172,9 @@ export default function KesherNitsriPage() {
               </p>
               <div className="hero-actions">
                 <Button asChild variant="accent" size="lg">
-                  <Link href="/dons">Rejoindre Kesher Nitsri</Link>
+                  <a href="https://toratyaacov.fr/" target="_blank" rel="noreferrer">
+                    Rejoindre Kesher Nitsri
+                  </a>
                 </Button>
               </div>
             </div>

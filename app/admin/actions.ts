@@ -13,6 +13,7 @@ import {
   ServiceRequestStatus,
   ServiceRequestType,
   StoreReservationStatus,
+  StoreReservationReceptionMode,
   StoreVariantOptionType,
   UserRole,
 } from "@prisma/client";
@@ -47,6 +48,26 @@ function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function payloadString(payload: Record<string, unknown>, key: string) {
+  const value = payload[key];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function serviceRequestBahourEmailContext(payload: Record<string, unknown>) {
+  if (payloadString(payload, "source") !== "YESHIVA") {
+    return undefined;
+  }
+
+  return {
+    fullName: [payloadString(payload, "firstName"), payloadString(payload, "lastName")]
+      .filter(Boolean)
+      .join(" "),
+    email: payloadString(payload, "email"),
+    phone: payloadString(payload, "phone"),
+    school: payloadString(payload, "school"),
+  };
+}
+
 function storeReservationItemLabel(item: {
   productTitle: string;
   variantLabel: string | null;
@@ -66,7 +87,7 @@ const storeReservationStatusLabels: Record<StoreReservationStatus, string> = {
 };
 
 const serviceRequestStatusLabels: Record<ServiceRequestStatus, string> = {
-  SUBMITTED: "Deposee",
+  SUBMITTED: "Déposée",
   IN_REVIEW: "En traitement",
   MISSING_DOCUMENTS: "Éléments à modifier",
   APPROVED: "Approuvée",
@@ -101,6 +122,28 @@ const editableServiceRequestFields = [
   "school",
   "personStatus",
 ] as const;
+
+const serviceRequestFieldLabels: Record<
+  (typeof editableServiceRequestFields)[number],
+  string
+> = {
+  firstName: "Prénom",
+  lastName: "Nom",
+  phone: "Téléphone",
+  parentPhone: "Téléphone des parents",
+  birthDate: "Date de naissance",
+  nationality: "Nationalité",
+  passportNumber: "Numéro de passeport",
+  school: "Yeshiva / programme",
+  personStatus: "Statut visa",
+};
+
+function readRequestDocumentIds(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+}
 
 function splitLines(value: string) {
   return value
@@ -314,6 +357,10 @@ export async function updateServiceRequest(formData: FormData) {
         field as (typeof editableServiceRequestFields)[number],
       ),
     );
+  const requestedDocumentIds = readRequestDocumentIds(
+    formData,
+    "requestedDocumentIds",
+  );
 
   if (!id || !Object.values(ServiceRequestStatus).includes(status)) {
     throw new Error("Demande ou statut invalide.");
@@ -321,7 +368,15 @@ export async function updateServiceRequest(formData: FormData) {
 
   const existingRequest = await prisma.serviceRequest.findUnique({
     where: { id },
-    select: { payload: true },
+    select: {
+      payload: true,
+      documents: {
+        select: {
+          id: true,
+          label: true,
+        },
+      },
+    },
   });
   const nextPayload =
     typeof existingRequest?.payload === "object" && existingRequest.payload !== null
@@ -330,8 +385,10 @@ export async function updateServiceRequest(formData: FormData) {
 
   if (status === ServiceRequestStatus.MISSING_DOCUMENTS) {
     nextPayload.__requestedFields = requestedFields;
+    nextPayload.__requestedDocumentIds = requestedDocumentIds;
   } else {
     delete nextPayload.__requestedFields;
+    delete nextPayload.__requestedDocumentIds;
   }
 
   const request = await prisma.serviceRequest.update({
@@ -355,10 +412,24 @@ export async function updateServiceRequest(formData: FormData) {
   });
 
   if (request.user?.email) {
-    const email = serviceRequestStatusEmail({
+    const requestedDocumentLabels =
+      status === ServiceRequestStatus.MISSING_DOCUMENTS
+        ? (existingRequest?.documents ?? [])
+            .filter((document) => requestedDocumentIds.includes(document.id))
+            .map((document) => document.label)
+        : [];
+    const email = await serviceRequestStatusEmail({
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
+      bahourContext: serviceRequestBahourEmailContext(nextPayload),
       firstName: request.user.firstName,
       note: publicNote || null,
+      requestedChanges:
+        status === ServiceRequestStatus.MISSING_DOCUMENTS
+          ? [
+              ...requestedFields.map((field) => serviceRequestFieldLabels[field]),
+              ...requestedDocumentLabels,
+            ]
+          : undefined,
       statusLabel: serviceRequestStatusLabels[request.status],
       typeLabel: serviceRequestTypeLabel(request.type),
     });
@@ -419,14 +490,14 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
     data: {
       status: ServiceRequestStatus.COMPLETED,
       publicNote:
-        label === "Visa reçu"
+        label.toLocaleLowerCase("fr-FR").includes("visa")
           ? "Votre visa reçu est disponible dans votre espace."
           : "Un document final est disponible dans votre espace.",
       messages: {
         create: {
           authorId: admin.id,
           body:
-            label === "Visa reçu"
+            label.toLocaleLowerCase("fr-FR").includes("visa")
               ? "Votre visa reçu est disponible en téléchargement."
               : "Un document final est disponible en téléchargement.",
           isInternal: false,
@@ -436,11 +507,16 @@ export async function uploadServiceRequestFinalDocument(formData: FormData) {
   });
 
   if (request.user?.email) {
-    const email = serviceRequestStatusEmail({
+    const payload =
+      request.payload && typeof request.payload === "object" && !Array.isArray(request.payload)
+        ? (request.payload as Record<string, unknown>)
+        : {};
+    const email = await serviceRequestStatusEmail({
       actionHref: `${process.env.BETTER_AUTH_URL ?? "https://bneiyeshivot.com"}/client`,
+      bahourContext: serviceRequestBahourEmailContext(payload),
       firstName: request.user.firstName,
       note:
-        label === "Visa reçu"
+        label.toLocaleLowerCase("fr-FR").includes("visa")
           ? "Votre visa reçu est disponible en téléchargement dans votre espace Bahour."
           : "Un document final est disponible dans votre espace Bahour.",
       statusLabel: serviceRequestStatusLabels.COMPLETED,
@@ -464,7 +540,7 @@ export async function updateServiceRequestData(formData: FormData) {
 
   const request = await prisma.serviceRequest.findUnique({
     where: { id: requestId },
-    include: { user: true },
+    include: { documents: true, user: true },
   });
 
   if (!request) {
@@ -496,33 +572,93 @@ export async function updateServiceRequestData(formData: FormData) {
     delete nextPayload.personStatus;
   }
 
-  const fullName = [values.firstName, values.lastName].filter(Boolean).join(" ");
-  const programType =
-    request.type === ServiceRequestType.VISA_STUDENT
-      ? values.personStatus
-      : values.school;
+  const documentIds = readRequestDocumentIds(formData, "documentId");
+  const documentLabels = formData
+    .getAll("documentLabel")
+    .map((value) => String(value).trim());
+  const replacementFiles = formData.getAll("documentFile");
+  const deleteDocumentIds = new Set(
+    readRequestDocumentIds(formData, "deleteDocumentId"),
+  );
+  const documentsById = new Map(
+    request.documents.map((document) => [document.id, document]),
+  );
+  const uploadedReplacements: Array<{
+    documentId: string;
+    fileKey: string;
+    mimeType: string;
+    oldFileKey: string;
+  }> = [];
+  const fileKeysToDelete: string[] = [];
 
-  await prisma.$transaction(async (tx) => {
-    if (request.userId) {
-      await tx.user.update({
-        where: { id: request.userId },
-        data: {
-          name: fullName || request.user?.name || "",
-          firstName: values.firstName || null,
-          lastName: values.lastName || null,
-          phone: values.phone || null,
-          parentPhone: values.parentPhone || null,
-          programType: programType || null,
-        },
-      });
+  for (const [index, documentId] of documentIds.entries()) {
+    const document = documentsById.get(documentId);
+    const file = replacementFiles[index];
+
+    if (
+      !document ||
+      deleteDocumentIds.has(documentId) ||
+      !(file instanceof File) ||
+      file.size === 0
+    ) {
+      continue;
     }
 
+    const uploaded = await uploadFileToS3(file, `requests/${requestId}/admin`);
+
+    if (!uploaded) {
+      throw new Error("Upload impossible.");
+    }
+
+    uploadedReplacements.push({
+      documentId,
+      fileKey: uploaded.key,
+      mimeType: uploaded.mimeType,
+      oldFileKey: document.fileKey,
+    });
+  }
+
+  await prisma.$transaction(async (tx) => {
     await tx.serviceRequest.update({
       where: { id: requestId },
       data: {
         payload: nextPayload as Prisma.JsonObject,
       },
     });
+
+    for (const [index, documentId] of documentIds.entries()) {
+      const document = documentsById.get(documentId);
+      const label = documentLabels[index];
+
+      if (!document || !label) continue;
+
+      await tx.requestDocument.update({
+        where: { id: documentId },
+        data: { label },
+      });
+    }
+
+    for (const replacement of uploadedReplacements) {
+      await tx.requestDocument.update({
+        where: { id: replacement.documentId },
+        data: {
+          fileKey: replacement.fileKey,
+          mimeType: replacement.mimeType,
+          status: "RECEIVED",
+          rejectionReason: null,
+        },
+      });
+      fileKeysToDelete.push(replacement.oldFileKey);
+    }
+
+    for (const documentId of deleteDocumentIds) {
+      const document = documentsById.get(documentId);
+
+      if (!document) continue;
+
+      await tx.requestDocument.delete({ where: { id: documentId } });
+      fileKeysToDelete.push(document.fileKey);
+    }
 
     await tx.auditLog.create({
       data: {
@@ -534,7 +670,53 @@ export async function updateServiceRequestData(formData: FormData) {
     });
   });
 
+  await deleteFilesFromS3(fileKeysToDelete);
+
   revalidatePath(`/admin/${serviceRequestAdminPath(request.type)}`);
+  revalidatePath("/client");
+}
+
+export async function deleteServiceRequestDocument(formData: FormData) {
+  const admin = await requireAdminUser();
+  const documentId = readString(formData, "documentId");
+
+  if (!documentId) {
+    throw new Error("Document introuvable.");
+  }
+
+  const document = await prisma.requestDocument.findUnique({
+    where: { id: documentId },
+    include: {
+      request: {
+        select: { id: true, type: true },
+      },
+    },
+  });
+
+  if (!document) {
+    throw new Error("Document introuvable.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.requestDocument.delete({ where: { id: documentId } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        action: "service_request.document_deleted",
+        entity: "RequestDocument",
+        entityId: documentId,
+        metadata: {
+          requestId: document.requestId,
+          requestType: document.request.type,
+          label: document.label,
+        },
+      },
+    });
+  });
+
+  await deleteFilesFromS3([document.fileKey]);
+
+  revalidatePath(`/admin/${serviceRequestAdminPath(document.request.type)}`);
   revalidatePath("/client");
 }
 
@@ -1344,9 +1526,16 @@ export async function updateStoreReservation(formData: FormData) {
   const status = readString(formData, "status") as StoreReservationStatus;
   const pickupDate = readString(formData, "pickupDate");
   const pickupLocation = readString(formData, "pickupLocation");
+  const receptionModeInput = readString(formData, "receptionMode");
+  const receptionMode =
+    receptionModeInput === StoreReservationReceptionMode.DELIVERY
+      ? StoreReservationReceptionMode.DELIVERY
+      : StoreReservationReceptionMode.PICKUP;
+  const deliveryAddress = readString(formData, "deliveryAddress");
   const unavailableItems = readString(formData, "unavailableItems");
   const customerMessage = readString(formData, "customerMessage");
   const notifyCustomer = formData.get("notifyCustomer") === "on";
+  const paid = formData.get("paid") === "on";
 
   if (
     !reservationId ||
@@ -1361,6 +1550,12 @@ export async function updateStoreReservation(formData: FormData) {
       status,
       pickupDate: pickupDate ? new Date(pickupDate) : null,
       pickupLocation: pickupLocation || null,
+      receptionMode,
+      deliveryAddress:
+        receptionMode === StoreReservationReceptionMode.DELIVERY
+          ? deliveryAddress || null
+          : null,
+      paid,
       unavailableItems: unavailableItems || null,
       adminNote: readString(formData, "adminNote") || null,
     },
@@ -1411,11 +1606,12 @@ export async function updateStoreReservation(formData: FormData) {
       action: "store_reservation.updated",
       entity: "StoreReservation",
       entityId: reservationId,
-      metadata: { status, notifyCustomer },
+      metadata: { status, notifyCustomer, paid, receptionMode },
     },
   });
 
   revalidatePath("/admin/boutique");
+  revalidatePath("/client");
 }
 
 export async function createManualDonation(formData: FormData) {

@@ -19,6 +19,8 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type OtpLoginCardProps = {
   audience?: "bahour" | "admin";
@@ -43,6 +45,7 @@ export function OtpLoginCard({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [accountType, setAccountType] = useState<"BAHOUR" | "YESHIVA">("BAHOUR");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"email" | "otp">("email");
   const [state, setState] = useState<{
@@ -177,6 +180,7 @@ export function OtpLoginCard({
         firstName: mode === "register" ? firstName : undefined,
         lastName: mode === "register" ? lastName : undefined,
         phone: mode === "register" ? phone : undefined,
+        accountType: mode === "register" ? accountType : undefined,
       }),
     });
 
@@ -229,24 +233,56 @@ export function OtpLoginCard({
         {step === "email" ? (
           <form className="grid gap-3" onSubmit={sendOtp}>
             {mode === "register" && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input
-                  autoComplete="given-name"
-                  name="firstName"
-                  onChange={(event) => setFirstName(event.target.value)}
-                  placeholder="Prénom"
-                  required
-                  value={firstName}
-                />
-                <Input
-                  autoComplete="family-name"
-                  name="lastName"
-                  onChange={(event) => setLastName(event.target.value)}
-                  placeholder="Nom"
-                  required
-                  value={lastName}
-                />
-              </div>
+              <>
+                <RadioGroup
+                  className="grid gap-2 rounded-xl border border-[var(--border)] bg-[var(--subtle)] p-3 sm:grid-cols-2"
+                  onValueChange={(value) =>
+                    setAccountType(value === "YESHIVA" ? "YESHIVA" : "BAHOUR")
+                  }
+                  value={accountType}
+                >
+                  <Label className="flex cursor-pointer items-start gap-2 rounded-lg bg-white p-3 text-sm font-semibold text-[var(--primary)]">
+                    <RadioGroupItem value="BAHOUR" />
+                    <span className="grid gap-1">
+                      <span>Je suis un bahour</span>
+                      <span className="text-xs font-normal leading-5 text-[var(--muted)]">
+                        Mes demandes concernent mon propre dossier.
+                      </span>
+                    </span>
+                  </Label>
+                  <Label className="flex cursor-pointer items-start gap-2 rounded-lg bg-white p-3 text-sm font-semibold text-[var(--primary)]">
+                    <RadioGroupItem value="YESHIVA" />
+                    <span className="grid gap-1">
+                      <span>Je suis une yeshiva</span>
+                      <span className="text-xs font-normal leading-5 text-[var(--muted)]">
+                        Je dépose des demandes pour d’autres personnes.
+                      </span>
+                    </span>
+                  </Label>
+                </RadioGroup>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input
+                    autoComplete="given-name"
+                    name="firstName"
+                    onChange={(event) => setFirstName(event.target.value)}
+                    placeholder={
+                      accountType === "YESHIVA" ? "Nom de la yeshiva" : "Prénom"
+                    }
+                    required
+                    value={firstName}
+                  />
+                  <Input
+                    autoComplete="family-name"
+                    name="lastName"
+                    onChange={(event) => setLastName(event.target.value)}
+                    placeholder={
+                      accountType === "YESHIVA" ? "Nom du responsable" : "Nom"
+                    }
+                    required
+                    value={lastName}
+                  />
+                </div>
+              </>
             )}
             <Input
               autoComplete="email"

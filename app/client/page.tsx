@@ -5,6 +5,8 @@ import {
   PaymentStatus,
   ServiceRequestStatus,
   ServiceRequestType,
+  StoreReservationStatus,
+  UserAccountType,
 } from "@prisma/client";
 import { PageShell, StatusBadge } from "../components";
 import { updateBahourServiceRequest } from "@/app/client/actions";
@@ -42,6 +44,7 @@ import {
   CheckCircle2,
   Download,
   FileText,
+  ShoppingBag,
   Trophy,
 } from "lucide-react";
 
@@ -71,6 +74,15 @@ const registrationLabels: Record<EventRegistrationStatus, string> = {
   CANCELED: "Annulée",
 };
 
+const storeReservationLabels: Record<StoreReservationStatus, string> = {
+  SUBMITTED: "Nouvelle",
+  CONFIRMED: "Confirmée",
+  PREPARING: "En préparation",
+  READY: "Prête",
+  COLLECTED: "Récupérée",
+  CANCELED: "Annulée",
+};
+
 function requestTone(status: ServiceRequestStatus) {
   if (status === "APPROVED" || status === "COMPLETED") return "green";
   if (status === "MISSING_DOCUMENTS" || status === "REJECTED") return "gold";
@@ -80,6 +92,12 @@ function requestTone(status: ServiceRequestStatus) {
 function registrationTone(status: EventRegistrationStatus) {
   if (status === "CONFIRMED") return "green";
   if (status === "WAITLISTED" || status === "CANCELED") return "gold";
+  return "blue";
+}
+
+function storeReservationTone(status: StoreReservationStatus) {
+  if (status === "READY" || status === "COLLECTED") return "green";
+  if (status === "CANCELED") return "gold";
   return "blue";
 }
 
@@ -146,11 +164,31 @@ function requestedFieldsFromPayload(payload: unknown, type: ServiceRequestType) 
     ([field]) => type === ServiceRequestType.VISA_STUDENT || field !== "personStatus",
   );
 
-  if (!requested || requested.size === 0) {
+  if (!requested) {
     return available;
   }
 
   return available.filter(([field]) => requested.has(field));
+}
+
+function requestedDocumentsFromPayload(
+  payload: unknown,
+  documents: Array<{ id: string; label: string }>,
+) {
+  if (typeof payload !== "object" || payload === null) {
+    return [];
+  }
+
+  const documentIds = (payload as Record<string, unknown>).__requestedDocumentIds;
+  const requested = Array.isArray(documentIds)
+    ? new Set(
+        documentIds.filter(
+          (documentId): documentId is string => typeof documentId === "string",
+        ),
+      )
+    : new Set<string>();
+
+  return documents.filter((document) => requested.has(document.id));
 }
 
 function finalDocuments(
@@ -158,10 +196,17 @@ function finalDocuments(
   type: ServiceRequestType,
 ) {
   return documents.filter((document) =>
-    type === ServiceRequestType.VISA_STUDENT
-      ? document.label.toLowerCase().includes("visa recu")
-      : document.label.toLowerCase().includes("document final"),
+    normalizeSearchText(document.label).includes(
+      type === ServiceRequestType.VISA_STUDENT ? "visa recu" : "final",
+    ),
   );
+}
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 export default async function ClientPage({
@@ -176,13 +221,18 @@ export default async function ClientPage({
     countDonationsForEmail(user.email, user.id),
   ]);
 
-  if (!isBahour && donationCount > 0) {
+  if (
+    user.accountType !== UserAccountType.YESHIVA &&
+    !isBahour &&
+    donationCount > 0
+  ) {
     redirect("/donateur");
   }
 
   const [
     requests,
     registrations,
+    storeReservations,
     mivhanRegistrations,
     mivhanSessions,
     donations,
@@ -204,6 +254,14 @@ export default async function ClientPage({
       where: { userId: user.id },
       include: { event: true },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.storeReservation.findMany({
+      where: {
+        OR: [{ userId: user.id }, { customerEmail: user.email }],
+      },
+      include: { items: true },
+      orderBy: { createdAt: "desc" },
+      take: 20,
     }),
     prisma.mivhanRegistration.findMany({
       where: { userId: user.id },
@@ -301,9 +359,17 @@ export default async function ClientPage({
           <div className="container">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <span className="eyebrow">Espace Bahour</span>
+                <span className="eyebrow">
+                  {user.accountType === UserAccountType.YESHIVA
+                    ? "Espace Yeshiva"
+                    : "Espace Bahour"}
+                </span>
                 <h1 className="text-3xl font-bold text-[var(--primary)]">
-                  Bonjour {user.firstName || "Bahour"}
+                  Bonjour{" "}
+                  {user.firstName ||
+                    (user.accountType === UserAccountType.YESHIVA
+                      ? "Yeshiva"
+                      : "Bahour")}
                 </h1>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -358,6 +424,7 @@ export default async function ClientPage({
                 className="bahour-tabs-list"
               >
                 <TabsTrigger value="requests">Demandes</TabsTrigger>
+                <TabsTrigger value="store">Boutique</TabsTrigger>
                 <TabsTrigger value="events">Événements</TabsTrigger>
                 <TabsTrigger value="mivhanim">Mivhanim</TabsTrigger>
                 {donations.length > 0 && (
@@ -379,6 +446,14 @@ export default async function ClientPage({
                   <div className="grid gap-2">
                     {requests.map((request) => {
                       const documents = finalDocuments(request.documents, request.type);
+                      const requestedFields = requestedFieldsFromPayload(
+                        request.payload,
+                        request.type,
+                      );
+                      const requestedDocuments = requestedDocumentsFromPayload(
+                        request.payload,
+                        request.documents,
+                      );
                       const subjectName = requestSubjectName(request.payload, user);
 
                       return (
@@ -426,17 +501,24 @@ export default async function ClientPage({
                             {documents.length > 0 ? (
                               <div className="flex flex-wrap gap-2 md:justify-end">
                                 {documents.map((document) => (
-                                  <Button
-                                    asChild
-                                    key={document.id}
-                                    size="sm"
-                                    variant="secondary"
-                                  >
-                                    <a href={`/api/requests/documents/${document.id}/download`}>
-                                      <Download className="size-4" />
-                                      Télécharger
-                                    </a>
-                                  </Button>
+                                  <div className="flex flex-wrap gap-2" key={document.id}>
+                                    <Button asChild size="sm" variant="secondary">
+                                      <a
+                                        href={`/api/requests/documents/${document.id}/download?disposition=inline`}
+                                        rel="noreferrer"
+                                        target="_blank"
+                                      >
+                                        <FileText className="size-4" />
+                                        Ouvrir
+                                      </a>
+                                    </Button>
+                                    <Button asChild size="sm" variant="secondary">
+                                      <a href={`/api/requests/documents/${document.id}/download`}>
+                                        <Download className="size-4" />
+                                        Télécharger
+                                      </a>
+                                    </Button>
+                                  </div>
                                 ))}
                               </div>
                             ) : null}
@@ -452,18 +534,16 @@ export default async function ClientPage({
                               />
                               <div className="rounded-lg bg-[var(--subtle)] p-3 text-sm text-[var(--primary)]">
                                 À modifier :{" "}
-                                {requestedFieldsFromPayload(
-                                  request.payload,
-                                  request.type,
-                                )
-                                  .map(([, label]) => label)
-                                  .join(", ")}
+                                {[
+                                  ...requestedFields.map(([, label]) => label),
+                                  ...requestedDocuments.map(
+                                    (document) => document.label,
+                                  ),
+                                ].join(", ")}
                               </div>
-                              <div className="grid gap-3 md:grid-cols-2">
-                                {requestedFieldsFromPayload(
-                                  request.payload,
-                                  request.type,
-                                ).map(([field, label, inputType]) => (
+                              {requestedFields.length > 0 ? (
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  {requestedFields.map(([field, label, inputType]) => (
                                   <Input
                                     defaultValue={payloadValue(request.payload, field)}
                                     key={field}
@@ -471,8 +551,27 @@ export default async function ClientPage({
                                     placeholder={label}
                                     type={inputType}
                                   />
-                                ))}
-                              </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                              {requestedDocuments.length > 0 ? (
+                                <div className="grid gap-3 md:grid-cols-2">
+                                  {requestedDocuments.map((document) => (
+                                    <label
+                                      className="grid gap-1 text-sm font-semibold text-[var(--primary)]"
+                                      key={document.id}
+                                    >
+                                      {document.label}
+                                      <Input
+                                        accept="application/pdf,image/*"
+                                        name={`documentFile:${document.id}`}
+                                        required
+                                        type="file"
+                                      />
+                                    </label>
+                                  ))}
+                                </div>
+                              ) : null}
                               <Textarea
                                 disabled
                                 value={
@@ -489,6 +588,84 @@ export default async function ClientPage({
                         </Card>
                       );
                     })}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="store" className="grid gap-3">
+                {storeReservations.length === 0 ? (
+                  <Alert>
+                    <ShoppingBag />
+                    <AlertTitle>Aucune réservation boutique</AlertTitle>
+                    <AlertDescription>
+                      Vos réservations boutique apparaîtront ici après validation
+                      du panier.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="grid gap-2">
+                    {storeReservations.map((reservation) => (
+                      <Card key={reservation.id} size="sm" className="rounded-xl py-3 shadow-sm">
+                        <CardContent className="grid gap-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <CardTitle className="text-base leading-tight">
+                                Réservation boutique
+                              </CardTitle>
+                              <CardDescription>
+                                Créée le {reservation.createdAt.toLocaleDateString("fr-FR")}
+                              </CardDescription>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <StatusBadge tone={storeReservationTone(reservation.status)}>
+                                {storeReservationLabels[reservation.status]}
+                              </StatusBadge>
+                              <StatusBadge tone={reservation.paid ? "green" : "gold"}>
+                                {reservation.paid ? "Payée" : "Non payée"}
+                              </StatusBadge>
+                            </div>
+                          </div>
+                          <div className="grid gap-2 text-sm text-[var(--primary)]">
+                            {reservation.items.map((item) => (
+                              <span key={item.id}>
+                                {item.quantity} x {item.productTitle}
+                                {item.variantLabel ? ` (${item.variantLabel})` : ""}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="grid gap-1 text-sm text-[var(--muted)]">
+                            <span>
+                              Total indicatif :{" "}
+                              {new Intl.NumberFormat("fr-FR", {
+                                style: "currency",
+                                currency: reservation.currency,
+                              }).format(reservation.totalCents / 100)}
+                            </span>
+                            <span>
+                              Réception :{" "}
+                              {reservation.receptionMode === "DELIVERY"
+                                ? "livraison à domicile"
+                                : "retrait dans nos locaux"}
+                            </span>
+                            {reservation.receptionMode === "DELIVERY" &&
+                            reservation.deliveryAddress ? (
+                              <span>Adresse : {reservation.deliveryAddress}</span>
+                            ) : null}
+                            {reservation.pickupDate ? (
+                              <span>
+                                Date prévue : {formatDateTime(reservation.pickupDate)}
+                              </span>
+                            ) : null}
+                            {reservation.pickupLocation ? (
+                              <span>Lieu : {reservation.pickupLocation}</span>
+                            ) : null}
+                            {reservation.unavailableItems ? (
+                              <span>Ajustement : {reservation.unavailableItems}</span>
+                            ) : null}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 )}
               </TabsContent>

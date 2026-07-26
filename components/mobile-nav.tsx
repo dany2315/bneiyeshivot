@@ -54,7 +54,7 @@ const navLinks: Array<[string, string, LucideIcon]> = [
   ["Programme", "/programme", Trophy],
   ["Dvar Torah", "/dvar-torah", BookOpenText],
   ["Boutique", "/boutique", ShoppingBag],
-  ["Faire un don", "/dons", Gift],
+  ["Faire un don", "https://toratyaacov.fr/", Gift],
   ["Contact", "/contact", Mail],
 ];
 
@@ -103,10 +103,10 @@ export function MobileNav() {
         <SheetHeader className="mobile-sheet-header">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo-bnei-mark.png"
+              src="/logo-bnei.png"
               alt="Bnei Yeshivot"
-              width={370}
-              height={335}
+              width={628}
+              height={527}
               className="brand-logo"
             />
             <div>
@@ -123,8 +123,11 @@ export function MobileNav() {
         <ScrollArea className="mobile-nav-scroll">
           <nav className="mobile-nav-list" aria-label="Navigation mobile">
             {navLinks.map(([label, href, Icon]) => {
+              const isExternal = href.startsWith("http");
               const active =
-                href === "/"
+                isExternal
+                  ? false
+                  : href === "/"
                   ? pathname === "/"
                   : pathname === href || pathname.startsWith(`${href}/`);
 
@@ -133,6 +136,8 @@ export function MobileNav() {
                   render={
                     <Link
                       href={href as string}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noreferrer" : undefined}
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "rounded-2xl transition",

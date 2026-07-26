@@ -20,7 +20,7 @@ const s3Client =
       })
     : null;
 
-function publicUrlForKey(key: string) {
+export function publicUrlForKey(key: string) {
   if (process.env.AWS_PUBLIC_BASE_URL) {
     return `${process.env.AWS_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`;
   }
@@ -189,5 +189,28 @@ export async function createPresignedUploadUrl({
       ContentType: contentType || "application/octet-stream",
     }),
     { expiresIn: 60 * 10 },
+  );
+}
+
+export async function createPresignedDownloadUrl({
+  key,
+  contentType,
+  fileName,
+}: {
+  key: string;
+  contentType: string;
+  fileName: string;
+}) {
+  const config = requireS3Config();
+
+  return getSignedUrl(
+    config.s3Client,
+    new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${fileName}"`,
+      ResponseContentType: contentType,
+    }),
+    { expiresIn: 60 * 5 },
   );
 }

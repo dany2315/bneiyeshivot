@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/session";
 import { deleteFileFromS3, uploadFilesToS3 } from "@/lib/uploads";
 
 const allowedPrefixes = new Set([
+  "dvar-torah",
   "events/uploads",
   "home/gallery",
   "store/products",
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
 
   if (!isAdmin(user)) {
-    return NextResponse.json({ ok: false, message: "Non autorise." }, { status: 401 });
+    return NextResponse.json({ ok: false, message: "Non autorisé." }, { status: 401 });
   }
 
   const formData = await request.formData();
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[uploads] failed", error);
     return NextResponse.json(
-      { ok: false, message: "Upload echoue." },
+      { ok: false, message: "L’upload a échoué." },
       { status: 500 },
     );
   }
@@ -59,7 +60,7 @@ export async function DELETE(request: Request) {
   const user = await getCurrentUser();
 
   if (!isAdmin(user)) {
-    return NextResponse.json({ ok: false, message: "Non autorise." }, { status: 401 });
+    return NextResponse.json({ ok: false, message: "Non autorisé." }, { status: 401 });
   }
 
   const body = (await request.json().catch(() => null)) as { key?: string } | null;
@@ -67,7 +68,7 @@ export async function DELETE(request: Request) {
 
   if (!key || !key.startsWith("home/gallery/")) {
     return NextResponse.json(
-      { ok: false, message: "Media galerie invalide." },
+      { ok: false, message: "Média galerie invalide." },
       { status: 400 },
     );
   }

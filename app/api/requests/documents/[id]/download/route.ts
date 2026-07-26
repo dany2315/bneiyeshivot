@@ -11,7 +11,7 @@ function downloadName(document: { fileKey: string; label: string }) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const user = await getCurrentUser();
@@ -44,7 +44,11 @@ export async function GET(
     return new NextResponse(file.body, {
       headers: {
         "Content-Type": file.contentType || document.mimeType || "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${downloadName(document)}"`,
+        "Content-Disposition": `${
+          new URL(request.url).searchParams.get("disposition") === "inline"
+            ? "inline"
+            : "attachment"
+        }; filename="${downloadName(document)}"`,
         ...(file.contentLength
           ? { "Content-Length": String(file.contentLength) }
           : {}),

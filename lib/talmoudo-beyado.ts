@@ -37,8 +37,6 @@ function validateDapimRanges(value: string, context: z.RefinementCtx) {
     return z.NEVER;
   }
 
-  let totalAmudim = 0;
-
   for (const range of ranges) {
     const [from, to] = range.split("-").map((item) => item.trim());
     const fromIndex = from ? dafValueToAmudIndex(from) : null;
@@ -60,15 +58,6 @@ function validateDapimRanges(value: string, context: z.RefinementCtx) {
       return z.NEVER;
     }
 
-    totalAmudim += toIndex - fromIndex + 1;
-  }
-
-  if (totalAmudim !== 16) {
-    context.addIssue({
-      code: "custom",
-      message: "Les plages doivent couvrir exactement 8 dapim.",
-    });
-    return z.NEVER;
   }
 
   return ranges.join("; ");
@@ -76,6 +65,7 @@ function validateDapimRanges(value: string, context: z.RefinementCtx) {
 
 export const talmoudoRegistrationSchema = z.object({
   sessionId: z.string().trim().min(1, "Mivhan requis"),
+  userId: z.string().trim().optional().default(""),
   firstName: z.string().trim().min(2, "Prénom requis"),
   lastName: z.string().trim().min(2, "Nom requis"),
   email: z
@@ -148,26 +138,39 @@ export async function createTalmoudoRegistration(
     }
 
     const fullName = `${input.firstName} ${input.lastName}`.trim();
-    const user = await tx.user.upsert({
-      where: { email: input.email },
-      create: {
-        email: input.email,
-        name: fullName,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone,
-        parentPhone: input.parentPhone || null,
-        yeshiva: input.yeshiva,
-      },
-      update: {
-        name: fullName,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        phone: input.phone,
-        parentPhone: input.parentPhone || undefined,
-        yeshiva: input.yeshiva,
-      },
-    });
+    const user = input.userId
+      ? await tx.user.update({
+          where: { id: input.userId },
+          data: {
+            email: input.email,
+            name: fullName,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+            parentPhone: input.parentPhone || undefined,
+            yeshiva: input.yeshiva,
+          },
+        })
+      : await tx.user.upsert({
+          where: { email: input.email },
+          create: {
+            email: input.email,
+            name: fullName,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+            parentPhone: input.parentPhone || null,
+            yeshiva: input.yeshiva,
+          },
+          update: {
+            name: fullName,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+            parentPhone: input.parentPhone || undefined,
+            yeshiva: input.yeshiva,
+          },
+        });
 
     const registration = await tx.mivhanRegistration.upsert({
       where: {

@@ -2154,6 +2154,64 @@ a.card:hover,
   color: var(--accent);
 }
 
+.about-yeshiva-partners {
+  display: grid;
+  gap: 16px;
+}
+
+.about-yeshiva-city {
+  display: grid;
+  gap: 10px;
+}
+
+.about-yeshiva-city h3 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 1rem;
+  font-weight: 860;
+}
+
+.about-yeshiva-city ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-yeshiva-city li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border-radius: 12px;
+  background: var(--subtle);
+  padding: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.about-yeshiva-city strong {
+  color: var(--primary);
+  font-weight: 820;
+}
+
+.about-yeshiva-city a {
+  min-width: 0;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+  font-weight: 760;
+}
+
+.about-yeshiva-note {
+  margin: 0;
+  border-radius: 12px;
+  background: rgba(242, 99, 0, 0.08);
+  color: var(--primary);
+  padding: 14px;
+  line-height: 1.7;
+}
+
 .faq-list {
   display: grid;
   gap: 12px;
@@ -4795,6 +4853,7 @@ a.card:hover,
   .about-impact-grid,
   .about-partner-cards,
   .about-partner-list,
+  .about-yeshiva-city ul,
   .form-grid,
   .footer-grid,
   .gallery-grid,

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ServiceRequestStatus,
   ServiceRequestType,
@@ -8,6 +10,7 @@ import {
 } from "@prisma/client";
 import {
   deleteServiceRequest,
+  deleteServiceRequestDocument,
   updateServiceRequest,
   updateServiceRequestData,
   uploadServiceRequestFinalDocument,
@@ -48,8 +51,12 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Download,
   Eye,
+  ExternalLink,
   FileCheck2,
+  FileText,
+  Loader2,
   MoreHorizontal,
+  Paperclip,
   Pencil,
   Send,
   Trash2,
@@ -57,7 +64,7 @@ import {
 } from "lucide-react";
 
 const statusLabels: Record<ServiceRequestStatus, string> = {
-  SUBMITTED: "Deposee",
+  SUBMITTED: "Déposée",
   IN_REVIEW: "En traitement",
   MISSING_DOCUMENTS: "Éléments à modifier",
   APPROVED: "Approuvée",
@@ -83,6 +90,16 @@ function originalNameFromKey(fileKey: string) {
 function payloadText(payload: Record<string, unknown>, key: string) {
   const value = payload[key];
   return typeof value === "string" ? value : "";
+}
+
+function payloadDisplayText(payload: Record<string, unknown>, key: string) {
+  const value = payloadText(payload, key);
+
+  if (key === "birthDate" && value) {
+    return formatDateFr(value);
+  }
+
+  return value;
 }
 
 const editableFieldLabels = [
@@ -125,6 +142,7 @@ export type AdminServiceRequestActionView = {
     lastName: string | null;
     phone: string | null;
     parentPhone: string | null;
+    accountType?: string | null;
   } | null;
   messages: Array<{ body: string; createdAt: string }>;
   documents: Array<{
@@ -135,14 +153,53 @@ export type AdminServiceRequestActionView = {
   }>;
 };
 
-type OpenDialog = "detail" | "files" | "status" | "data" | "final" | "delete" | null;
+type OpenDialog = "detail" | "status" | "data" | "final" | "delete" | null;
+
+function actionErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function payloadName(payload: Record<string, unknown>) {
+  return [payloadText(payload, "firstName"), payloadText(payload, "lastName")]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
+function requestSubjectName(request: AdminServiceRequestActionView) {
+  return payloadName(request.payload) || userName(request.user);
+}
+
+function requestSourceLabel(request: AdminServiceRequestActionView) {
+  if (payloadText(request.payload, "source") === "YESHIVA") {
+    return `Compte yeshiva : ${userName(request.user)}`;
+  }
+
+  if (payloadText(request.payload, "source") === "BAHOUR") {
+    return "Compte bahour";
+  }
+
+  if (request.user?.accountType === "YESHIVA") {
+    return `Compte yeshiva : ${userName(request.user)}`;
+  }
+
+  return "Demande du site";
+}
 
 export function AdminServiceRequestActionsClient({
   request,
 }: {
   request: AdminServiceRequestActionView;
 }) {
+  const router = useRouter();
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<
+    AdminServiceRequestActionView["documents"][number] | null
+  >(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isUpdatingData, setIsUpdatingData] = useState(false);
+  const [isUploadingFinal, setIsUploadingFinal] = useState(false);
+  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
   const isVisa = request.type === ServiceRequestType.VISA_STUDENT;
   const finalDocumentLabel = isVisa ? "Visa reçu" : "Document koupat holim final";
   const requestedFields = new Set(
@@ -152,9 +209,99 @@ export function AdminServiceRequestActionsClient({
         )
       : [],
   );
+  const requestedDocumentIds = new Set(
+    Array.isArray(request.payload.__requestedDocumentIds)
+      ? request.payload.__requestedDocumentIds.filter(
+          (documentId): documentId is string => typeof documentId === "string",
+        )
+      : [],
+  );
   const visibleEditableFields = editableFieldLabels.filter(
     ([field]) => isVisa || field !== "personStatus",
   );
+  const subjectName = requestSubjectName(request);
+
+  async function handleStatusSubmit(formData: FormData) {
+    setIsUpdatingStatus(true);
+    const toastId = toast.loading("Envoi de la notification...");
+
+    try {
+      await updateServiceRequest(formData);
+      toast.success("Notification envoyée.", { id: toastId });
+      setOpenDialog(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible d’envoyer la notification."),
+        { id: toastId },
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
+
+  async function handleDataSubmit(formData: FormData) {
+    setIsUpdatingData(true);
+    const toastId = toast.loading("Mise à jour du dossier...");
+
+    try {
+      await updateServiceRequestData(formData);
+      toast.success("Dossier mis à jour.", { id: toastId });
+      setOpenDialog(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible de mettre à jour le dossier."),
+        { id: toastId },
+      );
+    } finally {
+      setIsUpdatingData(false);
+    }
+  }
+
+  async function handleFinalSubmit(formData: FormData) {
+    setIsUploadingFinal(true);
+    const toastId = toast.loading("Téléversement du document final...");
+
+    try {
+      await uploadServiceRequestFinalDocument(formData);
+      toast.success("Document final téléversé et notification envoyée.", {
+        id: toastId,
+      });
+      setOpenDialog(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible d’uploader le document final."),
+        { id: toastId },
+      );
+    } finally {
+      setIsUploadingFinal(false);
+    }
+  }
+
+  async function handleDeleteDocument() {
+    if (!documentToDelete) return;
+
+    setIsDeletingDocument(true);
+    const toastId = toast.loading("Suppression du fichier...");
+    const formData = new FormData();
+    formData.set("documentId", documentToDelete.id);
+
+    try {
+      await deleteServiceRequestDocument(formData);
+      toast.success("Fichier supprimé du dossier et de S3.", { id: toastId });
+      setDocumentToDelete(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        actionErrorMessage(error, "Impossible de supprimer ce fichier."),
+        { id: toastId },
+      );
+    } finally {
+      setIsDeletingDocument(false);
+    }
+  }
 
   return (
     <>
@@ -167,11 +314,7 @@ export function AdminServiceRequestActionsClient({
           <DropdownMenuLabel>Actions demande</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => setOpenDialog("detail")}>
             <Eye className="size-4" />
-            Voir le detail
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenDialog("files")}>
-            <Download className="size-4" />
-            Voir les fichiers
+            Voir le détail
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setOpenDialog("status")}>
@@ -206,11 +349,11 @@ export function AdminServiceRequestActionsClient({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
-            <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-4 md:grid-cols-4">
-              <InfoBlock label="Bahour" value={userName(request.user)} />
+            <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-4 md:grid-cols-5">
+              <InfoBlock label="Dossier" value={subjectName} />
               <InfoBlock
                 label="Email"
-                value={request.user?.email || payloadText(request.payload, "email") || "-"}
+                value={payloadText(request.payload, "email") || request.user?.email || "-"}
               />
               <div>
                 <span className="text-xs font-semibold uppercase text-[var(--muted)]">
@@ -223,9 +366,10 @@ export function AdminServiceRequestActionsClient({
                 </div>
               </div>
               <InfoBlock
-                label="Depot"
-                value={new Date(request.createdAt).toLocaleDateString("fr-FR")}
+                label="Dépôt"
+                value={formatDateFr(request.createdAt)}
               />
+              <InfoBlock label="Source" value={requestSourceLabel(request)} />
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               {mainDataLabels
@@ -235,7 +379,7 @@ export function AdminServiceRequestActionsClient({
                     boxed
                     key={field}
                     label={label}
-                    value={payloadText(request.payload, field) || "-"}
+                    value={payloadDisplayText(request.payload, field) || "-"}
                   />
                 ))}
             </div>
@@ -254,43 +398,58 @@ export function AdminServiceRequestActionsClient({
                 ))}
               </div>
             ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={openDialog === "files"} onOpenChange={(open) => !open && setOpenDialog(null)}>
-        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Fichiers de la demande</DialogTitle>
-            <DialogDescription>
-              Consultez et telechargez les documents envoyes.
-            </DialogDescription>
-          </DialogHeader>
-          {request.documents.length > 0 ? (
-            <div className="grid gap-2 md:grid-cols-2">
-              {request.documents.map((document) => (
-                <a
-                  className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] bg-white p-3 text-sm transition hover:border-[var(--accent)]"
-                  href={`/api/requests/documents/${document.id}/download`}
-                  key={document.id}
-                >
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-2 font-semibold text-[var(--primary)]">
-                      <Download className="size-4" />
-                      {document.label}
-                    </span>
-                    <span className="mt-1 block truncate text-[var(--muted)]">
-                      {originalNameFromKey(document.fileKey)}
-                    </span>
-                  </span>
-                </a>
-              ))}
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-bold text-[var(--primary)]">
+                  Documents du dossier
+                </h3>
+                <span className="text-sm text-[var(--muted)]">
+                  {request.documents.length} fichier(s)
+                </span>
+              </div>
+              {request.documents.length > 0 ? (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {request.documents.map((document) => (
+                    <div
+                      className="grid gap-3 rounded-lg border border-[var(--border)] bg-white p-3 text-sm"
+                      key={document.id}
+                    >
+                      <span className="min-w-0">
+                        <span className="font-semibold text-[var(--primary)]">
+                          {document.label}
+                        </span>
+                        <span className="mt-1 block truncate text-[var(--muted)]">
+                          {originalNameFromKey(document.fileKey)}
+                        </span>
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        <Button asChild size="sm" variant="secondary">
+                          <a
+                            href={`/api/requests/documents/${document.id}/download?disposition=inline`}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            <ExternalLink className="size-4" />
+                            Ouvrir
+                          </a>
+                        </Button>
+                        <Button asChild size="sm" variant="secondary">
+                          <a href={`/api/requests/documents/${document.id}/download`}>
+                            <Download className="size-4" />
+                            Télécharger
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
+                  Aucun document attaché à cette demande.
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--muted)]">
-              Aucun document attaché à cette demande.
-            </p>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -299,10 +458,10 @@ export function AdminServiceRequestActionsClient({
           <DialogHeader>
             <DialogTitle>Modifier le statut et notifier</DialogTitle>
             <DialogDescription>
-              Envoyez une mise à jour ou demandez des corrections précises au Bahour.
+              Envoyez une mise à jour ou demandez des corrections précises.
             </DialogDescription>
           </DialogHeader>
-          <form action={updateServiceRequest} className="grid gap-4">
+          <form action={handleStatusSubmit} className="grid gap-4">
             <input name="requestId" type="hidden" value={request.id} />
             <div className="grid gap-3 md:grid-cols-[220px_1fr]">
               <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
@@ -325,7 +484,7 @@ export function AdminServiceRequestActionsClient({
               </label>
             </div>
             <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
-              Message visible par le Bahour
+              Message visible dans l’espace du compte lié
               <Textarea
                 defaultValue={request.publicNote ?? ""}
                 name="publicNote"
@@ -353,9 +512,40 @@ export function AdminServiceRequestActionsClient({
                 ))}
               </div>
             </div>
-            <Button type="submit" className="w-fit">
-              <Send className="size-4" />
-              Enregistrer et notifier
+            <div className="grid gap-2 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+              <strong className="text-sm text-[var(--primary)]">
+                Fichiers à modifier dans son espace
+              </strong>
+              {request.documents.length > 0 ? (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {request.documents.map((document) => (
+                    <label
+                      className="flex items-center gap-2 text-sm text-[var(--primary)]"
+                      key={document.id}
+                    >
+                      <input
+                        defaultChecked={requestedDocumentIds.has(document.id)}
+                        name="requestedDocumentIds"
+                        type="checkbox"
+                        value={document.id}
+                      />
+                      <span className="min-w-0 truncate">{document.label}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--muted)]">
+                  Aucun fichier reçu pour cette demande.
+                </p>
+              )}
+            </div>
+            <Button disabled={isUpdatingStatus} type="submit" className="w-fit">
+              {isUpdatingStatus ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Send className="size-4" />
+              )}
+              {isUpdatingStatus ? "Envoi..." : "Enregistrer et notifier"}
             </Button>
           </form>
         </DialogContent>
@@ -369,7 +559,7 @@ export function AdminServiceRequestActionsClient({
               Correction manuelle par l’admin, sans email automatique.
             </DialogDescription>
           </DialogHeader>
-          <form action={updateServiceRequestData} className="grid gap-4">
+          <form action={handleDataSubmit} className="grid gap-4">
             <input name="requestId" type="hidden" value={request.id} />
             <div className="grid gap-3 md:grid-cols-2">
               {visibleEditableFields.map(([field, label]) => (
@@ -391,23 +581,96 @@ export function AdminServiceRequestActionsClient({
                 </label>
               ))}
             </div>
-            <Button type="submit" className="w-fit">
-              <Pencil className="size-4" />
-              Enregistrer
+            <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+              <strong className="text-sm text-[var(--primary)]">
+                Fichiers du dossier
+              </strong>
+              {request.documents.length > 0 ? (
+                <div className="grid gap-3">
+                  {request.documents.map((document) => (
+                    <div
+                      className="grid gap-4 rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm"
+                      key={document.id}
+                    >
+                      <input name="documentId" type="hidden" value={document.id} />
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent-strong)]">
+                          <FileText className="size-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-[var(--primary)]">
+                            {document.label}
+                          </p>
+                          <p className="mt-1 flex min-w-0 items-center gap-1 truncate text-xs text-[var(--muted)]">
+                            <Paperclip className="size-3.5 shrink-0" />
+                            <span className="truncate">
+                              {originalNameFromKey(document.fileKey)}
+                            </span>
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setDocumentToDelete(document)}
+                          size="sm"
+                          type="button"
+                          variant="destructive"
+                        >
+                          <Trash2 className="size-4" />
+                          Supprimer
+                        </Button>
+                      </div>
+                      <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
+                        Nom du fichier
+                        <Input
+                          defaultValue={document.label}
+                          name="documentLabel"
+                        />
+                      </label>
+                      <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--subtle)] p-3">
+                        <label className="grid gap-2 text-sm font-semibold text-[var(--primary)]">
+                          <span className="flex items-center gap-2">
+                            <Paperclip className="size-4 text-[var(--accent)]" />
+                            Remplacer le fichier
+                          </span>
+                          <Input
+                            accept="application/pdf,image/*"
+                            name="documentFile"
+                            type="file"
+                          />
+                        </label>
+                        <p className="mt-2 text-xs text-[var(--muted)]">
+                          L’ancien fichier S3 sera supprimé uniquement après l’enregistrement du remplacement.
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--muted)]">
+                  Aucun fichier reçu pour cette demande.
+                </p>
+              )}
+            </div>
+            <Button disabled={isUpdatingData} type="submit" className="w-fit">
+              {isUpdatingData ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Pencil className="size-4" />
+              )}
+              {isUpdatingData ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
 
       <Dialog open={openDialog === "final"} onOpenChange={(open) => !open && setOpenDialog(null)}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Uploader le document final</DialogTitle>
             <DialogDescription>
-              Le fichier sera ajouté au dossier, le Bahour sera notifié et la demande passera en terminée.
+              Le fichier sera ajouté au dossier, une notification sera envoyée et la demande passera au statut Terminée.
             </DialogDescription>
           </DialogHeader>
-          <form action={uploadServiceRequestFinalDocument} className="grid gap-4">
+          <form action={handleFinalSubmit} className="grid gap-4">
             <input name="requestId" type="hidden" value={request.id} />
             <label className="grid gap-1 text-sm font-semibold text-[var(--primary)]">
               Nom du document
@@ -426,13 +689,53 @@ export function AdminServiceRequestActionsClient({
                 type="file"
               />
             </label>
-            <Button type="submit" className="w-fit">
-              <FileCheck2 className="size-4" />
-              Uploader et notifier
+            <Button disabled={isUploadingFinal} type="submit" className="w-fit">
+              {isUploadingFinal ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileCheck2 className="size-4" />
+              )}
+              {isUploadingFinal ? "Téléversement..." : "Uploader et notifier"}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(documentToDelete)}
+        onOpenChange={(open) => {
+          if (!open && !isDeletingDocument) setDocumentToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce fichier ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer le fichier
+              {documentToDelete ? ` « ${documentToDelete.label} »` : ""} ?
+              Il sera supprimé du dossier et de S3.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingDocument}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeletingDocument}
+              onClick={handleDeleteDocument}
+              type="button"
+              variant="destructive"
+            >
+              {isDeletingDocument ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+              {isDeletingDocument ? "Suppression..." : "Oui, supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={openDialog === "delete"}
@@ -442,8 +745,8 @@ export function AdminServiceRequestActionsClient({
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cette demande ?</AlertDialogTitle>
             <AlertDialogDescription>
-              La demande de {userName(request.user)} sera supprimée avec ses messages,
-              ses documents et les fichiers S3 attaches.
+              La demande de {subjectName} sera supprimée avec ses messages,
+              ses documents et les fichiers S3 attachés.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -451,7 +754,7 @@ export function AdminServiceRequestActionsClient({
             <form action={deleteServiceRequest}>
               <input name="requestId" type="hidden" value={request.id} />
               <AlertDialogAction type="submit" variant="destructive">
-                Supprimer definitivement
+                Supprimer définitivement
               </AlertDialogAction>
             </form>
           </AlertDialogFooter>
@@ -480,4 +783,18 @@ function InfoBlock({
       </p>
     </div>
   );
+}
+
+function formatDateFr(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }

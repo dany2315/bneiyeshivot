@@ -46,22 +46,6 @@ function rangeAmudim(range: DafRange) {
   return toIndex - fromIndex + 1;
 }
 
-function rangeAmudimWithValue(
-  range: DafRange,
-  key: keyof DafRange,
-  value: string,
-) {
-  return rangeAmudim({ ...range, [key]: value });
-}
-
-function otherRangesAmudim(ranges: DafRange[], currentIndex: number) {
-  return ranges.reduce(
-    (total, range, index) =>
-      index === currentIndex ? total : total + rangeAmudim(range),
-    0,
-  );
-}
-
 function formatDapimCount(amudim: number) {
   const dapim = amudim / 2;
 
@@ -107,9 +91,6 @@ export function DapimRangeFields({
     () => ranges.reduce((total, range) => total + rangeAmudim(range), 0),
     [ranges],
   );
-  const remainingAmudim = 16 - selectedAmudim;
-  const isExact = remainingAmudim === 0;
-  const isOver = remainingAmudim < 0;
 
   function updateRange(index: number, key: keyof DafRange, value: string) {
     setRanges((current) =>
@@ -134,12 +115,10 @@ export function DapimRangeFields({
   }
 
   function optionState({
-    index,
     key,
     range,
     value,
   }: {
-    index: number;
     key: keyof DafRange;
     range: DafRange;
     value: string;
@@ -147,9 +126,6 @@ export function DapimRangeFields({
     const valueIndex = dafValueToIndex(value);
     const fromIndex = dafValueToIndex(range.from);
     const toIndex = dafValueToIndex(range.to);
-    const otherAmudim = otherRangesAmudim(ranges, index);
-    const projectedAmudim =
-      otherAmudim + rangeAmudimWithValue(range, key, value);
 
     if (key === "from" && toIndex >= 0 && valueIndex > toIndex) {
       return { disabled: true, reason: "apres le daf de fin" };
@@ -159,44 +135,16 @@ export function DapimRangeFields({
       return { disabled: true, reason: "avant le daf de début" };
     }
 
-    if (
-      ((key === "from" && toIndex >= 0) || (key === "to" && fromIndex >= 0)) &&
-      projectedAmudim > 16
-    ) {
-      return { disabled: true, reason: "dépasse 8 dapim" };
-    }
-
-    if (
-      ((key === "from" && toIndex >= 0) || (key === "to" && fromIndex >= 0)) &&
-      projectedAmudim === 16
-    ) {
-      return { disabled: false, reason: "arrive à 8 dapim" };
-    }
 
     return { disabled: false, reason: "" };
   }
 
-  function helperTextForRange(range: DafRange, index: number) {
-    const otherAmudim = otherRangesAmudim(ranges, index);
-    const availableAmudim = 16 - otherAmudim;
-    const fromIndex = dafValueToIndex(range.from);
-
-    if (availableAmudim <= 0) {
-      return "Les autres plages couvrent déjà 8 dapim.";
+  function helperTextForRange(range: DafRange) {
+    if (range.from && range.to) {
+      return `Cette plage couvre ${formatDapimCount(rangeAmudim(range))} dapim.`;
     }
 
-    if (fromIndex >= 0 && !range.to) {
-      const maxToIndex = fromIndex + availableAmudim - 1;
-      const maxOption = dafOptions.find(
-        (option) => dafValueToIndex(option.value) === maxToIndex,
-      );
-
-      if (maxOption) {
-        return `Pour arriver à 8 dapim, cette plage peut aller au maximum jusqu’à ${maxOption.label}.`;
-      }
-    }
-
-    return `Cette plage peut couvrir au maximum ${formatDapimCount(availableAmudim)} dapim restants.`;
+    return "Choisissez un daf de début et un daf de fin pour calculer la plage.";
   }
 
   return (
@@ -238,7 +186,6 @@ export function DapimRangeFields({
                 {dafOptions.map((daf) => (
                   (() => {
                     const state = optionState({
-                      index,
                       key: "from",
                       range,
                       value: daf.value,
@@ -275,7 +222,6 @@ export function DapimRangeFields({
                 {dafOptions.map((daf) => (
                   (() => {
                     const state = optionState({
-                      index,
                       key: "to",
                       range,
                       value: daf.value,
@@ -308,18 +254,15 @@ export function DapimRangeFields({
               <Trash2 />
             </Button>
             <p className="text-sm text-[var(--muted)] md:col-span-3">
-              {helperTextForRange(range, index)}
+              {helperTextForRange(range)}
             </p>
           </div>
         ))}
       </div>
       <FieldDescription>
-        {isExact
-          ? "Vous avez sélectionné exactement 8 dapim."
-          : isOver
-            ? `Vous avez dépassé de ${formatDapimCount(Math.abs(remainingAmudim))} dapim.`
-            : `Vous avez sélectionné ${formatDapimCount(selectedAmudim)} dapim. Il reste ${formatDapimCount(remainingAmudim)} dapim pour arriver à 8.`}
-        {" "}Les options impossibles restent visibles mais non cliquables.
+        Vous avez sélectionné {formatDapimCount(selectedAmudim)} dapim. Le
+        programme recommande habituellement 8 dapim, mais vous pouvez inscrire
+        une quantité différente.
       </FieldDescription>
       <Button
         className="w-fit"

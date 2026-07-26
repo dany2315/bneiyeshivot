@@ -179,6 +179,68 @@ function storeCartLines(cartLines: CartLine[]) {
   window.sessionStorage.setItem(storeCartStorageKey, JSON.stringify(cartLines));
 }
 
+function StoreReservationReceptionFields({
+  disabled,
+}: {
+  disabled?: boolean;
+}) {
+  const [mode, setMode] = useState<"PICKUP" | "DELIVERY">("PICKUP");
+
+  return (
+    <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--subtle)] p-3">
+      <strong className="text-sm text-[var(--primary)]">Mode de réception</strong>
+      <label className="flex gap-2 rounded-lg bg-white p-3 text-sm">
+        <input
+          checked={mode === "PICKUP"}
+          disabled={disabled}
+          name="receptionMode"
+          onChange={() => setMode("PICKUP")}
+          type="radio"
+          value="PICKUP"
+        />
+        <span>
+          <span className="block font-bold text-[var(--primary)]">
+            Retrait dans nos locaux
+          </span>
+          <span className="block text-[var(--muted)]">
+            Gratuit. Retirez votre commande dans nos locaux, à coordonner avec
+            l’équipe, après validation de votre réservation.
+          </span>
+        </span>
+      </label>
+      <label className="flex gap-2 rounded-lg bg-white p-3 text-sm">
+        <input
+          checked={mode === "DELIVERY"}
+          disabled={disabled}
+          name="receptionMode"
+          onChange={() => setMode("DELIVERY")}
+          type="radio"
+          value="DELIVERY"
+        />
+        <span>
+          <span className="block font-bold text-[var(--primary)]">
+            Livraison à domicile
+          </span>
+          <span className="block text-[var(--muted)]">
+            Tarif calculé selon la destination. Le tarif vous sera donné après
+            validation de votre réservation.
+          </span>
+        </span>
+      </label>
+      {mode === "DELIVERY" ? (
+        <Textarea
+          disabled={disabled}
+          name="deliveryAddress"
+          placeholder="Adresse complète de livraison"
+          required
+        />
+      ) : (
+        <input name="deliveryAddress" type="hidden" value="" />
+      )}
+    </div>
+  );
+}
+
 export function StorefrontClient({
   initialUser,
   products,
@@ -336,14 +398,19 @@ export function StorefrontClient({
 
       <div className="container grid gap-4 pt-28">
         {reservationOk ? (
-          <Alert className="border-green-200 bg-green-50 text-green-950">
-            <CheckCircle2 className="size-4" />
-            <AlertTitle>Réservation envoyée</AlertTitle>
-            <AlertDescription>
-              Nous avons bien reçu votre réservation. L’équipe vous recontactera
-              pour confirmer la disponibilité.
-            </AlertDescription>
-          </Alert>
+          <Card className="border-green-200 bg-green-50 text-green-950">
+            <CardHeader className="items-center text-center">
+              <span className="grid size-12 place-items-center rounded-full bg-white text-green-700 shadow-sm">
+                <CheckCircle2 className="size-7" />
+              </span>
+              <Badge variant="success">Réservation envoyée</Badge>
+              <CardTitle>Votre réservation a bien été prise en compte</CardTitle>
+              <CardDescription className="max-w-xl text-green-950/75">
+                Le panier a été vidé. Vous allez recevoir un email de confirmation,
+                puis l’équipe vous recontactera pour confirmer la disponibilité.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : null}
 
         {!storefront.active ? (
@@ -922,6 +989,9 @@ function CartSheet({
                   disabled={!storefront.active}
                   initialUser={initialUser}
                 />
+                <StoreReservationReceptionFields
+                  disabled={!storefront.active}
+                />
                 <Textarea
                   name="note"
                   placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
@@ -961,7 +1031,7 @@ function CartSheet({
                 >
                   Retour
                 </Button>
-                <Button disabled={!canReserve}>
+                <Button disabled={!canReserve} type="submit">
                   <ShoppingBag className="size-4" />
                   {storefront.active ? "Réserver" : "Réservations fermées"}
                 </Button>
@@ -1043,11 +1113,13 @@ function CartLineVariantSelect({
 
 export function StoreProductDetailReservationClient({
   disabled,
+  products,
   product,
   storefront,
   initialUser,
 }: {
   disabled?: boolean;
+  products: ProductView[];
   product: ProductView;
   storefront: StorefrontView;
   initialUser?: StoreInitialUser | null;
@@ -1056,11 +1128,16 @@ export function StoreProductDetailReservationClient({
   const [cartPulseKey, setCartPulseKey] = useState(0);
   const detailPriceSummary = priceSummary(product);
   const totalCents = cartLines.reduce((total, line) => {
+    const lineProduct = products.find((item) => item.id === line.productId);
+    if (!lineProduct) return total;
     const variant = line.variantId
-      ? product.variants.find((item) => item.id === line.variantId) ?? null
+      ? lineProduct.variants.find((item) => item.id === line.variantId) ?? null
       : null;
-    return total + effectivePrice(product, variant) * line.quantity;
+    return total + effectivePrice(lineProduct, variant) * line.quantity;
   }, 0);
+  const cartCurrency =
+    products.find((item) => item.id === cartLines[0]?.productId)?.currency ??
+    product.currency;
 
   useEffect(() => {
     storeCartLines(cartLines);
@@ -1101,10 +1178,12 @@ export function StoreProductDetailReservationClient({
     setCartLines((current) =>
       current.map((line) => {
         if (line.key !== key) return line;
+        const lineProduct = products.find((item) => item.id === line.productId);
+        if (!lineProduct) return line;
         const variant = line.variantId
-          ? product.variants.find((item) => item.id === line.variantId) ?? null
+          ? lineProduct.variants.find((item) => item.id === line.variantId) ?? null
           : null;
-        const max = stockLimit(product, variant);
+        const max = stockLimit(lineProduct, variant);
 
         return { ...line, quantity: Math.min(max, Math.max(1, quantity)) };
       }),
@@ -1117,11 +1196,14 @@ export function StoreProductDetailReservationClient({
       const line = current.find((item) => item.key === key);
       if (!line) return current;
 
+      const lineProduct = products.find((item) => item.id === line.productId);
+      if (!lineProduct) return current;
+
       const variant = variantId
-        ? product.variants.find((item) => item.id === variantId) ?? null
+        ? lineProduct.variants.find((item) => item.id === variantId) ?? null
         : null;
-      const nextKey = cartLineKey(product.id, variant?.id ?? null);
-      const max = stockLimit(product, variant);
+      const nextKey = cartLineKey(lineProduct.id, variant?.id ?? null);
+      const max = stockLimit(lineProduct, variant);
       const nextQuantity = Math.min(max, line.quantity);
       const duplicate = current.find((item) => item.key === nextKey);
 
@@ -1167,12 +1249,12 @@ export function StoreProductDetailReservationClient({
           </div>
           <CartSheet
             cartLines={cartLines}
-            currency={product.currency}
+            currency={cartCurrency}
             initialUser={initialUser}
             onRemoveLine={removeCartLine}
             onUpdateLine={updateCartLine}
             onUpdateLineVariant={updateCartLineVariant}
-            products={[product]}
+            products={products}
             pulseKey={cartPulseKey}
             storefront={storefront}
             totalCents={totalCents}
@@ -1341,12 +1423,16 @@ export function StoreProductReservationPanel({
     <form action={createStoreReservation} className="grid gap-4">
       {controls}
       <StoreReservationCustomerFields disabled={disabled} initialUser={initialUser} />
+      <StoreReservationReceptionFields disabled={disabled} />
       <Textarea
         name="note"
         placeholder="Note pour l’équipe : livraison, adresse, besoin particulier..."
         disabled={disabled}
       />
-      <Button disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}>
+      <Button
+        disabled={disabled || maxQuantity < 1 || (hasVariants && !selectedVariant)}
+        type="submit"
+      >
         <ShoppingBag className="size-4" />
         {disabled ? "Réservations fermées" : "Réserver"}
       </Button>
