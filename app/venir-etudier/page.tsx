@@ -33,18 +33,18 @@ const heroPhotos = [
     className: "arrival-hero-photo-tall",
   },
   {
-    src: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?auto=format&fit=crop&w=900&q=80",
-    alt: "Jérusalem et la vieille ville",
+    src: "/venir-etudier/jerusalem-kotel.jpg",
+    alt: "Jérusalem et le Kotel au coucher du soleil",
     className: "",
   },
   {
-    src: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80",
-    alt: "Étude à la yeshiva",
+    src: "/venir-etudier/limoud-bahourim.jpg",
+    alt: "Bahourim réunis autour d’une table d’étude",
     className: "",
   },
   {
-    src: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80",
-    alt: "Jeunes accompagnés par l’équipe Bnei Yeshivot",
+    src: "/venir-etudier/bnei-yeshivot-campus.jpg",
+    alt: "Bnei Yeshivot et bâtiments de yeshivot en Israël",
     className: "arrival-hero-photo-wide",
   },
 ];
