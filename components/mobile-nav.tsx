@@ -103,7 +103,7 @@ export function MobileNav() {
         <SheetHeader className="mobile-sheet-header">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo-bnei.png"
+              src="/logo-bnei-navbar.png"
               alt="Bnei Yeshivot"
               width={628}
               height={527}

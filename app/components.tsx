@@ -15,7 +15,7 @@ export function SiteHeader() {
       <div className="container nav !w-[min(1440px,calc(100%-32px))] gap-3 xl:gap-5">
         <Link className="brand" href="/">
           <Image
-            src="/logo-bnei.png"
+            src="/logo-bnei-navbar.png"
             alt="Bnei Yeshivot"
             width={628}
             height={527}
