@@ -54,8 +54,7 @@ const pageServices = [
     action: "Préparer mon arrivée",
     href: "/venir-etudier",
     learnMoreHref: "/venir-etudier",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+    image: "/venir-etudier/bnei-yeshivot-campus.jpg",
   },
   {
     title: "Boutique literie",
@@ -75,8 +74,7 @@ const pageServices = [
     action: "Télécharger gratuitement",
     href: "/guide",
     learnMoreHref: "/guide",
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
+    image: "/venir-etudier/limoud-bahourim.jpg",
   },
 ];
 

@@ -343,12 +343,12 @@ const programDetails: Record<string, ProgramDetail> = {
       ],
     },
     galleryImages: [
-      "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=900&q=80",
+      "/programmes/shabbat-plein.jpeg",
+      "/venir-etudier/limoud-bahourim.jpg",
+      "/logobneiyeshivot/dd034949-264f-4079-b26a-14716c37d0b2.jpeg",
+      "/logobneiyeshivot/bb7765c2-14d1-44b3-adb9-2160b8eaf41a.jpeg",
+      "/logobneiyeshivot/87894877-bbf0-4bdd-bfb3-7c05410a6ae1.jpeg",
+      "/logobneiyeshivot/4bb0c924-11b4-4d32-88b3-37de6b6da11e.jpg",
     ],
     finalCta: {
       eyebrow: "Rejoignez le prochain Chabbat Plein",

@@ -1634,7 +1634,7 @@ a.card:hover,
   border-radius: 20px;
   background:
     linear-gradient(135deg, rgba(3, 23, 41, 0.92), rgba(6, 40, 70, 0.74)),
-    url("https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80") center/cover;
+    url("/about-hero.jpg") center/cover;
   color: #fff;
   padding: 34px;
   box-shadow: 0 28px 80px rgba(6, 40, 70, 0.18);

@@ -235,8 +235,7 @@ export const programmes: Program[] = [
       "Bnei Yeshivot accompagne également les Avrekhim francophones installés en Israël en développant des cadres de Torah et une dynamique communautaire. Notre objectif est de permettre aux Avrekhim de continuer leur étude dans un environnement sérieux, chaleureux et adapté, tout en renforçant les liens entre les familles francophones.",
     focusLabel: "Nos cadres",
     ctaLabel: "Découvrir le Programme Avrekhim",
-    image:
-      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1100&q=82",
+    image: "/venir-etudier/limoud-bahourim.jpg",
     href: "/programme/avrekhim",
     Icon: School,
     actions: [

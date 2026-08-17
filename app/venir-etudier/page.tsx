@@ -28,8 +28,8 @@ export const metadata = {
 
 const heroPhotos = [
   {
-    src: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
-    alt: "Départ à l’aéroport",
+    src: "/logobneiyeshivot/4bb0c924-11b4-4d32-88b3-37de6b6da11e.jpg",
+    alt: "Bahourim francophones en Israël",
     className: "arrival-hero-photo-tall",
   },
   {
