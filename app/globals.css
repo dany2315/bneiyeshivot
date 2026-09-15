@@ -3436,8 +3436,11 @@ a.card:hover,
   margin-top: 26px;
 }
 
-.partners-strip-label {
-  margin: 0 0 22px;
+.partners-strip .partners-strip-label {
+  /* .hero p impose margin: 0, font-size: 19px et max-width: 720px avec une
+     specificite (0,1,1) superieure a une classe seule : on passe a (0,2,0). */
+  max-width: none;
+  margin: 0 0 34px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 820;
@@ -5149,8 +5152,8 @@ a.card:hover,
     margin-top: 18px;
   }
 
-  .partners-strip-label {
-    margin-bottom: 16px;
+  .partners-strip .partners-strip-label {
+    margin-bottom: 24px;
     font-size: 11px;
   }
 
