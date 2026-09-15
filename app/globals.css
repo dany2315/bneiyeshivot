@@ -3425,6 +3425,30 @@ a.card:hover,
   line-height: 1.35;
 }
 
+.partners-strip {
+  /* Colonne de gauche seulement : en desktop, la colonne de droite est
+     occupee par le cercle decoratif .hero::before. En mobile la grille
+     n'a qu'une colonne, le rail occupe donc toute la largeur. */
+  grid-column: 1 / 2;
+  /* Sans min-width, la largeur max-content du rail devient le minimum
+     automatique de l'element de grille et fait exploser la colonne. */
+  min-width: 0;
+  margin-top: 26px;
+}
+
+.partners-strip .partners-strip-label {
+  /* .hero p impose margin: 0, font-size: 19px et max-width: 720px avec une
+     specificite (0,1,1) superieure a une classe seule : on passe a (0,2,0). */
+  max-width: none;
+  margin: 0 0 52px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 820;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
 .ben-logo-rail {
   overflow: hidden;
   padding: 10px 0;
@@ -3436,7 +3460,7 @@ a.card:hover,
   width: max-content;
   align-items: center;
   gap: 24px;
-  animation: benRailLoop 46s linear infinite;
+  animation: benRailLoop 22s linear infinite;
 }
 
 .ben-logo-item {
@@ -5122,6 +5146,15 @@ a.card:hover,
 @media (max-width: 640px) {
   .container {
     width: min(100% - 24px, 1200px);
+  }
+
+  .partners-strip {
+    margin-top: 18px;
+  }
+
+  .partners-strip .partners-strip-label {
+    margin-bottom: 36px;
+    font-size: 11px;
   }
 
   .brand-text strong {
