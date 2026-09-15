@@ -1,14 +1,20 @@
 import Image from "next/image";
 
+// Logos detoures (fond transparent) et normalises a aire optique egale,
+// centres sur une toile fixe de 312x208 (2x l'emplacement CSS 156x104),
+// afin qu'ils apparaissent tous a la meme taille dans le rail.
+// Les fichiers d'origine restent dans /public/logobneiyeshivot, ou ils
+// servent aux galeries de la page d'accueil, de Chabbat Plein et de
+// « venir etudier ».
 const logoFiles = [
-  "4bb0c924-11b4-4d32-88b3-37de6b6da11e.jpg",
+  "hasdei-yosef.png",
   "el-haaretz.png",
-  "87894877-bbf0-4bdd-bfb3-7c05410a6ae1.jpeg",
-  "476dd32c-973f-41c4-9cdf-26b7855c96b3.jpeg",
-  "d2465f0f-c5a5-4522-84c6-90c1728b1e8a.jpeg",
-  "bb7765c2-14d1-44b3-adb9-2160b8eaf41a.jpeg",
-  "dd034949-264f-4079-b26a-14716c37d0b2.jpeg",
-  "IMG_1684.jpeg",
+  "bnei-aliya.png",
+  "shaarei-ocher.png",
+  "beth-hamidrach-darkei-shalom.png",
+  "beth-hamidrach-bonneuil.png",
+  "centre-alef.png",
+  "siah-israel.png",
 ];
 
 export function PartnersLogoRail() {
@@ -20,11 +26,15 @@ export function PartnersLogoRail() {
         <div className="ben-logo-track">
           {[...logoFiles, ...logoFiles].map((file, index) => (
             <div className="ben-logo-item" key={`${file}-${index}`}>
+              {/* loading="eager" : le chargement differe ne se declenche pas
+                  pour les logos clippes par overflow: hidden que l'animation
+                  du rail fait entrer, ils resteraient des trous blancs. */}
               <Image
                 alt=""
                 fill
+                loading="eager"
                 sizes="156px"
-                src={`/logobneiyeshivot/${file}`}
+                src={`/partners/${file}`}
               />
             </div>
           ))}
