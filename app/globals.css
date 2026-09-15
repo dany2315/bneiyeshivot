@@ -3425,22 +3425,25 @@ a.card:hover,
   line-height: 1.35;
 }
 
-.partners-band {
-  padding: 34px 0;
-  border-block: 1px solid rgba(223, 231, 240, 0.78);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.94)),
-    #fff;
+.partners-strip {
+  /* Colonne de gauche seulement : en desktop, la colonne de droite est
+     occupee par le cercle decoratif .hero::before. En mobile la grille
+     n'a qu'une colonne, le rail occupe donc toute la largeur. */
+  grid-column: 1 / 2;
+  /* Sans min-width, la largeur max-content du rail devient le minimum
+     automatique de l'element de grille et fait exploser la colonne. */
+  min-width: 0;
+  margin-top: 26px;
 }
 
-.partners-band-label {
-  margin: 0 0 18px;
+.partners-strip-label {
+  margin: 0 0 14px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 820;
   letter-spacing: 0.12em;
-  text-align: center;
   text-transform: uppercase;
+  opacity: 0.75;
 }
 
 .ben-logo-rail {
@@ -5142,13 +5145,13 @@ a.card:hover,
     width: min(100% - 24px, 1200px);
   }
 
-  .partners-band {
-    padding: 24px 0;
+  .partners-strip {
+    margin-top: 18px;
   }
 
-  .partners-band-label {
-    margin-bottom: 14px;
-    font-size: 12px;
+  .partners-strip-label {
+    margin-bottom: 10px;
+    font-size: 11px;
   }
 
   .brand-text strong {
