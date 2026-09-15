@@ -3425,7 +3425,7 @@ a.card:hover,
   line-height: 1.35;
 }
 
-.ben-logo-band {
+.partners-band {
   padding: 34px 0;
   border-block: 1px solid rgba(223, 231, 240, 0.78);
   background:
@@ -3433,15 +3433,7 @@ a.card:hover,
     #fff;
 }
 
-.ben-logo-band-desktop {
-  display: block;
-}
-
-.ben-logo-band-mobile {
-  display: none;
-}
-
-.ben-logo-band-label {
+.partners-band-label {
   margin: 0 0 18px;
   color: var(--muted);
   font-size: 13px;
@@ -4812,18 +4804,6 @@ a.card:hover,
 }
 
 @media (max-width: 980px) {
-  .ben-logo-band-desktop {
-    display: none;
-  }
-
-  .ben-logo-band-mobile {
-    display: block;
-  }
-
-  .ben-logo-band {
-    padding: 26px 0;
-  }
-
   .nav {
     min-height: 70px;
     align-items: center;
@@ -5160,6 +5140,15 @@ a.card:hover,
 @media (max-width: 640px) {
   .container {
     width: min(100% - 24px, 1200px);
+  }
+
+  .partners-band {
+    padding: 24px 0;
+  }
+
+  .partners-band-label {
+    margin-bottom: 14px;
+    font-size: 12px;
   }
 
   .brand-text strong {

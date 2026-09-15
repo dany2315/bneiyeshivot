@@ -12,7 +12,6 @@ import { TalmoudoProgramSignupCta } from "@/components/talmoudo-program-signup-c
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BenHazmanimFranceMap } from "@/components/ben-hazmanim-france-map";
-import { BenHazmanimLogoRail } from "@/components/ben-hazmanim-logo-rail";
 import { fileUrl } from "@/lib/files";
 import {
   Card,
@@ -959,10 +958,6 @@ export default async function ProgramDetailPage({
           </div>
         </section>
 
-        {slug === "ben-hazmanim" ? (
-          <BenHazmanimLogoRail className="ben-logo-band-desktop" />
-        ) : null}
-
         <section className="section">
           <div className="container program-detail-intro">
             <div className="program-detail-intro-copy">
@@ -1085,10 +1080,6 @@ export default async function ProgramDetailPage({
 
         {slug === "ben-hazmanim" ? (
           <ProgramVisualGallery />
-        ) : null}
-
-        {slug === "ben-hazmanim" ? (
-          <BenHazmanimLogoRail className="ben-logo-band-mobile" />
         ) : null}
 
         {slug === "beth-hamidrach" ? (

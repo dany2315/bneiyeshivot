@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 
 const logoFiles = [
   "el-haaretz.png",
@@ -12,11 +11,11 @@ const logoFiles = [
   "IMG_1684.jpeg",
 ];
 
-export function BenHazmanimLogoRail({ className }: { className?: string }) {
+export function PartnersLogoRail() {
   return (
-    <section className={cn("ben-logo-band", className)}>
+    <section className="partners-band">
       <div className="container">
-        <p className="ben-logo-band-label">Partenaires du réseau Ben Hazmanim</p>
+        <p className="partners-band-label">Ils nous accompagnent</p>
 
         <div className="ben-logo-rail" aria-label="Logos des partenaires">
           <div className="ben-logo-track">
