@@ -3437,7 +3437,7 @@ a.card:hover,
 }
 
 .partners-strip-label {
-  margin: 0 0 14px;
+  margin: 0 0 22px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 820;
@@ -5150,7 +5150,7 @@ a.card:hover,
   }
 
   .partners-strip-label {
-    margin-bottom: 10px;
+    margin-bottom: 16px;
     font-size: 11px;
   }
 
