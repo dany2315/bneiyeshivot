@@ -14,20 +14,20 @@ const logoFiles = [
 export function PartnersLogoRail() {
   return (
     <div className="partners-strip">
-      <div className="container">
-        <div className="ben-logo-rail" aria-label="Logos des partenaires">
-          <div className="ben-logo-track">
-            {[...logoFiles, ...logoFiles].map((file, index) => (
-              <div className="ben-logo-item" key={`${file}-${index}`}>
-                <Image
-                  alt=""
-                  fill
-                  sizes="156px"
-                  src={`/logobneiyeshivot/${file}`}
-                />
-              </div>
-            ))}
-          </div>
+      <p className="partners-strip-label">Ils nous accompagnent</p>
+
+      <div className="ben-logo-rail" aria-label="Logos des partenaires">
+        <div className="ben-logo-track">
+          {[...logoFiles, ...logoFiles].map((file, index) => (
+            <div className="ben-logo-item" key={`${file}-${index}`}>
+              <Image
+                alt=""
+                fill
+                sizes="156px"
+                src={`/logobneiyeshivot/${file}`}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>
