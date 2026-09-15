@@ -3440,7 +3440,7 @@ a.card:hover,
   /* .hero p impose margin: 0, font-size: 19px et max-width: 720px avec une
      specificite (0,1,1) superieure a une classe seule : on passe a (0,2,0). */
   max-width: none;
-  margin: 0 0 34px;
+  margin: 0 0 52px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 820;
@@ -5153,7 +5153,7 @@ a.card:hover,
   }
 
   .partners-strip .partners-strip-label {
-    margin-bottom: 24px;
+    margin-bottom: 36px;
     font-size: 11px;
   }
 
