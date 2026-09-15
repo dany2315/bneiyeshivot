@@ -1,8 +1,8 @@
 import Image from "next/image";
 
 const logoFiles = [
-  "el-haaretz.png",
   "4bb0c924-11b4-4d32-88b3-37de6b6da11e.jpg",
+  "el-haaretz.png",
   "87894877-bbf0-4bdd-bfb3-7c05410a6ae1.jpeg",
   "476dd32c-973f-41c4-9cdf-26b7855c96b3.jpeg",
   "d2465f0f-c5a5-4522-84c6-90c1728b1e8a.jpeg",
