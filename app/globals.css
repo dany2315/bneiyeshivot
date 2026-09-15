@@ -3425,25 +3425,24 @@ a.card:hover,
   line-height: 1.35;
 }
 
+/* Le rail chevauche la couture entre le hero et la section video : le
+   changement de fond et le border-bottom du hero passent derriere les
+   logos, a mi-hauteur du rail.
+   -62px = moitie de la hauteur du rail (.ben-logo-item 104px + 2 x 10px
+   de padding de .ben-logo-rail). z-index 4 pour passer au-dessus du
+   hero et de .video-section (z-index 3). */
 .partners-strip {
-  /* Colonne de gauche seulement : en desktop, la colonne de droite est
-     occupee par le cercle decoratif .hero::before. En mobile la grille
-     n'a qu'une colonne, le rail occupe donc toute la largeur. */
-  grid-column: 1 / 2;
-  /* Sans min-width, la largeur max-content du rail devient le minimum
-     automatique de l'element de grille et fait exploser la colonne. */
-  min-width: 0;
-  margin-top: 26px;
+  position: relative;
+  z-index: 4;
+  margin-top: -62px;
+  margin-bottom: 34px;
 }
 
-.partners-strip-label {
-  margin: 0 0 14px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 820;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.75;
+/* .video-section remonte de 42px pour chevaucher le bas du hero. C'est
+   desormais le rail qui occupe ce chevauchement : sans cette remise a
+   zero, la carte video recouvrirait le bas des logos. */
+.partners-strip + .video-section {
+  margin-top: 0;
 }
 
 .ben-logo-rail {
@@ -5146,12 +5145,7 @@ a.card:hover,
   }
 
   .partners-strip {
-    margin-top: 18px;
-  }
-
-  .partners-strip-label {
-    margin-bottom: 10px;
-    font-size: 11px;
+    margin-bottom: 18px;
   }
 
   .brand-text strong {

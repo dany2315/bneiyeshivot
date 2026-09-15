@@ -443,10 +443,10 @@ export default async function Home() {
                 </div>
               </CardContent>
             </Card>
-
-            <PartnersLogoRail />
           </div>
         </section>
+
+        <PartnersLogoRail />
 
         <section className="video-section video-section-desktop">
           <div className="container">
