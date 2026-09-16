@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/event-content";
 import { fileUrl } from "@/lib/files";
 import { ImpactCounter } from "@/components/impact-counter";
+import { PartnersLogoRail } from "@/components/partners-logo-rail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -442,6 +443,8 @@ export default async function Home() {
                 </div>
               </CardContent>
             </Card>
+
+            <PartnersLogoRail />
           </div>
         </section>
 
