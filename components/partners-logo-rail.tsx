@@ -20,7 +20,7 @@ const logoFiles = [
 export function PartnersLogoRail() {
   return (
     <div className="partners-strip">
-      <p className="partners-strip-label">Ils nous accompagnent</p>
+      <p className="partners-strip-label">Nos partenaires</p>
 
       <div className="ben-logo-rail" aria-label="Logos des partenaires">
         <div className="ben-logo-track">
