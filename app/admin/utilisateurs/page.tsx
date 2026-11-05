@@ -1,4 +1,5 @@
-import { UserRole } from "@prisma/client";
+import { UserAccountType, UserRole } from "@prisma/client";
+import Link from "next/link";
 import { AdminShell } from "@/components/admin-sidebar";
 import { StatusBadge } from "@/app/components";
 import { requireAdminUser } from "@/lib/session";
@@ -18,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Filter, Search } from "lucide-react";
+import { Download, Filter, Search } from "lucide-react";
 
 export const metadata = {
   title: "Admin utilisateurs",
@@ -47,7 +48,7 @@ function roleTone(role: UserRole) {
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; q?: string }>;
+  searchParams: Promise<{ role?: string; q?: string; accountType?: string }>;
 }) {
   await requireAdminUser();
   const params = await searchParams;
@@ -55,10 +56,24 @@ export default async function AdminUsersPage({
   const selectedRole = Object.values(UserRole).includes(params.role as UserRole)
     ? (params.role as UserRole)
     : undefined;
+  const selectedAccountType = Object.values(UserAccountType).includes(
+    params.accountType as UserAccountType,
+  )
+    ? (params.accountType as UserAccountType)
+    : undefined;
+
+  const exportParams = new URLSearchParams();
+  if (q) exportParams.set("q", q);
+  if (selectedRole) exportParams.set("role", selectedRole);
+  if (selectedAccountType) exportParams.set("accountType", selectedAccountType);
+  const exportHref = `/admin/utilisateurs/export${
+    exportParams.toString() ? `?${exportParams.toString()}` : ""
+  }`;
 
   const users = await prisma.user.findMany({
     where: {
       role: selectedRole,
+      accountType: selectedAccountType,
       OR: q
         ? [
             { firstName: { contains: q, mode: "insensitive" } },
@@ -87,6 +102,14 @@ export default async function AdminUsersPage({
           <span className="eyebrow">Back-office</span>
           <h1>Utilisateurs</h1>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary">
+            <Link href={exportHref}>
+              <Download className="size-4" />
+              Export Excel
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <section className="section admin-section-tight">
@@ -110,6 +133,19 @@ export default async function AdminUsersPage({
             <NativeSelectOption value={UserRole.ADMIN}>Admin</NativeSelectOption>
             <NativeSelectOption value={UserRole.SUPER_ADMIN}>
               Super admin
+            </NativeSelectOption>
+          </NativeSelect>
+          <NativeSelect
+            className="w-full min-w-48"
+            defaultValue={selectedAccountType ?? ""}
+            name="accountType"
+          >
+            <NativeSelectOption value="">Tous les types</NativeSelectOption>
+            <NativeSelectOption value={UserAccountType.BAHOUR}>
+              Bahour
+            </NativeSelectOption>
+            <NativeSelectOption value={UserAccountType.YESHIVA}>
+              Yeshiva
             </NativeSelectOption>
           </NativeSelect>
           <Button type="submit" variant="secondary">
