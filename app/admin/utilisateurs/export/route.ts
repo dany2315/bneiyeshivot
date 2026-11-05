@@ -29,12 +29,6 @@ export async function GET(request: Request) {
   await requireAdminUser();
 
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q")?.trim() || undefined;
-
-  const roleParam = searchParams.get("role") ?? "";
-  const selectedRole = Object.values(UserRole).includes(roleParam as UserRole)
-    ? (roleParam as UserRole)
-    : undefined;
 
   const accountTypeParam = searchParams.get("accountType") ?? "";
   const selectedAccountType = Object.values(UserAccountType).includes(
@@ -45,16 +39,10 @@ export async function GET(request: Request) {
 
   const users = await prisma.user.findMany({
     where: {
-      role: selectedRole,
+      // On n'exporte que les bahourim (rôle CLIENT) : jamais les admins
+      // ni les super admins.
+      role: UserRole.CLIENT,
       accountType: selectedAccountType,
-      OR: q
-        ? [
-            { firstName: { contains: q, mode: "insensitive" } },
-            { lastName: { contains: q, mode: "insensitive" } },
-            { name: { contains: q, mode: "insensitive" } },
-            { email: { contains: q, mode: "insensitive" } },
-          ]
-        : undefined,
     },
     include: {
       _count: {
