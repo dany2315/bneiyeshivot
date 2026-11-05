@@ -1,6 +1,6 @@
 import { UserAccountType, UserRole } from "@prisma/client";
-import Link from "next/link";
 import { AdminShell } from "@/components/admin-sidebar";
+import { UsersExportDropdown } from "./_components/users-export-dropdown";
 import { StatusBadge } from "@/app/components";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, Filter, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 
 export const metadata = {
   title: "Admin utilisateurs",
@@ -62,14 +62,6 @@ export default async function AdminUsersPage({
     ? (params.accountType as UserAccountType)
     : undefined;
 
-  const exportParams = new URLSearchParams();
-  if (q) exportParams.set("q", q);
-  if (selectedRole) exportParams.set("role", selectedRole);
-  if (selectedAccountType) exportParams.set("accountType", selectedAccountType);
-  const exportHref = `/admin/utilisateurs/export${
-    exportParams.toString() ? `?${exportParams.toString()}` : ""
-  }`;
-
   const users = await prisma.user.findMany({
     where: {
       role: selectedRole,
@@ -103,12 +95,7 @@ export default async function AdminUsersPage({
           <h1>Utilisateurs</h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="secondary">
-            <Link href={exportHref}>
-              <Download className="size-4" />
-              Export Excel
-            </Link>
-          </Button>
+          <UsersExportDropdown />
         </div>
       </div>
 
