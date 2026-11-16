@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { UserAccountType } from "@prisma/client";
 import { requireBahourUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
@@ -9,6 +10,9 @@ export async function registerForEvent(formData: FormData) {
   const user = await requireBahourUser();
   const eventId = String(formData.get("eventId") ?? "");
   const slug = String(formData.get("slug") ?? "");
+  const submittedParentPhone = String(formData.get("parentPhone") ?? "").trim();
+  const needsParentPhone =
+    user.accountType !== UserAccountType.YESHIVA && !user.parentPhone?.trim();
 
   if (!eventId) {
     throw new Error("Événement invalide.");
@@ -29,6 +33,18 @@ export async function registerForEvent(formData: FormData) {
     redirect(`/evenements/${slug || event?.slug || ""}`);
   }
 
+  // Un Bahour sans téléphone des parents doit le renseigner avant de s'inscrire.
+  if (needsParentPhone) {
+    if (submittedParentPhone.length < 6) {
+      redirect(`/evenements?erreur=telephone-parents#evenement-${event.id}`);
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { parentPhone: submittedParentPhone },
+    });
+  }
+
   await prisma.eventRegistration.upsert({
     where: {
       eventId_userId: {
@@ -44,6 +60,7 @@ export async function registerForEvent(formData: FormData) {
         firstName: user.firstName,
         lastName: user.lastName,
         phone: user.phone,
+        parentPhone: needsParentPhone ? submittedParentPhone : user.parentPhone,
         source: "espace-bahour",
       },
     },

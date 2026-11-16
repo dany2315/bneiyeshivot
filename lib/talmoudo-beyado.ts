@@ -124,6 +124,11 @@ export async function createTalmoudoRegistration(
 ) {
   const input = readTalmoudoRegistrationInput(rawInput);
 
+  // Obligatoire pour le Bahour ; l'admin peut toujours inscrire sans ce numéro.
+  if (options.source === "bahour" && input.parentPhone.length < 6) {
+    throw new Error("Le téléphone des parents est obligatoire.");
+  }
+
   return prisma.$transaction(async (tx) => {
     const session = await tx.mivhanSession.findUnique({
       where: { id: input.sessionId },

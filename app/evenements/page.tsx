@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { UserAccountType } from "@prisma/client";
+import { PhoneInputGroup } from "@/components/phone-input-group";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
@@ -20,9 +22,19 @@ export const metadata = {
   title: "Événements",
 };
 
-export default async function EventsPage() {
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erreur?: string }>;
+}) {
   const now = new Date();
   const user = await getCurrentUser();
+  const params = await searchParams;
+  const parentPhoneError = params.erreur === "telephone-parents";
+  const askParentPhone =
+    Boolean(user) &&
+    user?.accountType !== UserAccountType.YESHIVA &&
+    !user?.parentPhone?.trim();
   const events = await prisma.event.findMany({
     include: {
       registrations: user
@@ -62,10 +74,20 @@ export default async function EventsPage() {
               <h2>Événements à venir</h2>
               <p>Les prochains rendez-vous de la communauté.</p>
             </div>
+            {parentPhoneError && (
+              <div
+                className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-base font-semibold text-red-900"
+                role="alert"
+              >
+                Le téléphone des parents est obligatoire pour s’inscrire à un
+                événement. Renseignez un numéro valide puis réessayez.
+              </div>
+            )}
             {upcoming.length > 0 ? (
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {upcoming.map((event) => (
                   <UpcomingCard
+                    askParentPhone={askParentPhone}
                     event={event}
                     isRegistered={(event.registrations?.length ?? 0) > 0}
                     key={event.id}
@@ -164,16 +186,20 @@ function EventMeta({ event }: { event: EventWithMeta }) {
 }
 
 function UpcomingCard({
+  askParentPhone,
   event,
   isRegistered,
   loggedIn,
 }: {
+  askParentPhone: boolean;
   event: EventWithMeta;
   isRegistered: boolean;
   loggedIn: boolean;
 }) {
   return (
-    <Card className="group overflow-hidden border-[var(--border)] bg-white pt-0 shadow-[0_20px_70px_rgba(6,40,70,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_90px_rgba(6,40,70,0.12)]">
+    <Card
+      id={`evenement-${event.id}`}
+      className="group scroll-mt-24 overflow-hidden border-[var(--border)] bg-white pt-0 shadow-[0_20px_70px_rgba(6,40,70,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_90px_rgba(6,40,70,0.12)]">
       <EventImage
         badge={
           <>
@@ -195,9 +221,28 @@ function UpcomingCard({
           isRegistered ? (
             <StatusBadge tone="green">Déjà inscrit</StatusBadge>
           ) : (
-            <form action={registerForEvent}>
+            <form action={registerForEvent} className="grid gap-3">
               <input name="eventId" type="hidden" value={event.id} />
               <input name="slug" type="hidden" value={event.slug} />
+              {askParentPhone && (
+                <div className="grid gap-1.5">
+                  <label
+                    className="text-sm font-semibold text-[var(--primary)]"
+                    htmlFor={`event-parent-phone-${event.id}`}
+                  >
+                    Téléphone des parents
+                  </label>
+                  <PhoneInputGroup
+                    id={`event-parent-phone-${event.id}`}
+                    name="parentPhone"
+                    required
+                  />
+                  <span className="text-sm text-[var(--muted)]">
+                    Obligatoire avant l’inscription. Il sera enregistré dans
+                    votre espace.
+                  </span>
+                </div>
+              )}
               <Button className="w-full text-white sm:w-fit" type="submit">
                 S’inscrire
                 <ArrowRight />

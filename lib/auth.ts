@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { emailOTP } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
@@ -92,6 +93,11 @@ export const auth = betterAuth({
         required: false,
         input: true,
       },
+      parentPhone: {
+        type: "string",
+        required: false,
+        input: true,
+      },
       accountType: {
         type: "string",
         required: false,
@@ -101,6 +107,25 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         input: false,
+      },
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        // Seule l'inscription envoie accountType : les comptes créés à la
+        // connexion (donateurs) ne sont pas concernés par ce contrôle.
+        async before(user) {
+          const data = user as Record<string, unknown>;
+          const parentPhone =
+            typeof data.parentPhone === "string" ? data.parentPhone.trim() : "";
+
+          if (data.accountType === "BAHOUR" && parentPhone.length < 6) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Le téléphone des parents est obligatoire.",
+            });
+          }
+        },
       },
     },
   },

@@ -27,9 +27,14 @@ export const metadata = {
 };
 
 const roleLabels: Record<UserRole, string> = {
-  CLIENT: "Bahour",
+  CLIENT: "Utilisateur",
   ADMIN: "Admin",
   SUPER_ADMIN: "Super admin",
+};
+
+const accountTypeLabels: Record<UserAccountType, string> = {
+  BAHOUR: "Bahour",
+  YESHIVA: "Yeshiva",
 };
 
 function roleTone(role: UserRole) {
@@ -109,7 +114,9 @@ export default async function AdminUsersPage({
             name="role"
           >
             <NativeSelectOption value="">Tous les rôles</NativeSelectOption>
-            <NativeSelectOption value={UserRole.CLIENT}>Bahour</NativeSelectOption>
+            <NativeSelectOption value={UserRole.CLIENT}>
+              Utilisateur
+            </NativeSelectOption>
             <NativeSelectOption value={UserRole.ADMIN}>Admin</NativeSelectOption>
             <NativeSelectOption value={UserRole.SUPER_ADMIN}>
               Super admin
@@ -139,6 +146,7 @@ export default async function AdminUsersPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Utilisateur</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Demandes</TableHead>
                 <TableHead>Événements</TableHead>
@@ -169,6 +177,17 @@ export default async function AdminUsersPage({
                         {user.email}
                       </span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      tone={
+                        user.accountType === UserAccountType.YESHIVA
+                          ? "gold"
+                          : "green"
+                      }
+                    >
+                      {accountTypeLabels[user.accountType]}
+                    </StatusBadge>
                   </TableCell>
                   <TableCell>
                     <StatusBadge tone={roleTone(user.role)}>

@@ -13,12 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   NativeSelect,
@@ -270,8 +265,8 @@ export function TalmoudoRegistrationForm({
                     defaultValue={initialUser?.parentPhone ?? ""}
                     id="talmoudo-parent-phone"
                     name="parentPhone"
+                    required
                   />
-                  <FieldDescription>Champ facultatif.</FieldDescription>
                 </Field>
               )}
 

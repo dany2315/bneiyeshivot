@@ -63,7 +63,7 @@ const accountTypeLabels: Record<UserAccountType, string> = {
 };
 
 const roleLabels: Record<UserRole, string> = {
-  CLIENT: "Bahour",
+  CLIENT: "Utilisateur",
   ADMIN: "Admin",
   SUPER_ADMIN: "Super admin",
 };
