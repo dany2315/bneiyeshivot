@@ -9,6 +9,7 @@ import {
 import { StatusBadge } from "@/app/components";
 import { AdminShell } from "@/components/admin-sidebar";
 import { EventFormDialog } from "@/components/event-form-dialog";
+import { UserProfileDialog } from "../utilisateurs/_components/user-profile-dialog";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parseEventContent } from "@/lib/event-content";
@@ -202,15 +203,27 @@ export default async function AdminEventsPage() {
                               {event.registrations.map((registration) => (
                                 <TableRow key={registration.id}>
                                   <TableCell>
-                                    {registration.user
-                                      ? [
-                                          registration.user.firstName,
-                                          registration.user.lastName,
-                                        ]
-                                          .filter(Boolean)
-                                          .join(" ") ||
-                                        registration.user.email
-                                      : "Sans compte"}
+                                    {registration.user ? (
+                                      <UserProfileDialog
+                                        user={{
+                                          id: registration.user.id,
+                                          firstName:
+                                            registration.user.firstName,
+                                          lastName: registration.user.lastName,
+                                          name: registration.user.name,
+                                          email: registration.user.email,
+                                          phone: registration.user.phone,
+                                          parentPhone:
+                                            registration.user.parentPhone,
+                                          yeshiva: registration.user.yeshiva,
+                                          accountType:
+                                            registration.user.accountType,
+                                          role: registration.user.role,
+                                        }}
+                                      />
+                                    ) : (
+                                      "Sans compte"
+                                    )}
                                   </TableCell>
                                   <TableCell>
                                     <StatusBadge
@@ -248,7 +261,7 @@ export default async function AdminEventsPage() {
                                         ))}
                                       </NativeSelect>
                                       <Button size="sm" type="submit">
-                                        OK
+                                        Enregistrer
                                       </Button>
                                     </form>
                                   </TableCell>

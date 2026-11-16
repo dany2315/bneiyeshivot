@@ -18,6 +18,8 @@ import {
   UserRole,
 } from "@prisma/client";
 import {
+  formatDonationFrequency,
+  formatMoney,
   getStripe,
   nextReceiptNumber,
   readDonationAmount,
@@ -1955,4 +1957,162 @@ export async function refundDonation(formData: FormData) {
   });
 
   revalidatePath("/admin/dons");
+}
+
+const userActivityRequestTypeLabels: Record<ServiceRequestType, string> = {
+  VISA_STUDENT: "Visa étudiant",
+  KOUPAT_HOLIM: "Koupat Holim",
+  GENERAL_CONTACT: "Contact",
+};
+
+const eventRegistrationStatusLabels: Record<EventRegistrationStatus, string> = {
+  SUBMITTED: "Demande reçue",
+  CONFIRMED: "Confirmée",
+  WAITLISTED: "Liste d’attente",
+  CANCELED: "Annulée",
+};
+
+const donationStatusLabels: Record<PaymentStatus, string> = {
+  PENDING: "En attente",
+  PAID: "Payé",
+  FAILED: "Échoué",
+  REFUNDED: "Remboursé",
+  PARTIALLY_REFUNDED: "Partiellement remboursé",
+  CANCELED: "Annulé",
+};
+
+export type UserActivity = {
+  requests: Array<{ id: string; label: string; status: string; date: string }>;
+  donations: Array<{
+    id: string;
+    amount: string;
+    status: string;
+    frequency: string;
+    date: string;
+  }>;
+  registrations: Array<{
+    id: string;
+    event: string;
+    status: string;
+    date: string;
+  }>;
+};
+
+export async function getUserActivity(userId: string): Promise<UserActivity> {
+  await requireAdminUser();
+
+  const [requests, donations, registrations] = await Promise.all([
+    prisma.serviceRequest.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.donation.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.eventRegistration.findMany({
+      where: { userId },
+      include: { event: { select: { title: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  const dateFormatter = new Intl.DateTimeFormat("fr-FR");
+
+  return {
+    requests: requests.map((request) => ({
+      id: request.id,
+      label: userActivityRequestTypeLabels[request.type],
+      status: serviceRequestStatusLabels[request.status],
+      date: dateFormatter.format(request.createdAt),
+    })),
+    donations: donations.map((donation) => ({
+      id: donation.id,
+      amount: formatMoney(donation.amountCents, donation.currency),
+      status: donationStatusLabels[donation.status],
+      frequency: formatDonationFrequency(
+        donation.frequency,
+        donation.recurringMonths,
+      ),
+      date: dateFormatter.format(donation.createdAt),
+    })),
+    registrations: registrations.map((registration) => ({
+      id: registration.id,
+      event: registration.event.title,
+      status: eventRegistrationStatusLabels[registration.status],
+      date: dateFormatter.format(registration.createdAt),
+    })),
+  };
+}
+
+export async function updateUserDetails(formData: FormData) {
+  const admin = await requireAdminUser();
+  const userId = readString(formData, "userId");
+
+  if (!userId) {
+    throw new Error("Utilisateur invalide.");
+  }
+
+  const firstName = readString(formData, "firstName") || null;
+  const lastName = readString(formData, "lastName") || null;
+  const phone = readString(formData, "phone") || null;
+  const parentPhone = readString(formData, "parentPhone") || null;
+  const yeshiva = readString(formData, "yeshiva") || null;
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { firstName, lastName, phone, parentPhone, yeshiva },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "user.updated",
+      entity: "User",
+      entityId: userId,
+    },
+  });
+
+  revalidatePath("/admin/utilisateurs");
+  revalidatePath("/admin/evenements");
+}
+
+export async function deleteUser(formData: FormData) {
+  const admin = await requireAdminUser();
+  const userId = readString(formData, "userId");
+
+  if (!userId) {
+    throw new Error("Utilisateur invalide.");
+  }
+
+  if (userId === admin.id) {
+    throw new Error("Vous ne pouvez pas supprimer votre propre compte.");
+  }
+
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!target) {
+    throw new Error("Utilisateur introuvable.");
+  }
+
+  if (target.role === UserRole.SUPER_ADMIN) {
+    throw new Error("Un super administrateur ne peut pas être supprimé.");
+  }
+
+  await prisma.user.delete({ where: { id: userId } });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      action: "user.deleted",
+      entity: "User",
+      entityId: userId,
+    },
+  });
+
+  revalidatePath("/admin/utilisateurs");
+  revalidatePath("/admin/evenements");
 }
