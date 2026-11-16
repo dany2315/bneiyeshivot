@@ -194,7 +194,8 @@ export default async function AdminEventsPage() {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>Bahour</TableHead>
+                                <TableHead>Participant</TableHead>
+                                <TableHead>Type</TableHead>
                                 <TableHead>Statut</TableHead>
                                 <TableHead>Action</TableHead>
                               </TableRow>
@@ -223,6 +224,25 @@ export default async function AdminEventsPage() {
                                       />
                                     ) : (
                                       "Sans compte"
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    {registration.user ? (
+                                      <StatusBadge
+                                        tone={
+                                          registration.user.accountType ===
+                                          "YESHIVA"
+                                            ? "gold"
+                                            : "green"
+                                        }
+                                      >
+                                        {registration.user.accountType ===
+                                        "YESHIVA"
+                                          ? "Yeshiva"
+                                          : "Bahour"}
+                                      </StatusBadge>
+                                    ) : (
+                                      "-"
                                     )}
                                   </TableCell>
                                   <TableCell>

@@ -45,6 +45,7 @@ export function OtpLoginCard({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
   const [accountType, setAccountType] = useState<"BAHOUR" | "YESHIVA">("BAHOUR");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"email" | "otp">("email");
@@ -180,6 +181,10 @@ export function OtpLoginCard({
         firstName: mode === "register" ? firstName : undefined,
         lastName: mode === "register" ? lastName : undefined,
         phone: mode === "register" ? phone : undefined,
+        parentPhone:
+          mode === "register" && accountType === "BAHOUR"
+            ? parentPhone
+            : undefined,
         accountType: mode === "register" ? accountType : undefined,
       }),
     });
@@ -302,6 +307,24 @@ export function OtpLoginCard({
                 onValueChange={setPhone}
                 required
               />
+            )}
+            {mode === "register" && accountType === "BAHOUR" && (
+              <div className="grid gap-1.5">
+                <Label
+                  className="text-sm font-semibold text-[var(--primary)]"
+                  htmlFor="register-parent-phone"
+                >
+                  Téléphone des parents
+                </Label>
+                <PhoneInputGroup
+                  autoComplete="tel"
+                  defaultValue={parentPhone}
+                  id="register-parent-phone"
+                  name="parentPhone"
+                  onValueChange={setParentPhone}
+                  required
+                />
+              </div>
             )}
             <Button disabled={state.status === "loading"} type="submit">
               Recevoir mon code
