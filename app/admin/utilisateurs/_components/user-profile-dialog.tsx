@@ -20,6 +20,17 @@ import {
   type UserActivity,
 } from "../../actions";
 import { StatusBadge } from "@/app/components";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -111,7 +122,6 @@ export function UserProfileDialog({
   const [loadingActivity, setLoadingActivity] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const displayName = userDisplayName(user);
@@ -133,7 +143,6 @@ export function UserProfileDialog({
     setOpen(next);
     if (next) {
       setEditMode(false);
-      setConfirmDelete(false);
       if (!activity && !loadingActivity) {
         void loadActivity();
       }
@@ -396,45 +405,50 @@ export function UserProfileDialog({
             <span />
           )}
 
-          {confirmDelete ? (
-            <form action={handleDelete} className="flex items-center gap-2">
-              <input name="userId" type="hidden" value={user.id} />
-              <span className="text-sm font-medium text-red-700">
-                Confirmer ?
-              </span>
-              <Button
-                disabled={isDeleting}
-                size="sm"
-                type="submit"
-                variant="destructive"
-              >
-                {isDeleting ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  className="text-red-700 hover:bg-red-50 hover:text-red-800"
+                  size="sm"
+                  variant="ghost"
+                >
                   <Trash2 className="size-4" />
-                )}
-                Supprimer définitivement
-              </Button>
-              <Button
-                onClick={() => setConfirmDelete(false)}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                Annuler
-              </Button>
-            </form>
-          ) : (
-            <Button
-              className="text-red-700 hover:bg-red-50 hover:text-red-800"
-              onClick={() => setConfirmDelete(true)}
-              size="sm"
-              variant="ghost"
-            >
-              <Trash2 className="size-4" />
-              Supprimer
-            </Button>
-          )}
+                  Supprimer
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Supprimer {displayName} ?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Action irréversible. Le compte et ses accès seront
+                  définitivement supprimés. Ses dons, demandes et inscriptions
+                  sont conservés mais ne seront plus rattachés à ce compte.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <form action={handleDelete}>
+                  <input name="userId" type="hidden" value={user.id} />
+                  <AlertDialogAction
+                    disabled={isDeleting}
+                    type="submit"
+                    variant="destructive"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="size-4" />
+                    )}
+                    Supprimer définitivement
+                  </AlertDialogAction>
+                </form>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <DialogClose
