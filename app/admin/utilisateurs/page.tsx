@@ -1,6 +1,7 @@
 import { UserAccountType, UserRole } from "@prisma/client";
 import { AdminShell } from "@/components/admin-sidebar";
 import { UsersExportDropdown } from "./_components/users-export-dropdown";
+import { UserProfileDialog } from "./_components/user-profile-dialog";
 import { StatusBadge } from "@/app/components";
 import { requireAdminUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -30,14 +31,6 @@ const roleLabels: Record<UserRole, string> = {
   ADMIN: "Admin",
   SUPER_ADMIN: "Super admin",
 };
-
-function userName(user: {
-  firstName: string | null;
-  lastName: string | null;
-  name: string;
-}) {
-  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name || "Sans nom";
-}
 
 function roleTone(role: UserRole) {
   if (role === UserRole.SUPER_ADMIN) return "gold";
@@ -158,7 +151,20 @@ export default async function AdminUsersPage({
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="grid gap-1">
-                      <strong>{userName(user)}</strong>
+                      <UserProfileDialog
+                        user={{
+                          id: user.id,
+                          firstName: user.firstName,
+                          lastName: user.lastName,
+                          name: user.name,
+                          email: user.email,
+                          phone: user.phone,
+                          parentPhone: user.parentPhone,
+                          yeshiva: user.yeshiva,
+                          accountType: user.accountType,
+                          role: user.role,
+                        }}
+                      />
                       <span className="text-sm text-[var(--muted)]">
                         {user.email}
                       </span>
